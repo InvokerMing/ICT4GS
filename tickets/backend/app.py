@@ -16,7 +16,7 @@ DATABASE_URL = os.getenv('DATABASE_URL', None)
 # --- 全局常量 (Global Constants) ---
 TICKET_TYPES = {
     "full": {"name": "全价票", "multiplier": 1.0},
-    "discount": {"name": "优惠票", "multiplier": 0.5}, # Example: 50% discount
+    "discount": {"name": "优惠票", "multiplier": 0.5}, 
     "free": {"name": "免费票", "multiplier": 0.0}
 }
 
@@ -44,7 +44,7 @@ else:
 
 # --- Flask 应用设置 (Flask App Setup) ---
 app = Flask(__name__)
-CORS(app) # Allow all origins for development
+CORS(app)
 
 # --- 邮件发送占位符 (Placeholder for Email Sending) ---
 def send_purchase_email(order_details):

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>梭罗市景点票务 - 管理后台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        input[type="text"] {
+             padding: 0.5rem; border: 1px solid #cbd5e0; border-radius: 0.375rem;
+             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+         input:focus { outline: none; border-color: #63b3ed; box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.3); }
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #4299e1; animation: spin 1s ease infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .detail-label { font-weight: 600; color: #4a5568; /* text-gray-700 */ }
+        .detail-value { color: #2d3748; /* text-gray-800 */ }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+
+    <div class="container mx-auto max-w-4xl bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">票务管理后台</h1>
+
+        <div class="mb-10 p-4 border rounded-lg bg-gray-50">
+            <h2 class="text-2xl font-semibold text-center mb-4">销售统计</h2>
+            <div class="flex justify-center mb-4">
+                 <button id="fetch-stats-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                     获取最新统计 <span id="stats-spinner" class="spinner hidden"></span>
+                 </button>
+            </div>
+            <div id="stats-result" class="bg-white p-4 rounded-md text-center min-h-[5em] border">
+                点击按钮查看统计数据。
+            </div>
+             <div id="stats-error" class="text-center text-red-600 font-medium mt-2 hidden"></div>
+        </div>
+
+        <div class="p-4 border rounded-lg bg-gray-50">
+            <h2 class="text-2xl font-semibold text-center mb-4">订单查询</h2>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
+                <label for="order-id-input" class="font-medium mb-1 sm:mb-0">输入订单号:</label>
+                <input type="text" id="order-id-input" placeholder="粘贴订单号..." class="border rounded px-2 py-1 w-full sm:w-auto flex-grow">
+                <button id="search-order-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-1.5 rounded-lg shadow transition duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                    查询 <span id="search-spinner" class="spinner hidden"></span>
+                </button>
+            </div>
+            <div id="order-details" class="bg-white p-4 rounded-md text-left border min-h-[5em] hidden">
+                </div>
+             <div id="order-search-error" class="text-center text-red-600 font-medium mt-2 hidden"></div>
+             <div id="order-not-found" class="text-center text-gray-500 font-medium mt-2 hidden">未找到该订单。</div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000/api';
+
+        // DOM Elements
+        const fetchStatsBtn = document.getElementById('fetch-stats-btn');
+        const statsResultDiv = document.getElementById('stats-result');
+        const statsErrorDiv = document.getElementById('stats-error');
+        const statsSpinner = document.getElementById('stats-spinner');
+
+        const orderIdInput = document.getElementById('order-id-input');
+        const searchOrderBtn = document.getElementById('search-order-btn');
+        const orderDetailsDiv = document.getElementById('order-details');
+        const orderSearchErrorDiv = document.getElementById('order-search-error');
+        const orderNotFoundDiv = document.getElementById('order-not-found');
+        const searchSpinner = document.getElementById('search-spinner');
+
+
+        // --- Helper Functions ---
+        function showError(msg, target) {
+            target.textContent = msg;
+            target.classList.remove('hidden');
+            // Optionally hide other messages/results
+        }
+
+        function clearErrors() {
+            statsErrorDiv.classList.add('hidden');
+            statsErrorDiv.textContent = '';
+            orderSearchErrorDiv.classList.add('hidden');
+            orderSearchErrorDiv.textContent = '';
+            orderNotFoundDiv.classList.add('hidden');
+        }
+
+        function setLoadingState(button, spinner, isLoading) {
+             button.disabled = isLoading;
+             if (isLoading) {
+                 spinner.classList.remove('hidden');
+             } else {
+                 spinner.classList.add('hidden');
+             }
+        }
+
+        // --- Statistics ---
+        async function fetchStats() {
+            clearErrors();
+            statsResultDiv.textContent = '正在获取统计数据...';
+            statsResultDiv.classList.remove('hidden'); // Show loading text
+            setLoadingState(fetchStatsBtn, statsSpinner, true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/stats`);
+                const stats = await response.json();
+
+                if (!response.ok) {
+                     throw new Error(stats.message || `HTTP error! status: ${response.status}`);
+                }
+
+                // Format and display stats
+                let statsHtml = `<p class="mb-2">总售票数: <span class="font-bold">${stats.total_tickets}</span></p>`;
+                if (stats.tickets_by_attraction && stats.tickets_by_attraction.length > 0) {
+                    statsHtml += '<h3 class="text-lg font-semibold mt-3 mb-2">各景点售票数:</h3>';
+                    statsHtml += '<ul class="list-disc list-inside text-left max-w-md mx-auto">';
+                    stats.tickets_by_attraction.forEach(item => {
+                         statsHtml += `<li>${item.name} (ID: ${item.id}): <span class="font-bold">${item.count}</span></li>`;
+                    });
+                    statsHtml += '</ul>';
+                } else {
+                     statsHtml += '<p class="text-gray-500 mt-3">暂无各景点销售数据。</p>';
+                }
+                statsResultDiv.innerHTML = statsHtml;
+
+            } catch (error) {
+                console.error('Failed to fetch statistics:', error);
+                showError(`Failed to fetch statistics: ${error.message}`, statsErrorDiv);
+                statsResultDiv.textContent = '无法加载统计数据。'; // Clear loading text
+            } finally {
+                 setLoadingState(fetchStatsBtn, statsSpinner, false);
+            }
+        }
+
+        // --- Order Search ---
+        async function searchOrder() {
+            clearErrors();
+            orderDetailsDiv.classList.add('hidden'); // Hide previous details
+            orderNotFoundDiv.classList.add('hidden');
+            const orderId = orderIdInput.value.trim();
+
+            if (!orderId) {
+                showError('Please enter an Order ID.', orderSearchErrorDiv);
+                orderIdInput.focus();
+                return;
+            }
+
+            setLoadingState(searchOrderBtn, searchSpinner, true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders/${orderId}`);
+                const orderData = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                         orderNotFoundDiv.classList.remove('hidden');
+                    } else {
+                        throw new Error(orderData.message || `HTTP error! status: ${response.status}`);
+                    }
+                } else {
+                    // Display order details
+                    displayOrderDetails(orderData);
+                    orderDetailsDiv.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Failed to search order:', error);
+                showError(`Failed to search order: ${error.message}`, orderSearchErrorDiv);
+            } finally {
+                 setLoadingState(searchOrderBtn, searchSpinner, false);
+            }
+        }
+
+        function displayOrderDetails(order) {
+            let detailsHtml = `<h3 class="text-xl font-semibold mb-3 border-b pb-2">订单详情 (ID: ${order.order_id})</h3>`;
+            detailsHtml += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mb-4">`; // Grid layout
+            detailsHtml += `<div><span class="detail-label">客户姓名:</span> <span class="detail-value">${order.customer_name || 'N/A'}</span></div>`;
+            detailsHtml += `<div><span class="detail-label">客户邮箱:</span> <span class="detail-value">${order.customer_email || 'N/A'}</span></div>`;
+            detailsHtml += `<div><span class="detail-label">计划使用日期:</span> <span class="detail-value">${order.usage_date || 'N/A'}</span></div>`;
+            detailsHtml += `<div><span class="detail-label">购买时间:</span> <span class="detail-value">${formatDateTime(order.purchase_time)}</span></div>`;
+            detailsHtml += `<div><span class="detail-label">订单状态:</span> <span class="detail-value">${order.status || 'N/A'}</span></div>`;
+            detailsHtml += `<div><span class="detail-label">总金额:</span> <span class="detail-value font-bold">Rp ${order.total_amount.toLocaleString('id-ID')}</span></div>`;
+            detailsHtml += `</div>`;
+
+
+            if (order.items && order.items.length > 0) {
+                detailsHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 border-t pt-2">订单项目:</h4>`;
+                detailsHtml += `<ul class="list-disc list-inside space-y-1">`;
+                order.items.forEach(item => {
+                    detailsHtml += `<li>
+                        ${item.quantity} x ${item.attraction_name || item.attraction_id}
+                        (${item.ticket_type_name || item.ticket_type})
+                        @ Rp ${item.price_per_ticket.toLocaleString('id-ID')} each
+                    </li>`;
+                });
+                detailsHtml += `</ul>`;
+            } else {
+                 detailsHtml += `<p class="mt-3 text-gray-500">此订单没有项目。</p>`;
+            }
+
+            orderDetailsDiv.innerHTML = detailsHtml;
+        }
+
+        function formatDateTime(isoString) {
+            if (!isoString) return 'N/A';
+            try {
+                 const date = new Date(isoString);
+                 return date.toLocaleString('zh-CN', { dateStyle: 'medium', timeStyle: 'short'}); // Adjust locale/format as needed
+            } catch (e) {
+                 return isoString; // Fallback to original string if parsing fails
+            }
+        }
+
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStatsBtn.addEventListener('click', fetchStats);
+            searchOrderBtn.addEventListener('click', searchOrder);
+            // Optional: Allow search on pressing Enter in the input field
+            orderIdInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    searchOrder();
+                }
+            });
+        });
+
+    </script>
+
+</body>
+</html>
+

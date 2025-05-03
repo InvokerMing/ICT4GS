@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solo City Attractions - Online Ticketing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .card { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        label { display: block; margin-bottom: 0.25rem; font-weight: 500; color: #4a5568; /* text-gray-700 */ }
+        .input-field { /* Common style for inputs/select */
+            width: 100%; padding: 0.5rem; border: 1px solid #cbd5e0; /* border-gray-300 */ border-radius: 0.375rem; /* rounded-md */
+            margin-bottom: 0.75rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .input-field:focus { outline: none; border-color: #63b3ed; /* focus:border-blue-400 */ box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.3); /* focus:ring-blue-300 focus:ring-opacity-50 */ }
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #4299e1; /* blue-500 */ animation: spin 1s ease infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 400px; border-radius: 8px; text-align: center; position: relative; }
+        .close-button { color: #aaa; position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; }
+        #qrcode { margin: 15px auto; width: 200px; height: 200px; }
+        #qrcode img { display: block; margin: auto; }
+        /* Tooltip Styles */
+        .tooltip-trigger {
+            display: inline-block;
+            margin-left: 5px;
+            cursor: pointer;
+            color: #667eea; /* indigo-500 */
+            border: 1px solid #cbd5e0;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            position: relative; /* Needed for tooltip positioning */
+        }
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #2d3748; /* gray-800 */
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 135%; /* Position above the trigger */
+            left: 50%;
+            margin-left: -110px; /* Center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 13px;
+            line-height: 1.4;
+            pointer-events: none; /* Allow clicking through */
+        }
+        .tooltip-text::after { /* Tooltip arrow */
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #2d3748 transparent transparent transparent;
+        }
+        /* Show tooltip on hover/focus/active */
+         .tooltip-trigger:hover .tooltip-text,
+         .tooltip-trigger:focus .tooltip-text, /* For keyboard nav */
+         .tooltip-trigger.active .tooltip-text /* For touch toggle */
+         {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto; /* Allow interaction if needed */
+        }
+        /* Language switcher style */
+        .lang-switcher button {
+            padding: 4px 8px; margin: 0 3px; border: 1px solid #ccc; border-radius: 4px; background-color: #f0f0f0; cursor: pointer;
+        }
+        .lang-switcher button.active {
+            background-color: #4299e1; color: white; border-color: #4299e1;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+
+    <div class="lang-switcher text-right mb-4 mr-2">
+        <button id="lang-en" onclick="setLanguage('en')">English</button>
+        <button id="lang-zh" onclick="setLanguage('zh')">中文</button>
+    </div>
+
+    <div class="container mx-auto max-w-6xl bg-white p-6 rounded-lg shadow-md">
+        <h1 id="main-title" class="text-3xl font-bold text-center text-gray-800 mb-8">Solo City Attractions - Online Ticketing</h1>
+
+        <div id="attractions-loading" class="text-center py-10">
+             <div class="spinner"></div>
+             <p id="loading-text" class="text-gray-500">Loading attraction information...</p>
+        </div>
+        <div id="attractions" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 hidden">
+            </div>
+        <div id="attractions-error" class="text-center text-red-600 font-medium mb-4 hidden"></div>
+
+        <div id="message" class="text-center text-green-600 font-medium mb-4 min-h-[1.5em]"></div>
+        <div id="error-message" class="text-center text-red-600 font-medium mb-4 min-h-[1.5em]"></div>
+
+    </div>
+
+    <div id="successModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">&times;</span>
+        <h2 id="modal-title" class="text-2xl font-semibold mb-4 text-green-600">Purchase Successful!</h2>
+        <p id="modal-order-label" class="mb-2">Your Order ID is:</p>
+        <p id="modalOrderId" class="text-xl font-bold mb-4"></p>
+        <p id="modal-qr-label" class="mb-3">Please use the QR code below for entry:</p>
+        <div id="qrcode"></div>
+        <p id="modal-email-info" class="text-sm text-gray-500 mt-4">Details have been sent to your email (simulation).</p>
+      </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000/api';
+
+        // --- Translations ---
+        const translations = {
+            en: {
+                title: "Solo City Attractions - Online Ticketing",
+                mainTitle: "Solo City Attractions Online Ticketing",
+                loadingText: "Loading attraction information...",
+                noAttractions: "No attractions available for booking currently.",
+                loadError: "Failed to load attractions:",
+                basePriceLabel: "Base Price:",
+                pricePending: "Free or Price TBD",
+                noDesc: "No detailed description available.",
+                ticketTypeLabel: "Ticket Type:",
+                ticketTypeFull: "Full Price Ticket",
+                ticketTypeDiscount: "Discount Ticket (50%)",
+                ticketTypeFree: "Free Ticket",
+                quantityLabel: "Quantity:",
+                nameLabel: "Name", // Will be numbered e.g., Name 1
+                emailLabel: "Email:",
+                usageDateLabel: "Usage Date:",
+                totalPriceLabel: "Estimated Total:",
+                purchaseButton: "Purchase Now",
+                purchaseButtonLoading: "Processing...",
+                fillFieldsError: "Please fill in all required fields for",
+                quantityError: "Quantity must be at least 1 for",
+                purchaseSuccess: "Purchase successful! Order ID:",
+                purchaseFail: "Purchase failed:",
+                modalTitle: "Purchase Successful!",
+                modalOrderLabel: "Your Order ID is:",
+                modalQrLabel: "Please use the QR code below for entry:",
+                modalEmailInfo: "Details have been sent to your email (simulation).",
+                tooltipDiscount: "Eligible: Students, Seniors (60+), Children (under 12). Proof may be required.",
+                tooltipFree: "Eligible: Infants (under 2), Specific promotions. Check details.",
+                // Add other UI elements if needed
+            },
+            zh: {
+                title: "梭罗市景点票务 - 在线购票",
+                mainTitle: "梭罗市景点在线票务",
+                loadingText: "正在加载景点信息...",
+                noAttractions: "暂无可售票的景点。",
+                loadError: "加载景点列表失败:",
+                basePriceLabel: "基础价格:",
+                pricePending: "免费或价格待定",
+                noDesc: "暂无详细描述。",
+                ticketTypeLabel: "票种:",
+                ticketTypeFull: "全价票",
+                ticketTypeDiscount: "优惠票 (50%)",
+                ticketTypeFree: "免费票",
+                quantityLabel: "数量:",
+                nameLabel: "姓名", // 会被编号，例如 姓名 1
+                emailLabel: "邮箱:",
+                usageDateLabel: "使用日期:",
+                totalPriceLabel: "预计总价:",
+                purchaseButton: "立即购买",
+                purchaseButtonLoading: "处理中...",
+                fillFieldsError: "请填写所有必填项:",
+                quantityError: "数量必须至少为 1:",
+                purchaseSuccess: "购买成功！订单号:",
+                purchaseFail: "购买失败:",
+                modalTitle: "购买成功!",
+                modalOrderLabel: "您的订单号是:",
+                modalQrLabel: "请使用下方二维码入场:",
+                modalEmailInfo: "详细信息已发送至您的邮箱 (模拟)。",
+                tooltipDiscount: "适用人群：学生、老年人（60岁以上）、儿童（12岁以下）。可能需要证件。",
+                tooltipFree: "适用人群：婴幼儿（2岁以下）、特定活动。请查看详情。",
+                // 添加其他UI元素
+            }
+        };
+        let currentLang = 'en'; // Default language
+
+        // --- DOM Elements ---
+        const attractionsContainer = document.getElementById('attractions');
+        const attractionsLoadingDiv = document.getElementById('attractions-loading');
+        const attractionsErrorDiv = document.getElementById('attractions-error');
+        const messageDiv = document.getElementById('message');
+        const errorMessageDiv = document.getElementById('error-message');
+        const successModal = document.getElementById('successModal');
+        const modalOrderId = document.getElementById('modalOrderId');
+        const qrCodeContainer = document.getElementById('qrcode');
+        // Language specific elements
+        const pageTitle = document.querySelector('title');
+        const mainTitle = document.getElementById('main-title');
+        const loadingText = document.getElementById('loading-text');
+        const modalTitle = document.getElementById('modal-title');
+        const modalOrderLabel = document.getElementById('modal-order-label');
+        const modalQrLabel = document.getElementById('modal-qr-label');
+        const modalEmailInfo = document.getElementById('modal-email-info');
+        const langEnBtn = document.getElementById('lang-en');
+        const langZhBtn = document.getElementById('lang-zh');
+
+
+        let attractionsData = [];
+
+        // --- Helper Functions ---
+        function showMessage(msg) {
+            clearMessages();
+            messageDiv.textContent = msg;
+            setTimeout(clearMessages, 5000);
+        }
+
+        function showError(msg, target = errorMessageDiv) {
+            clearMessages();
+            target.textContent = msg;
+            target.classList.remove('hidden');
+            setTimeout(() => clearMessages(target), 7000);
+        }
+
+        function clearMessages(target = null) {
+            if (target) {
+                 target.textContent = '';
+                 target.classList.add('hidden');
+            } else {
+                messageDiv.textContent = '';
+                errorMessageDiv.textContent = '';
+                errorMessageDiv.classList.add('hidden');
+                attractionsErrorDiv.textContent = '';
+                attractionsErrorDiv.classList.add('hidden');
+            }
+        }
+
+        function setLoadingState(button, isLoading, loadingTextKey = 'purchaseButtonLoading') {
+             if (button) {
+                button.disabled = isLoading;
+                if (isLoading) {
+                    button.dataset.originalText = button.textContent;
+                    button.textContent = translations[currentLang][loadingTextKey];
+                } else if (button.dataset.originalText) {
+                    button.textContent = button.dataset.originalText;
+                }
+             }
+        }
+
+        function openModal(orderId, qrData) {
+            modalOrderId.textContent = orderId;
+            qrCodeContainer.innerHTML = '';
+            new QRCode(qrCodeContainer, {
+                text: qrData, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
+            });
+            successModal.style.display = "block";
+        }
+
+        function closeModal() {
+            successModal.style.display = "none";
+            qrCodeContainer.innerHTML = '';
+        }
+
+        window.onclick = function(event) {
+          if (event.target == successModal) { closeModal(); }
+        }
+
+        // --- Language Function ---
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('preferredLang', lang); // Store preference
+            document.documentElement.lang = lang; // Update html lang attribute
+
+            // Update static text elements
+            pageTitle.textContent = translations[lang].title;
+            mainTitle.textContent = translations[lang].mainTitle;
+            loadingText.textContent = translations[lang].loadingText;
+            modalTitle.textContent = translations[lang].modalTitle;
+            modalOrderLabel.textContent = translations[lang].modalOrderLabel;
+            modalQrLabel.textContent = translations[lang].modalQrLabel;
+            modalEmailInfo.textContent = translations[lang].modalEmailInfo;
+
+            // Update language button styles
+            langEnBtn.classList.toggle('active', lang === 'en');
+            langZhBtn.classList.toggle('active', lang === 'zh');
+
+            // Reload attractions to update dynamic text within cards
+            loadAttractions();
+        }
+
+        // --- Core Functions ---
+
+        async function loadAttractions() {
+            attractionsLoadingDiv.classList.remove('hidden');
+            attractionsContainer.classList.add('hidden');
+            attractionsErrorDiv.classList.add('hidden');
+            loadingText.textContent = translations[currentLang].loadingText; // Update loading text
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/attractions`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Failed to load attractions (HTTP ${response.status})`);
+                }
+                attractionsData = await response.json();
+
+                attractionsContainer.innerHTML = '';
+                if (attractionsData.length === 0) {
+                     attractionsContainer.innerHTML = `<p class="text-center text-gray-500 col-span-1 md:col-span-2 lg:col-span-3">${translations[currentLang].noAttractions}</p>`;
+                } else {
+                    attractionsData.forEach(attraction => {
+                        const card = createAttractionCard(attraction);
+                        attractionsContainer.appendChild(card);
+                        // Initial update for name fields and price display based on default quantity (1)
+                        updateNameFields(attraction.attraction_id, 1);
+                        updateDisplayPrice(attraction.attraction_id, parseFloat(attraction.price || 0));
+                    });
+                }
+                 attractionsContainer.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Failed to load attractions:', error);
+                const errorPrefix = translations[currentLang].loadError;
+                showError(`${errorPrefix} ${error.message}`, attractionsErrorDiv);
+            } finally {
+                attractionsLoadingDiv.classList.add('hidden');
+            }
+        }
+
+         function createAttractionCard(attraction) {
+            const card = document.createElement('div');
+            card.className = 'p-5 border rounded-lg shadow bg-white card flex flex-col';
+
+            const basePrice = parseFloat(attraction.price || 0);
+            const priceFormatted = basePrice > 0 ? `Rp ${basePrice.toLocaleString('id-ID')}` : translations[currentLang].pricePending;
+            const descriptionText = attraction.description || translations[currentLang].noDesc;
+            const formId = `form-${attraction.attraction_id}`;
+            const nameFieldsContainerId = `name-fields-${attraction.attraction_id}`;
+            const quantityId = `quantity-${attraction.attraction_id}`;
+            const ticketTypeId = `ticket_type-${attraction.attraction_id}`;
+            const totalPriceDisplayId = `total_price_display-${attraction.attraction_id}`;
+
+            // Tooltip text based on language
+            const tooltipDiscountText = translations[currentLang].tooltipDiscount;
+            const tooltipFreeText = translations[currentLang].tooltipFree; // Assuming free might also need explanation
+
+            card.innerHTML = `
+                <div class="flex-grow">
+                    <h2 class="text-xl font-semibold mb-2 text-gray-800">${attraction.name}</h2>
+                    <p class="text-gray-600 mb-3 text-sm">${descriptionText}</p>
+                    <p class="text-lg font-bold text-blue-600 mb-4"><span class="base-price-label">${translations[currentLang].basePriceLabel}</span> ${priceFormatted}</p>
+                </div>
+                <form id="${formId}" onsubmit="handlePurchase(event, '${attraction.attraction_id}')" class="mt-auto">
+                     <div>
+                        <label for="${ticketTypeId}">
+                            ${translations[currentLang].ticketTypeLabel}
+                            <span class="tooltip-trigger" tabindex="0" onclick="toggleTooltip(this)" onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)" onfocus="showTooltip(this)" onblur="hideTooltip(this)">?
+                                <span class="tooltip-text">
+                                    <b>${translations[currentLang].ticketTypeDiscount}:</b> ${tooltipDiscountText}<br><br>
+                                    <b>${translations[currentLang].ticketTypeFree}:</b> ${tooltipFreeText}
+                                </span>
+                            </span>
+                        </label>
+                        <select id="${ticketTypeId}" name="ticket_type" required class="input-field" onchange="updateDisplayPrice('${attraction.attraction_id}', ${basePrice})">
+                            <option value="full">${translations[currentLang].ticketTypeFull}</option>
+                            <option value="discount">${translations[currentLang].ticketTypeDiscount}</option>
+                            <option value="free">${translations[currentLang].ticketTypeFree}</option>
+                        </select>
+
+                        <label for="${quantityId}">${translations[currentLang].quantityLabel}</label>
+                        <input type="number" id="${quantityId}" name="quantity" value="1" min="1" max="10" required class="input-field" oninput="handleQuantityChange('${attraction.attraction_id}', ${basePrice})">
+
+                        <div id="${nameFieldsContainerId}" class="space-y-2 mb-3">
+                            </div>
+
+                        <label for="customer_email-${attraction.attraction_id}">${translations[currentLang].emailLabel}</label>
+                        <input type="email" id="customer_email-${attraction.attraction_id}" name="customer_email" required class="input-field">
+
+                        <label for="usage_date-${attraction.attraction_id}">${translations[currentLang].usageDateLabel}</label>
+                        <input type="date" id="usage_date-${attraction.attraction_id}" name="usage_date" required min="${new Date().toISOString().split('T')[0]}" class="input-field">
+
+                        <p class="text-right font-semibold my-2"><span class="total-price-label">${translations[currentLang].totalPriceLabel}</span> <span id="${totalPriceDisplayId}">Rp ${basePrice.toLocaleString('id-ID')}</span></p>
+
+                        <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow transition duration-300 purchase-button">
+                            ${translations[currentLang].purchaseButton}
+                        </button>
+                    </div>
+                </form>
+            `;
+            return card;
+        }
+
+        // --- Dynamic Name Fields ---
+        function handleQuantityChange(attractionId, basePrice) {
+            const quantityInput = document.getElementById(`quantity-${attractionId}`);
+            let quantity = parseInt(quantityInput.value);
+
+            // Enforce max limit in JS as well (though 'max' attribute helps)
+            if (isNaN(quantity) || quantity < 1) {
+                quantity = 1;
+                quantityInput.value = 1; // Correct invalid input
+            } else if (quantity > 10) {
+                quantity = 10;
+                quantityInput.value = 10; // Enforce max
+            }
+
+            updateNameFields(attractionId, quantity);
+            updateDisplayPrice(attractionId, basePrice);
+        }
+
+        function updateNameFields(attractionId, quantity) {
+            const container = document.getElementById(`name-fields-${attractionId}`);
+            if (!container) return;
+            container.innerHTML = ''; // Clear existing fields
+
+            const nameLabelBase = translations[currentLang].nameLabel;
+
+            for (let i = 1; i <= quantity; i++) {
+                const label = document.createElement('label');
+                label.htmlFor = `customer_name_${i}-${attractionId}`;
+                label.textContent = `${nameLabelBase} ${i}:`; // E.g., "Name 1:", "姓名 1:"
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `customer_name_${i}-${attractionId}`;
+                input.name = `customer_name_${i}`; // Use indexed names
+                input.className = 'input-field';
+                input.required = true;
+
+                container.appendChild(label);
+                container.appendChild(input);
+            }
+        }
+
+        // --- Price Display Update ---
+        function updateDisplayPrice(attractionId, basePrice) {
+             const quantityInput = document.getElementById(`quantity-${attractionId}`);
+             const ticketTypeSelect = document.getElementById(`ticket_type-${attractionId}`);
+             const displaySpan = document.getElementById(`total_price_display-${attractionId}`);
+
+             const quantity = parseInt(quantityInput.value) || 0;
+             const ticketType = ticketTypeSelect.value;
+
+             let multiplier = 1.0;
+             if (ticketType === 'discount') multiplier = 0.5;
+             else if (ticketType === 'free') multiplier = 0.0;
+
+             const totalPrice = basePrice * multiplier * quantity;
+             // Update total price label text as well
+             const totalPriceLabelSpan = displaySpan.previousElementSibling;
+             if(totalPriceLabelSpan) totalPriceLabelSpan.textContent = translations[currentLang].totalPriceLabel;
+
+             displaySpan.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+        }
+
+        // --- Purchase Handling ---
+        async function handlePurchase(event, attractionId) {
+            event.preventDefault();
+            const form = event.target;
+            const purchaseButton = form.querySelector('button[type="submit"]');
+            const quantity = parseInt(form.elements[`quantity-${attractionId}`].value);
+
+            const customerNames = [];
+            let allNamesFilled = true;
+            for (let i = 1; i <= quantity; i++) {
+                const nameInput = form.elements[`customer_name_${i}`];
+                if (nameInput && nameInput.value.trim()) {
+                    customerNames.push(nameInput.value.trim());
+                } else {
+                    allNamesFilled = false;
+                    if(nameInput) nameInput.focus(); // Focus on the first empty name field
+                    break;
+                }
+            }
+
+            if (!allNamesFilled) {
+                 showError(`${translations[currentLang].fillFieldsError} ${attractionId}`);
+                 return;
+            }
+
+            const purchaseData = {
+                attraction_id: attractionId,
+                quantity: quantity,
+                ticket_type: form.elements[`ticket_type-${attractionId}`].value,
+                // IMPORTANT: Backend currently only accepts ONE name. Sending only the first one for now.
+                // Backend needs update to accept 'customer_names': customerNames (array)
+                customer_name: customerNames[0], // Send only the first name
+                customer_email: form.elements[`customer_email-${attractionId}`].value,
+                usage_date: form.elements[`usage_date-${attractionId}`].value
+            };
+
+             // Final client-side validation
+             if (purchaseData.quantity < 1 || purchaseData.quantity > 10) {
+                  showError(`${translations[currentLang].quantityError} ${attractionId}`);
+                  form.elements[`quantity-${attractionId}`].focus();
+                  return;
+             }
+             if (!purchaseData.customer_email || !purchaseData.usage_date || !purchaseData.ticket_type) {
+                  showError(`${translations[currentLang].fillFieldsError} ${attractionId}`);
+                  return;
+             }
+
+
+            clearMessages();
+            setLoadingState(purchaseButton, true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/purchase`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(purchaseData),
+                });
+                const result = await response.json();
+                if (!response.ok) { throw new Error(result.message || `HTTP error! status: ${response.status}`); }
+
+                openModal(result.order_id, result.qr_data);
+                form.reset();
+                // Reset dynamic fields and price after successful purchase
+                updateNameFields(attractionId, 1); // Reset to 1 name field
+                updateDisplayPrice(attractionId, attractionsData.find(a => a.attraction_id === attractionId)?.price || 0);
+
+            } catch (error) {
+                console.error('Purchase request failed:', error);
+                const failPrefix = translations[currentLang].purchaseFail;
+                showError(`${failPrefix} ${error.message}`);
+            } finally {
+                 setLoadingState(purchaseButton, false, 'purchaseButton'); // Use key for original text
+            }
+        }
+
+        // --- Tooltip Functions ---
+        function showTooltip(element) {
+            // No action needed on hover/focus if using CSS :hover/:focus
+            // For JS-based visibility if needed:
+            // const tooltip = element.querySelector('.tooltip-text');
+            // if (tooltip) tooltip.style.visibility = 'visible';
+        }
+        function hideTooltip(element) {
+            // No action needed on hover/focus if using CSS :hover/:focus
+            // For JS-based visibility if needed:
+             // const tooltip = element.querySelector('.tooltip-text');
+             // if (tooltip) tooltip.style.visibility = 'hidden';
+             element.classList.remove('active'); // Ensure active class is removed on mouseleave/blur
+        }
+         function toggleTooltip(element) {
+            // Used for touch/click to toggle visibility via 'active' class
+             element.classList.toggle('active');
+         }
+
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const preferredLang = localStorage.getItem('preferredLang') || 'en'; // Default to English
+            setLanguage(preferredLang);
+            // loadAttractions() is called within setLanguage()
+        });
+
+    </script>
+
+</body>
+</html>

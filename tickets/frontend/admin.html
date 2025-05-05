@@ -1,71 +1,374 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>梭罗市景点票务 - 管理后台</title>
+    <title>Ticketing Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        input[type="text"] {
-             padding: 0.5rem; border: 1px solid #cbd5e0; border-radius: 0.375rem;
-             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        body {
+            font-family: 'Inter', sans-serif;
         }
-         input:focus { outline: none; border-color: #63b3ed; box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.3); }
-        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #4299e1; animation: spin 1s ease infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .detail-label { font-weight: 600; color: #4a5568; /* text-gray-700 */ }
-        .detail-value { color: #2d3748; /* text-gray-800 */ }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 0.375rem;
+            margin-bottom: 0.75rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.3);
+        }
+
+        textarea.input-field {
+            min-height: 80px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #4299e1;
+            animation: spin 1s ease infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .detail-value {
+            color: #2d3748;
+        }
+
+        .admin-view {
+            display: none;
+        }
+
+        .admin-view.active {
+            display: block;
+        }
+
+        .admin-tab {
+            display: none;
+        }
+
+        .admin-tab.active {
+            display: block;
+        }
+
+        .tab-button.active {
+            border-color: #6366f1;
+            color: #4f46e5;
+        }
+
+        /* indigo */
+        .tab-button:not(.active) {
+            border-color: transparent;
+            color: #6b7280;
+        }
+
+        /* gray */
+        .tab-button:not(.active):hover {
+            color: #374151;
+            border-color: #d1d5db;
+        }
+
+        /* darker gray */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f7fafc;
+            font-weight: 600;
+        }
+
+        td button {
+            padding: 2px 6px;
+            font-size: 13px;
+            margin-right: 4px;
+            border-radius: 0.25rem;
+        }
+
+        td button:disabled {
+            background-color: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .stats-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stats-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+
+        .stats-list {
+            list-style: disc;
+            list-style-position: inside;
+            margin-left: 0.5rem;
+        }
+
+        .stats-list li {
+            margin-bottom: 0.25rem;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body class="bg-gray-100 p-4 md:p-8">
 
-    <div class="container mx-auto max-w-4xl bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">票务管理后台</h1>
-
-        <div class="mb-10 p-4 border rounded-lg bg-gray-50">
-            <h2 class="text-2xl font-semibold text-center mb-4">销售统计</h2>
-            <div class="flex justify-center mb-4">
-                 <button id="fetch-stats-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                     获取最新统计 <span id="stats-spinner" class="spinner hidden"></span>
-                 </button>
-            </div>
-            <div id="stats-result" class="bg-white p-4 rounded-md text-center min-h-[5em] border">
-                点击按钮查看统计数据。
-            </div>
-             <div id="stats-error" class="text-center text-red-600 font-medium mt-2 hidden"></div>
-        </div>
-
-        <div class="p-4 border rounded-lg bg-gray-50">
-            <h2 class="text-2xl font-semibold text-center mb-4">订单查询</h2>
-            <div class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
-                <label for="order-id-input" class="font-medium mb-1 sm:mb-0">输入订单号:</label>
-                <input type="text" id="order-id-input" placeholder="粘贴订单号..." class="border rounded px-2 py-1 w-full sm:w-auto flex-grow">
-                <button id="search-order-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-1.5 rounded-lg shadow transition duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
-                    查询 <span id="search-spinner" class="spinner hidden"></span>
-                </button>
-            </div>
-            <div id="order-details" class="bg-white p-4 rounded-md text-left border min-h-[5em] hidden">
+    <div id="login-view" class="admin-view active max-w-md mx-auto mt-10">
+        <div class="bg-white p-8 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold text-center mb-6">Admin Login</h1>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label for="username" class="block text-gray-700">Username:</label>
+                    <input type="text" id="username" name="username" required class="input-field">
                 </div>
-             <div id="order-search-error" class="text-center text-red-600 font-medium mt-2 hidden"></div>
-             <div id="order-not-found" class="text-center text-gray-500 font-medium mt-2 hidden">未找到该订单。</div>
+                <div class="mb-6">
+                    <label for="password" class="block text-gray-700">Password:</label>
+                    <input type="password" id="password" name="password" required class="input-field">
+                </div>
+                <button type="submit" id="login-btn"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50">
+                    Login <span id="login-spinner" class="spinner hidden"></span>
+                </button>
+                <div id="login-error" class="text-red-500 text-center mt-4 text-sm hidden"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-main-view" class="admin-view container mx-auto max-w-6xl">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-800">Ticketing Admin Dashboard</h1>
+            <div>
+                <span id="welcome-user" class="mr-4 text-gray-600"></span>
+                <button onclick="handleLogout()"
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded text-sm">Logout</button>
+            </div>
         </div>
 
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button onclick="showAdminTab('attractions-tab')" id="tab-btn-attractions"
+                        class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm active">Attraction
+                        Management</button>
+                    <button onclick="showAdminTab('stats-tab')" id="tab-btn-stats"
+                        class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Sales
+                        Statistics</button>
+                    <button onclick="showAdminTab('orders-tab')" id="tab-btn-orders"
+                        class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Order
+                        Search</button>
+                </nav>
+            </div>
+
+            <div id="admin-tab-content">
+                <div id="attractions-tab" class="admin-tab active">
+                    <h2 class="text-2xl font-semibold mb-4">Attraction Management</h2>
+                    <div id="admin-attractions-error" class="text-red-600 mb-3 hidden"></div>
+                    <button onclick="toggleAddAttractionForm()"
+                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded mb-4 text-sm">Add New
+                        Attraction</button>
+                    <form id="add-attraction-form" class="hidden mb-6 p-4 border rounded bg-gray-50"
+                        onsubmit="handleAddAttraction(event)">
+                        <h3 class="text-lg font-semibold mb-3">Add New Attraction</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label for="add-attraction-id">Attraction ID:</label><input type="text"
+                                    id="add-attraction-id" name="attraction_id" required
+                                    pattern="[a-z0-9]+(?:-[a-z0-9]+)*" class="input-field" placeholder="e.g., palace-a">
+                            </div>
+                            <div><label for="add-price">Base Price (Rp):</label><input type="number" id="add-price"
+                                    name="price" required min="0" step="100" class="input-field"
+                                    placeholder="e.g., 50000"></div>
+                            <div><label for="add-name-en">Name (English):</label><input type="text" id="add-name-en"
+                                    name="name_en" required class="input-field"></div>
+                            <div><label for="add-name-zh">Name (Chinese):</label><input type="text" id="add-name-zh"
+                                    name="name_zh" required class="input-field"></div>
+                            <div class="md:col-span-2"><label for="add-image-url">Image URL:</label><input type="url"
+                                    id="add-image-url" name="image_url" class="input-field" placeholder="https://...">
+                            </div>
+                            <div class="md:col-span-2"><label for="add-desc-en">Description (English):</label><textarea
+                                    id="add-desc-en" name="description_en" class="input-field"></textarea></div>
+                            <div class="md:col-span-2"><label for="add-desc-zh">Description (Chinese):</label><textarea
+                                    id="add-desc-zh" name="description_zh" class="input-field"></textarea></div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" id="add-attraction-submit-btn"
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-1.5 rounded shadow">Save
+                                Attraction <span id="add-spinner" class="spinner hidden !w-4 !h-4"></span></button>
+                            <button type="button" onclick="toggleAddAttractionForm(false)"
+                                class="ml-2 text-gray-600 hover:underline">Cancel</button>
+                        </div>
+                        <div id="add-attraction-error" class="text-red-500 text-sm mt-2 hidden"></div>
+                    </form>
+                    <div id="attractions-table-loading" class="text-center hidden">
+                        <div class="spinner"></div> Loading attractions...
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="attractions-table" class="hidden min-w-full">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name (English)</th>
+                                    <th>Name (Chinese)</th>
+                                    <th>Price (Rp)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attractions-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="stats-tab" class="admin-tab">
+                    <h2 class="text-2xl font-semibold mb-4">Sales Statistics</h2>
+                    <div id="stats-loading" class="text-center hidden">
+                        <div class="spinner"></div> Loading statistics...
+                    </div>
+                    <div id="stats-error" class="text-center text-red-600 font-medium mt-2 hidden"></div>
+                    <div id="stats-content" class="hidden">
+                        <div class="stats-section">
+                            <h3>Overall Statistics</h3>
+                            <p>Total Tickets Sold: <strong id="stats-overall-total">N/A</strong></p>
+                            <div id="stats-overall-by-attraction">
+                                <p class="text-gray-500 mt-2">Loading details...</p>
+                            </div>
+                        </div>
+                        <div class="stats-section">
+                            <h3 id="stats-today-title">Today's Statistics (...)</h3>
+                            <p>Total Tickets Sold Today: <strong id="stats-today-total">N/A</strong></p>
+                            <div id="stats-today-by-attraction">
+                                <p class="text-gray-500 mt-2">Loading details...</p>
+                            </div>
+                        </div>
+                        <div class="stats-section">
+                            <h3>Statistics for Specific Date</h3>
+                            <div class="flex items-center space-x-3 mb-4">
+                                <label for="stats-date-picker" class="font-medium">Select Date:</label>
+                                <input type="date" id="stats-date-picker" class="input-field !w-auto !mb-0">
+                                <button id="fetch-date-stats-btn" onclick="fetchAdminStatsForDate()"
+                                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1 rounded text-sm disabled:opacity-50">
+                                    Fetch Stats <span id="date-stats-spinner" class="spinner hidden !w-4 !h-4"></span>
+                                </button>
+                            </div>
+                            <div id="stats-date-result" class="hidden">
+                                <p>Total Tickets Sold on <span id="stats-selected-date"></span>: <strong
+                                        id="stats-date-total">N/A</strong></p>
+                                <div id="stats-date-by-attraction">
+                                    <p class="text-gray-500 mt-2">Loading details...</p>
+                                </div>
+                            </div>
+                            <div id="stats-date-error" class="text-center text-red-600 font-medium mt-2 hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="orders-tab" class="admin-tab">
+                    <h2 class="text-2xl font-semibold mb-4">Order Search</h2>
+                    <div
+                        class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
+                        <label for="order-id-input" class="font-medium mb-1 sm:mb-0">Enter Order ID:</label>
+                        <input type="text" id="order-id-input" placeholder="Paste Order ID..."
+                            class="input-field mb-0 w-full sm:w-auto flex-grow">
+                        <button id="search-order-btn" onclick="searchAdminOrder()"
+                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-1.5 rounded-lg shadow transition duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                            Search <span id="search-spinner" class="spinner hidden"></span>
+                        </button>
+                    </div>
+                    <div id="order-details" class="bg-gray-100 p-4 rounded-md text-left border min-h-[5em] hidden">
+                    </div>
+                    <div id="order-search-error" class="text-center text-red-600 font-medium mt-2 hidden"></div>
+                    <div id="order-not-found" class="text-center text-gray-500 font-medium mt-2 hidden">Order not found.
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         const API_BASE_URL = 'http://127.0.0.1:5000/api';
+        let currentUserRole = null;
 
-        // DOM Elements
-        const fetchStatsBtn = document.getElementById('fetch-stats-btn');
-        const statsResultDiv = document.getElementById('stats-result');
+        // --- DOM Elements ---
+        const loginView = document.getElementById('login-view');
+        const adminMainView = document.getElementById('admin-main-view');
+        const loginForm = document.getElementById('login-form');
+        const loginBtn = document.getElementById('login-btn');
+        const loginSpinner = document.getElementById('login-spinner');
+        const loginError = document.getElementById('login-error');
+        const welcomeUser = document.getElementById('welcome-user');
+        const adminTabContent = document.getElementById('admin-tab-content');
+        const adminTabs = adminTabContent.querySelectorAll('.admin-tab');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const addAttractionForm = document.getElementById('add-attraction-form');
+        const addAttractionError = document.getElementById('add-attraction-error');
+        const addAttractionSubmitBtn = document.getElementById('add-attraction-submit-btn');
+        const addSpinner = document.getElementById('add-spinner');
+        const attractionsTable = document.getElementById('attractions-table');
+        const attractionsTableBody = document.getElementById('attractions-table-body');
+        const attractionsTableLoading = document.getElementById('attractions-table-loading');
+        const adminAttractionsError = document.getElementById('admin-attractions-error');
+        const statsLoading = document.getElementById('stats-loading');
         const statsErrorDiv = document.getElementById('stats-error');
-        const statsSpinner = document.getElementById('stats-spinner');
-
+        const statsContent = document.getElementById('stats-content');
+        const statsOverallTotal = document.getElementById('stats-overall-total');
+        const statsOverallByAttraction = document.getElementById('stats-overall-by-attraction');
+        const statsTodayTitle = document.getElementById('stats-today-title');
+        const statsTodayTotal = document.getElementById('stats-today-total');
+        const statsTodayByAttraction = document.getElementById('stats-today-by-attraction');
+        const statsDatePicker = document.getElementById('stats-date-picker');
+        const fetchDateStatsBtn = document.getElementById('fetch-date-stats-btn');
+        const dateStatsSpinner = document.getElementById('date-stats-spinner');
+        const statsDateResult = document.getElementById('stats-date-result');
+        const statsSelectedDate = document.getElementById('stats-selected-date');
+        const statsDateTotal = document.getElementById('stats-date-total');
+        const statsDateByAttraction = document.getElementById('stats-date-by-attraction');
+        const statsDateError = document.getElementById('stats-date-error');
         const orderIdInput = document.getElementById('order-id-input');
         const searchOrderBtn = document.getElementById('search-order-btn');
         const orderDetailsDiv = document.getElementById('order-details');
@@ -75,161 +378,155 @@
 
 
         // --- Helper Functions ---
-        function showError(msg, target) {
-            target.textContent = msg;
-            target.classList.remove('hidden');
-            // Optionally hide other messages/results
-        }
+        function showError(msg, target) { target.textContent = msg; target.classList.remove('hidden'); }
+        function clearError(target) { target.textContent = ''; target.classList.add('hidden'); }
+        function setLoadingState(button, spinner, isLoading) { button.disabled = isLoading; spinner.classList.toggle('hidden', !isLoading); }
+        function formatRp(amount) { return `Rp ${parseFloat(amount || 0).toLocaleString('id-ID')}`; }
+        function formatDate(isoString) { if (!isoString) return 'N/A'; try { return new Date(isoString).toLocaleDateString('en-CA'); } catch (e) { return isoString; } }
+        function formatAdminDateTime(isoString) { if (!isoString) return 'N/A'; try { return new Date(isoString).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return isoString; } }
 
-        function clearErrors() {
-            statsErrorDiv.classList.add('hidden');
-            statsErrorDiv.textContent = '';
-            orderSearchErrorDiv.classList.add('hidden');
-            orderSearchErrorDiv.textContent = '';
-            orderNotFoundDiv.classList.add('hidden');
-        }
-
-        function setLoadingState(button, spinner, isLoading) {
-             button.disabled = isLoading;
-             if (isLoading) {
-                 spinner.classList.remove('hidden');
-             } else {
-                 spinner.classList.add('hidden');
-             }
-        }
-
-        // --- Statistics ---
-        async function fetchStats() {
-            clearErrors();
-            statsResultDiv.textContent = '正在获取统计数据...';
-            statsResultDiv.classList.remove('hidden'); // Show loading text
-            setLoadingState(fetchStatsBtn, statsSpinner, true);
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/stats`);
-                const stats = await response.json();
-
-                if (!response.ok) {
-                     throw new Error(stats.message || `HTTP error! status: ${response.status}`);
-                }
-
-                // Format and display stats
-                let statsHtml = `<p class="mb-2">总售票数: <span class="font-bold">${stats.total_tickets}</span></p>`;
-                if (stats.tickets_by_attraction && stats.tickets_by_attraction.length > 0) {
-                    statsHtml += '<h3 class="text-lg font-semibold mt-3 mb-2">各景点售票数:</h3>';
-                    statsHtml += '<ul class="list-disc list-inside text-left max-w-md mx-auto">';
-                    stats.tickets_by_attraction.forEach(item => {
-                         statsHtml += `<li>${item.name} (ID: ${item.id}): <span class="font-bold">${item.count}</span></li>`;
-                    });
-                    statsHtml += '</ul>';
-                } else {
-                     statsHtml += '<p class="text-gray-500 mt-3">暂无各景点销售数据。</p>';
-                }
-                statsResultDiv.innerHTML = statsHtml;
-
-            } catch (error) {
-                console.error('Failed to fetch statistics:', error);
-                showError(`Failed to fetch statistics: ${error.message}`, statsErrorDiv);
-                statsResultDiv.textContent = '无法加载统计数据。'; // Clear loading text
-            } finally {
-                 setLoadingState(fetchStatsBtn, statsSpinner, false);
-            }
-        }
-
-        // --- Order Search ---
-        async function searchOrder() {
-            clearErrors();
-            orderDetailsDiv.classList.add('hidden'); // Hide previous details
-            orderNotFoundDiv.classList.add('hidden');
-            const orderId = orderIdInput.value.trim();
-
-            if (!orderId) {
-                showError('Please enter an Order ID.', orderSearchErrorDiv);
-                orderIdInput.focus();
-                return;
-            }
-
-            setLoadingState(searchOrderBtn, searchSpinner, true);
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/orders/${orderId}`);
-                const orderData = await response.json();
-
-                if (!response.ok) {
-                    if (response.status === 404) {
-                         orderNotFoundDiv.classList.remove('hidden');
-                    } else {
-                        throw new Error(orderData.message || `HTTP error! status: ${response.status}`);
-                    }
-                } else {
-                    // Display order details
-                    displayOrderDetails(orderData);
-                    orderDetailsDiv.classList.remove('hidden');
-                }
-
-            } catch (error) {
-                console.error('Failed to search order:', error);
-                showError(`Failed to search order: ${error.message}`, orderSearchErrorDiv);
-            } finally {
-                 setLoadingState(searchOrderBtn, searchSpinner, false);
-            }
-        }
-
-        function displayOrderDetails(order) {
-            let detailsHtml = `<h3 class="text-xl font-semibold mb-3 border-b pb-2">订单详情 (ID: ${order.order_id})</h3>`;
-            detailsHtml += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mb-4">`; // Grid layout
-            detailsHtml += `<div><span class="detail-label">客户姓名:</span> <span class="detail-value">${order.customer_name || 'N/A'}</span></div>`;
-            detailsHtml += `<div><span class="detail-label">客户邮箱:</span> <span class="detail-value">${order.customer_email || 'N/A'}</span></div>`;
-            detailsHtml += `<div><span class="detail-label">计划使用日期:</span> <span class="detail-value">${order.usage_date || 'N/A'}</span></div>`;
-            detailsHtml += `<div><span class="detail-label">购买时间:</span> <span class="detail-value">${formatDateTime(order.purchase_time)}</span></div>`;
-            detailsHtml += `<div><span class="detail-label">订单状态:</span> <span class="detail-value">${order.status || 'N/A'}</span></div>`;
-            detailsHtml += `<div><span class="detail-label">总金额:</span> <span class="detail-value font-bold">Rp ${order.total_amount.toLocaleString('id-ID')}</span></div>`;
-            detailsHtml += `</div>`;
+        // --- Authentication ---
+        async function checkLoginStatus() { try { const r = await fetch(`${API_BASE_URL}/admin/status`, { credentials: 'include' }); if (r.ok) { const d = await r.json(); currentUserRole = d.role; showAdminView(d.username); } else { showLoginView(); } } catch (e) { console.error("Status check error:", e); showLoginView(); showError("Cannot connect to server", loginError); } }
+        function showLoginView() { loginView.classList.add('active'); adminMainView.classList.remove('active'); currentUserRole = null; }
+        function showAdminView(username) { loginView.classList.remove('active'); adminMainView.classList.add('active'); welcomeUser.textContent = `Welcome, ${username}!`; showAdminTab('attractions-tab'); } // Load default tab
+        async function handleLogin(event) { event.preventDefault(); clearError(loginError); setLoadingState(loginBtn, loginSpinner, true); const u = loginForm.elements['username'].value; const p = loginForm.elements['password'].value; try { const r = await fetch(`${API_BASE_URL}/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ username: u, password: p }), }); const d = await r.json(); if (r.ok) { currentUserRole = d.role; showAdminView(d.username); } else { throw new Error(d.message || `Login failed (HTTP ${r.status})`); } } catch (e) { console.error("Login failed:", e); showError(e.message, loginError); } finally { setLoadingState(loginBtn, loginSpinner, false); } }
+        async function handleLogout() { try { await fetch(`${API_BASE_URL}/admin/logout`, { method: 'POST', credentials: 'include' }); } catch (e) { console.error("Logout error:", e); } finally { showLoginView(); } }
 
 
-            if (order.items && order.items.length > 0) {
-                detailsHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 border-t pt-2">订单项目:</h4>`;
-                detailsHtml += `<ul class="list-disc list-inside space-y-1">`;
-                order.items.forEach(item => {
-                    detailsHtml += `<li>
-                        ${item.quantity} x ${item.attraction_name || item.attraction_id}
-                        (${item.ticket_type_name || item.ticket_type})
-                        @ Rp ${item.price_per_ticket.toLocaleString('id-ID')} each
-                    </li>`;
-                });
-                detailsHtml += `</ul>`;
-            } else {
-                 detailsHtml += `<p class="mt-3 text-gray-500">此订单没有项目。</p>`;
-            }
-
-            orderDetailsDiv.innerHTML = detailsHtml;
-        }
-
-        function formatDateTime(isoString) {
-            if (!isoString) return 'N/A';
-            try {
-                 const date = new Date(isoString);
-                 return date.toLocaleString('zh-CN', { dateStyle: 'medium', timeStyle: 'short'}); // Adjust locale/format as needed
-            } catch (e) {
-                 return isoString; // Fallback to original string if parsing fails
-            }
-        }
-
-
-        // --- Event Listeners ---
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchStatsBtn.addEventListener('click', fetchStats);
-            searchOrderBtn.addEventListener('click', searchOrder);
-            // Optional: Allow search on pressing Enter in the input field
-            orderIdInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    searchOrder();
+        // --- Admin Tabs ---
+        function showAdminTab(tabId) {
+            // Hide all tabs, show the target one
+            adminTabs.forEach(tab => tab.classList.toggle('active', tab.id === tabId));
+            // Update button styles - FIXED LOGIC
+            tabButtons.forEach(btn => {
+                const targetTabIdForButton = btn.id.replace('tab-btn-', '') + '-tab';
+                const isActive = targetTabIdForButton === tabId;
+                // Set base inactive styles first
+                btn.classList.remove('border-indigo-500', 'text-indigo-600', 'active'); // Remove active explicitly
+                btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                // Apply active styles if this is the active button
+                if (isActive) {
+                    btn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    btn.classList.add('border-indigo-500', 'text-indigo-600', 'active');
                 }
             });
+
+            // Load data for the activated tab if needed
+            if (tabId === 'attractions-tab' && attractionsTableBody.children.length === 0) { loadAdminAttractions(); }
+            else if (tabId === 'stats-tab' && statsOverallTotal.textContent === 'N/A') { fetchAdminStats(); }
+            else if (tabId === 'orders-tab') { /* Orders loaded on search */ }
+        }
+
+        // --- Attraction Management ---
+        // (loadAdminAttractions needs credentials added)
+        function toggleAddAttractionForm(show = null) { const shouldShow = show === null ? addAttractionForm.classList.contains('hidden') : show; addAttractionForm.classList.toggle('hidden', !shouldShow); if (shouldShow) { addAttractionForm.reset(); clearError(addAttractionError); } }
+        async function loadAdminAttractions() {
+            attractionsTable.classList.add('hidden'); attractionsTableLoading.classList.remove('hidden'); clearError(adminAttractionsError);
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/attractions`, { credentials: 'include' });
+                const attractions = await response.json(); if (!response.ok) throw new Error(attractions.message || `HTTP ${response.status}`);
+                attractionsTableBody.innerHTML = '';
+                if (attractions.length === 0) { attractionsTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-500">No attractions found.</td></tr>'; }
+                else {
+                    attractions.forEach(a => {
+                        const row = attractionsTableBody.insertRow();
+                        row.innerHTML = `<td>${a.attraction_id}</td><td>${a.name_en}</td><td>${a.name_zh}</td><td>${formatRp(a.price)}</td><td><button class="bg-yellow-500 text-white rounded hover:bg-yellow-600" disabled title="Edit function not implemented">Edit</button> <button onclick="handleDeleteAttraction('${a.attraction_id}')" class="bg-red-500 text-white rounded hover:bg-red-600">Delete</button></td>`;
+                    });
+                }
+                attractionsTable.classList.remove('hidden');
+            } catch (error) {
+                console.error("Error loading admin attractions:", error); showError(`Failed to load attractions: ${error.message}`, adminAttractionsError);
+            } finally { attractionsTableLoading.classList.add('hidden'); }
+        }
+        async function handleAddAttraction(event) {
+            event.preventDefault(); clearError(addAttractionError); setLoadingState(addAttractionSubmitBtn, addSpinner, true);
+            const formData = new FormData(addAttractionForm); const data = Object.fromEntries(formData.entries()); data.price = parseFloat(data.price);
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/attractions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data) });
+                const result = await response.json(); if (!response.ok) throw new Error(result.message || `HTTP ${response.status}`);
+                alert('Attraction added successfully!'); toggleAddAttractionForm(false); loadAdminAttractions();
+            } catch (error) {
+                console.error("Error adding attraction:", error); showError(`Failed to add: ${error.message}`, addAttractionError);
+            } finally { setLoadingState(addAttractionSubmitBtn, addSpinner, false); }
+        }
+        async function handleDeleteAttraction(attractionId) {
+            if (!confirm(`Are you sure you want to delete attraction "${attractionId}"? This cannot be undone.`)) return;
+            clearError(adminAttractionsError);
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/attractions/${attractionId}`, { method: 'DELETE', credentials: 'include' });
+                const result = await response.json(); if (!response.ok) throw new Error(result.message || `HTTP ${response.status}`);
+                alert(`Attraction "${attractionId}" deleted successfully!`); loadAdminAttractions();
+            } catch (error) { console.error(`Error deleting ${attractionId}:`, error); showError(`Delete failed: ${error.message}`, adminAttractionsError); }
+        }
+
+
+        // --- Statistics (Admin) ---
+        function displayStatsSection(totalElement, byAttractionElement, totalTickets, ticketsByAttraction) {
+            totalElement.textContent = totalTickets;
+            if (ticketsByAttraction && ticketsByAttraction.length > 0) { let listHtml = '<ul class="stats-list">'; ticketsByAttraction.forEach(item => { listHtml += `<li>${item.name} (ID: ${item.id}): <span class="font-bold">${item.count}</span></li>`; }); listHtml += '</ul>'; byAttractionElement.innerHTML = listHtml; }
+            else { byAttractionElement.innerHTML = '<p class="text-gray-500 mt-2">No sales data for attractions.</p>'; }
+        }
+        async function fetchAdminStats(targetDate = null) { // Fetches overall and today/target date
+            clearError(statsErrorDiv); statsContent.classList.add('hidden'); statsLoading.classList.remove('hidden');
+            const url = targetDate ? `${API_BASE_URL}/stats?date=${targetDate}` : `${API_BASE_URL}/stats`; // Backend handles default date
+            try {
+                const response = await fetch(url, { credentials: 'include' });
+                const stats = await response.json(); if (!response.ok) throw new Error(stats.message || `HTTP ${response.status}`);
+                displayStatsSection(statsOverallTotal, statsOverallByAttraction, stats.overall_total_tickets, stats.overall_tickets_by_attraction);
+                const displayDate = stats.query_date || new Date().toLocaleDateString('en-CA');
+                statsTodayTitle.textContent = `Statistics for ${displayDate}`;
+                displayStatsSection(statsTodayTotal, statsTodayByAttraction, stats.specific_date_total_tickets, stats.specific_date_tickets_by_attraction);
+                statsContent.classList.remove('hidden');
+            } catch (error) {
+                console.error('Failed fetch stats:', error); showError(`Failed to load statistics: ${error.message}`, statsErrorDiv);
+            } finally { statsLoading.classList.add('hidden'); }
+        }
+        async function fetchAdminStatsForDate() { // Fetches only specific date for date picker
+            const selectedDate = statsDatePicker.value; if (!selectedDate) { showError("Please select a date.", statsDateError); return; }
+            clearError(statsDateError); statsDateResult.classList.add('hidden'); setLoadingState(fetchDateStatsBtn, dateStatsSpinner, true);
+            const url = `${API_BASE_URL}/stats?date=${selectedDate}`;
+            try {
+                const response = await fetch(url, { credentials: 'include' });
+                const stats = await response.json(); if (!response.ok) throw new Error(stats.message || `HTTP ${response.status}`);
+                statsSelectedDate.textContent = stats.query_date;
+                displayStatsSection(statsDateTotal, statsDateByAttraction, stats.specific_date_total_tickets, stats.specific_date_tickets_by_attraction);
+                statsDateResult.classList.remove('hidden');
+            } catch (error) {
+                console.error(`Failed fetch stats for ${selectedDate}:`, error); showError(`Failed to load statistics for ${selectedDate}: ${error.message}`, statsDateError);
+            } finally { setLoadingState(fetchDateStatsBtn, dateStatsSpinner, false); }
+        }
+
+        // --- Order Search (Admin) ---
+        async function searchAdminOrder() {
+            clearError(orderSearchErrorDiv); orderDetailsDiv.classList.add('hidden'); orderNotFoundDiv.classList.add('hidden');
+            const orderId = orderIdInput.value.trim(); if (!orderId) { showError('Please enter an Order ID.', orderSearchErrorDiv); return; }
+            setLoadingState(searchOrderBtn, searchSpinner, true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, { credentials: 'include' });
+                const orderData = await response.json();
+                if (!response.ok) { if (response.status === 404) { orderNotFoundDiv.classList.remove('hidden'); } else { throw new Error(orderData.message || `HTTP ${response.status}`); } }
+                else { displayAdminOrderDetails(orderData); orderDetailsDiv.classList.remove('hidden'); }
+            } catch (error) {
+                console.error('Order search failed:', error); showError(`Failed to search order: ${error.message}`, orderSearchErrorDiv);
+            } finally { setLoadingState(searchOrderBtn, searchSpinner, false); }
+        }
+        function displayAdminOrderDetails(order) {
+            let detailsHtml = `<h3 class="text-xl font-semibold mb-3 border-b pb-2">Order Details (ID: ${order.order_id})</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mb-4">`; const namesDisplay = Array.isArray(order.customer_names) ? order.customer_names.join(', ') : (order.customer_names || 'N/A');
+            detailsHtml += `<div><span class="detail-label">Names:</span> <span class="detail-value">${namesDisplay}</span></div><div><span class="detail-label">Email:</span> <span class="detail-value">${order.customer_email || 'N/A'}</span></div><div><span class="detail-label">Usage Date:</span> <span class="detail-value">${formatDate(order.usage_date)}</span></div><div><span class="detail-label">Purchase Time:</span> <span class="detail-value">${formatAdminDateTime(order.purchase_time)}</span></div><div><span class="detail-label">Status:</span> <span class="detail-value">${order.status || 'N/A'}</span></div><div><span class="detail-label">Total:</span> <span class="detail-value font-bold">${formatRp(order.total_amount)}</span></div><div><span class="detail-label">Created At:</span> <span class="detail-value">${formatAdminDateTime(order.created_at)}</span></div></div>`;
+            if (order.items && order.items.length > 0) { detailsHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 border-t pt-2">Items:</h4><ul class="list-disc list-inside space-y-1">`; order.items.forEach(item => { detailsHtml += `<li> ${item.quantity} x ${item.attraction_name || item.attraction_id} (${item.ticket_type_name_en || item.ticket_type}) @ ${formatRp(item.price_per_ticket)} each </li>`; }); detailsHtml += `</ul>`; }
+            else { detailsHtml += `<p class="mt-3 text-gray-500">No items found.</p>`; } orderDetailsDiv.innerHTML = detailsHtml;
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // checkLoginStatus();
+            showLoginView(); // For testing purposes, show login view by default
+            // Set default date for date picker
+            statsDatePicker.value = new Date().toISOString().split('T')[0];
         });
 
     </script>
 
 </body>
-</html>
 
+</html>

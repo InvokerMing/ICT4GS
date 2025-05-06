@@ -1,0 +1,22 @@
+[
+  {
+    "id": "solo-palace",
+    "name": {
+      "en": "Kraton Surakarta Hadiningrat",
+      "zh": "梭罗王宫"
+    },
+    "description": {
+      "en": "Kraton Surakarta Hadiningrat, also known as Solo Palace, is a historical palace in Central Java, Indonesia. Built in 1745, it was the official seat of the Sunanate of Surakarta and a significant center of Javanese culture.",
+      "zh": "梭罗王宫是印度尼西亚中爪哇的一座历史宫殿。建于 1745 年，它是苏拉卡特拉苏丹的官方所在地，也是爪哇文化的重要中心。"
+    },
+    "history": {
+      "en": "Kraton Surakarta Hadiningrat, located in Solo, Central Java, Indonesia, is the palace of the Sunanate of Surakarta, established in 1745 by Pakubuwono II after the division of the Mataram Sultanate in 1755. As one of the principal Javanese palaces, it served as the center of Javanese culture, spirituality, and politics. The palace architecture is a blend of traditional Javanese design and European influences. Although some parts were damaged by fire in 1985 and subsequently rebuilt, the Kraton retains its historical importance and houses many valuable artifacts. Today, a section of the palace functions as a museum, displaying royal collections including artifacts, gamelan instruments, and historical photographs, offering visitors a glimpse into the life and grandeur of the Javanese royalty. The palace and its surrounding area remain a focal point for local cultural activities and traditions.",
+      "zh": "梭罗王宫（Kraton Surakarta Hadiningrat）位于印度尼西亚中爪哇的梭罗市，是1755年马打兰苏丹国分裂后，由帕库布沃诺二世于1745年建立的梭罗苏丹国的王宫。作为爪哇最重要的王宫之一，它是爪哇文化、精神和政治的中心。王宫建筑融合了爪哇传统风格与欧洲建筑元素。虽然部分建筑在1985年的一场火灾中受损并重建，但王宫仍保留了其历史意义和许多珍贵的文物。如今，王宫的一部分对外开放作为博物馆，展示皇室收藏品，包括器物、加美兰乐器和历史照片，让游客得以一窥昔日爪哇皇室的生活和辉煌。王宫及其周边的区域至今仍是当地文化活动和传统习俗的中心。"
+    },
+    "contact": "Phone: +XX-XXX-XXXXXX",
+    "address": "Jl. Slamet Riyadi No.1, Surakarta",
+    "transportation": "Bus X, Taxi",
+    "image_url": "https://placehold.co/600x400/eeddcc/775533?text=Palace+A",
+    "price": 50000.00
+  }
+]

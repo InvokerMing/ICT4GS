@@ -1,0 +1,62 @@
+[
+    {
+        "id": "solo-palace",
+        "name": {
+            "en": "Kraton Surakarta Hadiningrat",
+            "zh": "梭罗王宫"
+        },
+        "description": {
+            "en": "Kraton Surakarta Hadiningrat, also known as Solo Palace, is a historical palace in Central Java, Indonesia. Built in 1745, it was the official seat of the Sunanate of Surakarta and a significant center of Javanese culture.",
+            "zh": "梭罗王宫是印度尼西亚中爪哇的一座历史宫殿。建于 1745 年，它是苏拉卡特拉苏丹的官方所在地，也是爪哇文化的重要中心。"
+        },
+        "history": {
+            "en": "Kraton Surakarta Hadiningrat, located in Solo, Central Java, Indonesia, is the palace of the Sunanate of Surakarta, established in 1745 by Pakubuwono II after the division of the Mataram Sultanate in 1755. As one of the principal Javanese palaces, it served as the center of Javanese culture, spirituality, and politics. The palace architecture is a blend of traditional Javanese design and European influences. Although some parts were damaged by fire in 1985 and subsequently rebuilt, the Kraton retains its historical importance and houses many valuable artifacts. Today, a section of the palace functions as a museum, displaying royal collections including artifacts, gamelan instruments, and historical photographs, offering visitors a glimpse into the life and grandeur of the Javanese royalty. The palace and its surrounding area remain a focal point for local cultural activities and traditions.",
+            "zh": "梭罗王宫（Kraton Surakarta Hadiningrat）位于印度尼西亚中爪哇的梭罗市，是1755年马打兰苏丹国分裂后，由帕库布沃诺二世于1745年建立的梭罗苏丹国的王宫。作为爪哇最重要的王宫之一，它是爪哇文化、精神和政治的中心。王宫建筑融合了爪哇传统风格与欧洲建筑元素。虽然部分建筑在1985年的一场火灾中受损并重建，但王宫仍保留其历史意义并收藏许多珍贵文物。如今，王宫一部分作为博物馆对外开放，展示皇室藏品，让游客得以了解爪哇皇室生活和历史。王宫及周边区域至今仍是当地文化活动的焦点。"
+        },
+        "contact": "Phone: N/A",
+        "address": "Jl. Slamet Riyadi No.1, Surakarta",
+        "transportation": "Accessible by local transport in Solo (e.g., taxi, Grab, local bus)",
+        "image_url": "https://placehold.co/600x400/eeddcc/775533?text=Kraton+Surakarta",
+        "price": null
+    },
+    {
+        "id": "pura-mangkunegaran",
+        "name": {
+            "en": "Pura Mangkunegaran",
+            "zh": "曼昆尼加兰宫"
+        },
+        "description": {
+            "en": "Pura Mangkunegaran is a palace complex in Surakarta, Indonesia, the official residence of the Mangkunegara dukes. Established in 1757, it showcases distinctive Javanese architecture and a rich collection of royal artifacts.",
+            "zh": "曼昆尼加兰宫是印度尼西亚梭罗的一座宫殿建筑群，是曼昆尼加兰公爵的官邸。它建于1757年，展示了独特的爪哇建筑风格和丰富的皇室文物收藏。"
+        },
+        "history": {
+            "en": "Pura Mangkunegaran is a historical palace complex in Surakarta, built starting in 1757 following the Treaty of Salatiga. It served as the official palace and residence for the Mangkunegara dynasty. Unlike the Kraton, Pura Mangkunegaran was an independent principality. The complex features unique Javanese architecture, notably the large Pendopo Ageng (Grand Hall), one of the largest in Indonesia, used for ceremonies and performances. The palace also houses a museum with a collection of royal artifacts, weaponry, traditional clothing, and art, offering insights into the history and culture of the Mangkunegaran lineage.",
+            "zh": "曼昆尼加兰宫是位于梭罗的一座历史宫殿建筑群，始建于1757年《萨拉蒂加条约》签订之后。它是曼昆尼加兰王朝的正式宫殿和居所。与王宫不同，曼昆尼加兰是一个独立的亲王国。该建筑群以其独特的爪哇建筑风格为特色，特别是巨大的Pendopo Ageng（大厅），它是印度尼西亚最大的大厅之一，用于举办仪式和表演。宫殿内设有一个博物馆，收藏有皇室文物、武器、传统服饰和艺术品，提供了了解曼昆尼加兰家族历史和文化的窗口。"
+        },
+        "contact": "Phone: N/A",
+        "address": "Jl. Pangeran Sambernyowo No.17, Surakarta",
+        "transportation": "Accessible by local transport in Solo (e.g., taxi, Grab, local bus)",
+        "image_url": "https://placehold.co/600x400/cceedd/557733?text=Pura+Mangkunegaran",
+        "price": 40000
+    },
+    {
+        "id": "museum-batik-danar-hadi",
+        "name": {
+            "en": "Museum Batik Danar Hadi",
+            "zh": "达纳尔·哈迪蜡染博物馆"
+        },
+        "description": {
+            "en": "Museum Batik Danar Hadi houses one of the largest private batik collections in Indonesia, showcasing diverse batik styles and history across different eras and cultural influences.",
+            "zh": "达纳尔·哈迪蜡染博物馆收藏有印度尼西亚规模最大的私人蜡染藏品之一，展示了不同时期和文化影响下的多样化蜡染风格和历史。"
+        },
+        "history": {
+            "en": "Founded by H. Santosa Doellah, the Museum Batik Danar Hadi is renowned for its extensive collection of over 10,000 pieces of antique batik. Located within the Ndalem Wuryaningratan complex, a historical building itself, the museum provides a comprehensive overview of Indonesian batik's history, techniques, and cultural significance. The collection includes various styles such as court batik, Dutch batik, Chinese batik, and Hokokai batik. Visitors can take guided tours to learn about the intricate process of batik making and the stories behind different motifs. The museum is integrated with a workshop and gallery, offering a complete batik experience.",
+            "zh": "达纳尔·哈迪蜡染博物馆由H. Santosa Doellah创立，以其收藏的超过10,000件古董蜡染而闻名。博物馆位于历史建筑Ndalem Wuryaningratan建筑群内，全面介绍了印度尼西亚蜡染的历史、技艺和文化意义。馆藏涵盖多种风格，包括宫廷蜡染、荷兰蜡染、中华蜡染和Hokokai蜡染。游客可以通过导览了解蜡染制作的复杂过程以及不同图案背后的故事。博物馆与工坊和画廊相结合，提供完整的蜡染体验。"
+        },
+        "contact": "Phone: N/A",
+        "address": "Jl. Slamet Riyadi No.261, Surakarta",
+        "transportation": "Accessible by local transport in Solo (e.g., taxi, Grab, local bus)",
+        "image_url": "https://placehold.co/600x400/ddcced/773355?text=Museum+Batik+Danar+Hadi",
+        "price": null
+    }
+]

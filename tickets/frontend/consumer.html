@@ -10,6 +10,8 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            /* Smooth scrolling for the navigation bar */
+            scroll-behavior: smooth;
         }
 
         /* Basic view switching */
@@ -21,7 +23,7 @@
             display: block;
         }
 
-        /* Card and input styles (similar to previous version) */
+        /* Original card and input styles (keeping for purchase view) */
         .card {
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             cursor: pointer;
@@ -187,28 +189,290 @@
         }
 
         /* Language switcher style*/
-        .lang-switcher button {
+        .lang-switcher {
+            text-align: right;
+            margin-bottom: 1rem;
+            /* Adjust margin as needed */
+            margin-right: 0.5rem;
+            /* Adjust margin as needed */
+            position: fixed;
+            /* Changed to fixed */
+            top: 0.5rem;
+            /* Adjust position as needed */
+            right: 0.5rem;
+            /* Adjust position as needed */
+            z-index: 50;
+            /* Ensure it's above other content */
+        }
+
+        .lang-switcher select {
             padding: 4px 8px;
-            margin: 0 3px;
             border: 1px solid #ccc;
             border-radius: 4px;
             background-color: #f0f0f0;
             cursor: pointer;
         }
 
-        .lang-switcher button.active {
-            background-color: #4299e1;
-            color: white;
-            border-color: #4299e1;
+
+        /* --- New Styles for Homepage Beautification --- */
+        .attraction-block {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            /* Stack content vertically on small screens */
+            align-items: center;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* Add a subtle shadow */
+            color: #333;
+            /* Default text color */
         }
 
-        /* Attraction Detail Styles */
-        #attraction-detail-view img {
-            max-height: 300px;
-            object-fit: cover;
+        @media (min-width: 768px) {
+            .attraction-block {
+                flex-direction: row;
+                /* Row layout on medium screens and up */
+            }
+        }
+
+        .attraction-image-container {
+            width: 100%;
+            /* Full width on small screens */
+            max-width: 400px;
+            /* Limit image width */
+            margin-bottom: 1.5rem;
+            /* Space below image on small screens */
             border-radius: 0.375rem;
+            overflow: hidden;
+            /* Hide overflow for rounded corners */
+        }
+
+        @media (min-width: 768px) {
+            .attraction-image-container {
+                width: 40%;
+                /* Image takes 40% width on medium screens and up */
+                margin-right: 2rem;
+                /* Space to the right of the image */
+                margin-bottom: 0;
+                /* No bottom margin on larger screens */
+            }
+        }
+
+        .attraction-image {
+            width: 100%;
+            height: 250px;
+            /* Fixed height for consistency */
+            object-fit: cover;
+            /* Cover the container */
+            display: block;
+            /* Remove extra space below image */
+            border-radius: 0.375rem;
+        }
+
+        .attraction-info {
+            width: 100%;
+            /* Full width on small screens */
+            flex-grow: 1;
+            /* Take remaining space on larger screens */
+        }
+
+        @media (min-width: 768px) {
+            .attraction-info {
+                width: 60%;
+                /* Info takes 60% width on medium screens and up */
+            }
+        }
+
+        .attraction-info h3 {
+            font-size: 1.875rem;
+            /* 3xl */
+            font-weight: 700;
+            /* Bold */
+            margin-bottom: 0.5rem;
+            color: inherit;
+            /* Inherit color from block */
+        }
+
+        .attraction-info .summary {
+            font-size: 1rem;
+            /* Base size */
+            color: inherit;
+            /* Inherit color from block */
             margin-bottom: 1rem;
         }
+
+        .attraction-info .price {
+            font-size: 1.25rem;
+            /* xl */
+            font-weight: 700;
+            color: inherit;
+            /* Inherit color from block */
+            margin-bottom: 1.5rem;
+        }
+
+        .attraction-info .book-button {
+            display: inline-block;
+            background-color: #10B981;
+            /* Green 500 */
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            /* lg */
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .attraction-info .book-button:hover {
+            background-color: #059669;
+            /* Green 600 */
+        }
+
+        /* Floating Navigation Bar */
+        #floating-nav {
+            position: fixed;
+            right: 1rem;
+            /* 4 units from right */
+            top: 50%;
+            /* Center vertically */
+            transform: translateY(-50%);
+            z-index: 500;
+            background-color: rgba(255, 255, 255, 0.9);
+            /* Semi-transparent white */
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            /* 3 units padding */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            /* Hidden by default, shown by JS on homepage */
+            flex-direction: column;
+            gap: 0.5rem;
+            /* 2 units gap between buttons */
+        }
+
+        #floating-nav button {
+            background: none;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            /* 2 units vertical, 3 units horizontal */
+            cursor: pointer;
+            font-size: 0.875rem;
+            /* sm */
+            color: #4A5568;
+            /* Gray 700 */
+            border-radius: 0.375rem;
+            /* rounded-md */
+            transition: background-color 0.2s ease, color 0.2s ease;
+            text-align: left;
+            /* Align text left */
+            width: 100%;
+            /* Full width button */
+        }
+
+        #floating-nav button:hover {
+            background-color: #E2E8F0;
+            /* Gray 200 */
+            color: #2D3748;
+            /* Gray 800 */
+        }
+
+        /* Hide floating nav on small screens */
+        @media (max-width: 1023px) {
+            #floating-nav {
+                display: none !important;
+            }
+        }
+
+
+        /* --- New Styles for Attraction Detail Page --- */
+        #attraction-detail-view .detail-section {
+            background-color: #f7fafc;
+            /* Gray 100 */
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        #attraction-detail-view .detail-section h3 {
+            font-size: 1.5rem;
+            /* 2xl */
+            font-weight: 600;
+            /* Semibold */
+            color: #2D3748;
+            /* Gray 800 */
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #E2E8F0;
+            /* Gray 200 */
+        }
+
+        #attraction-detail-view .detail-section p,
+        #attraction-detail-view .detail-section ul,
+        #attraction-detail-view .detail-section li {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #4A5568;
+            /* Gray 700 */
+        }
+
+        #attraction-detail-view .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            /* Responsive grid */
+            gap: 1rem;
+            /* 4 units gap */
+            margin-top: 1rem;
+        }
+
+        #attraction-detail-view .image-gallery img {
+            width: 100%;
+            height: 150px;
+            /* Fixed height for gallery images */
+            object-fit: cover;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        #attraction-detail-view .contact-info p {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Example Background Colors (Tailwind Classes) */
+        .bg-blue-100 {
+            background-color: #EBF8FF;
+            color: #2B6CB0;
+            /* Blue 700 */
+        }
+
+        .bg-green-100 {
+            background-color: #F0FFF4;
+            color: #2F855A;
+            /* Green 700 */
+        }
+
+        .bg-yellow-100 {
+            background-color: #FFFFF0;
+            color: #B7791F;
+            /* Yellow 700 */
+        }
+
+        .bg-purple-100 {
+            background-color: #FAF5FF;
+            color: #6B46C1;
+            /* Purple 700 */
+        }
+
+        .bg-pink-100 {
+            background-color: #FFF5F7;
+            color: #E53E3E;
+            /* Red 600 - Using red for contrast */
+        }
+
+        /* Add more colors as needed */
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -217,9 +481,11 @@
 
 <body class="bg-gray-100 p-4 md:p-8">
 
-    <div class="lang-switcher text-right mb-4 mr-2 fixed top-2 right-2 z-50">
-        <button id="lang-en" onclick="setLanguage('en')">English</button>
-        <button id="lang-zh" onclick="setLanguage('zh')">中文</button>
+    <div id="lang-switcher" class="lang-switcher">
+        <select id="language-select">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+        </select>
     </div>
 
     <div class="container mx-auto max-w-6xl bg-white p-6 rounded-lg shadow-md">
@@ -231,7 +497,7 @@
                 <div class="spinner"></div>
                 <p id="loading-text" class="text-gray-500">Loading attraction information...</p>
             </div>
-            <div id="attractions-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 hidden">
+            <div id="attractions-list-container" class="flex flex-col gap-8 mb-8 hidden">
             </div>
             <div id="attractions-error" class="text-center text-red-600 font-medium mb-4 hidden"></div>
         </div>
@@ -309,7 +575,8 @@
 
                 <button type="submit" id="proceed-to-payment-btn"
                     class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg shadow transition duration-300 text-lg">
-                    <span class="proceed-payment-btn-text">Proceed to Payment (Simulation)</span>
+                    <span class="proceed-payment-btn-text">Proceed to Payment (Simulation - Direct to Successful
+                        Purchase)</span>
                 </button>
             </form>
             <div id="purchase-error" class="text-center text-red-600 font-medium mt-4 hidden"></div>
@@ -333,8 +600,17 @@
         </div>
     </div>
 
+    <div id="floating-nav" class="hidden lg:flex">
+    </div>
+
+
     <script>
         const API_BASE_URL = 'http://127.0.0.1:5000/api';
+        // Array of background colors for attraction blocks
+        const backgroundColors = [
+            'bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100'
+        ];
+        let colorIndex = 0; // To cycle through colors
 
         // --- Translations ---
         const translations = {
@@ -349,6 +625,8 @@
                 basePriceLabel: "Base Price:",
                 pricePending: "Free or Price TBD",
                 noDesc: "No detailed description available.",
+                noSummary: "No summary available.", // Added summary translation
+                noDetails: "No detailed description available.", // Added details translation
                 bookNowButton: "Book Now",
                 backToList: "Back to List",
                 backToDetail: "Back to Details",
@@ -363,7 +641,7 @@
                 emailLabel: "Email:",
                 usageDateLabel: "Usage Date:",
                 totalPriceLabel: "Estimated Total:",
-                proceedPaymentBtnText: "Proceed to Payment (Simulation)",
+                proceedPaymentBtnText: "Proceed to Payment (Simulation - Direct to Successful Purchase)",
                 purchaseButtonLoading: "Processing...",
                 fillFieldsError: "Please fill in all required fields",
                 fillNamesError: "Please enter names for all attendees",
@@ -376,6 +654,16 @@
                 modalEmailInfo: "Details have been sent to your email (simulation).",
                 tooltipDiscount: "Eligible: Students, Seniors (60+), Children (under 12). Proof may be required.",
                 tooltipFree: "Eligible: Infants (under 2), Specific promotions. Check details.",
+                detailSectionDescription: "Detailed Description", // Added detail section titles
+                detailSectionGallery: "Image Gallery",
+                detailSectionInfo: "Related Information",
+                contactLabel: "Contact:",
+                addressLabel: "Address:",
+                transportLabel: "Transportation:",
+                noContact: "No contact information available.",
+                noAddress: "No address information available.",
+                noTransport: "No transportation information available.",
+                imageGalleryError: "Failed to load some images.", // Added image gallery error
             },
             zh: {
                 title: "梭罗市景点票务 - 在线购票",
@@ -388,6 +676,8 @@
                 basePriceLabel: "基础价格:",
                 pricePending: "免费或价格待定",
                 noDesc: "暂无详细描述。",
+                noSummary: "暂无简介。", // Added summary translation
+                noDetails: "暂无详细介绍。", // Added details translation
                 bookNowButton: "立即预订",
                 backToList: "返回列表",
                 backToDetail: "返回详情",
@@ -415,6 +705,16 @@
                 modalEmailInfo: "详细信息已发送至您的邮箱 (模拟)。",
                 tooltipDiscount: "适用人群：学生、老年人（60岁以上）、儿童（12岁以下）。可能需要证件。",
                 tooltipFree: "适用人群：婴幼儿（2岁以下）、特定活动。请查看详情。",
+                detailSectionDescription: "详细介绍", // Added detail section titles
+                detailSectionGallery: "图片展览",
+                detailSectionInfo: "相关信息",
+                contactLabel: "联系方式:",
+                addressLabel: "地址:",
+                transportLabel: "交通:",
+                noContact: "暂无联系方式。",
+                noAddress: "暂无地址信息。",
+                noTransport: "暂无交通信息。",
+                imageGalleryError: "部分图片加载失败。", // Added image gallery error
             }
         };
         let currentLang = 'en';
@@ -426,7 +726,8 @@
         const attractionListView = document.getElementById('attraction-list-view');
         const attractionDetailView = document.getElementById('attraction-detail-view');
         const purchaseView = document.getElementById('purchase-view');
-        const attractionsGrid = document.getElementById('attractions-grid');
+        // Changed from attractionsGrid to attractionsListContainer
+        const attractionsListContainer = document.getElementById('attractions-list-container');
         const attractionsLoadingDiv = document.getElementById('attractions-loading');
         const attractionsErrorDiv = document.getElementById('attractions-error');
         const detailContent = document.getElementById('detail-content');
@@ -450,8 +751,13 @@
         const modalOrderLabel = document.getElementById('modal-order-label');
         const modalQrLabel = document.getElementById('modal-qr-label');
         const modalEmailInfo = document.getElementById('modal-email-info');
-        const langEnBtn = document.getElementById('lang-en');
-        const langZhBtn = document.getElementById('lang-zh');
+        // Removed individual language buttons
+        // const langEnBtn = document.getElementById('lang-en');
+        // const langZhBtn = document.getElementById('lang-zh');
+        const floatingNav = document.getElementById('floating-nav'); // Floating nav bar
+        const langSwitcher = document.getElementById('lang-switcher'); // Language switcher container
+        const languageSelect = document.getElementById('language-select'); // Language select dropdown
+
 
         // --- Helper Functions ---
         function validateUsageDate(input) {
@@ -469,34 +775,73 @@
             clearMessages(errorMessageDiv); // Clear general error if date is valid
             return true;
         }
-        function showMessage(msg) {clearMessages(); messageDiv.textContent = msg; setTimeout(clearMessages, 5000); }
-        function showError(msg, target = errorMessageDiv) {clearMessages(); target.textContent = msg; target.classList.remove('hidden'); setTimeout(() => clearMessages(target), 7000); }
-        function clearMessages(target = null) { 
+        function showMessage(msg) { clearMessages(); messageDiv.textContent = msg; setTimeout(clearMessages, 5000); }
+        function showError(msg, target = errorMessageDiv) { clearMessages(); target.textContent = msg; target.classList.remove('hidden'); setTimeout(() => clearMessages(target), 7000); }
+        function clearMessages(target = null) {
             if (target) { target.textContent = ''; target.classList.add('hidden'); }
             else {
                 messageDiv.textContent = ''; errorMessageDiv.textContent = ''; errorMessageDiv.classList.add('hidden');
                 attractionsErrorDiv.textContent = ''; attractionsErrorDiv.classList.add('hidden');
                 detailError.textContent = ''; detailError.classList.add('hidden');
-                purchaseErrorDiv.textContent = ''; purchaseErrorDiv.classList.add('hidden');
+                purchaseErrorDiv.classList.add('hidden');
             }
         }
-        function setLoadingState(button, isLoading, loadingTextKey = 'purchaseButtonLoading') { 
+        function setLoadingState(button, isLoading, loadingTextKey = 'purchaseButtonLoading') {
             if (button) {
                 button.disabled = isLoading;
                 if (isLoading) { button.dataset.originalText = button.textContent; button.textContent = translations[currentLang][loadingTextKey]; }
                 else if (button.dataset.originalText) { button.textContent = button.dataset.originalText; }
             }
         }
-        function openModal(orderId, qrData) { 
-            modalOrderId.textContent = orderId; qrCodeContainer.innerHTML = '';
-            new QRCode(qrCodeContainer, { text: qrData, width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+        function openModal(orderId, qrData) {
+            modalOrderId.textContent = orderId;
+            qrCodeContainer.innerHTML = '';
+
+            // Defensive check for QRCode availability
+            if (typeof QRCode === 'undefined' || typeof QRCode.CorrectLevel === 'undefined') {
+                console.error("QRCode or QRCode.CorrectLevel is not available when trying to open modal.");
+                showError("Failed to generate QR code. Please try again.", purchaseErrorDiv); // Show a user-friendly error
+                return; // Stop execution
+            }
+
+            new QRCode(qrCodeContainer, {
+                text: qrData,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
             successModal.style.display = "block";
         }
-        function closeModal() {successModal.style.display = "none"; qrCodeContainer.innerHTML = ''; }
+        function closeModal() { successModal.style.display = "none"; qrCodeContainer.innerHTML = ''; }
         window.onclick = function (event) { if (event.target == successModal) { closeModal(); } }
         function toggleTooltip(element) { element.classList.toggle('active'); }
         function showTooltip(element) { /* CSS handles this */ }
         function hideTooltip(element) { element.classList.remove('active'); }
+
+        // Function to check for local image and fallback
+        function checkLocalImage(imgElement, localPath, fallbackUrl, placeholderUrl = 'https://placehold.co/600x400/cccccc/666666?text=Image+Not+Available') {
+            // Temporarily set the src to the local path
+            imgElement.src = localPath;
+
+            // If the local image loads successfully, the onerror will not fire.
+            // If the local image fails to load, onerror will fire.
+            imgElement.onerror = () => {
+                // If fallbackUrl is provided and is different from the placeholder, try it
+                if (fallbackUrl && fallbackUrl !== placeholderUrl && fallbackUrl !== localPath) {
+                    imgElement.onerror = () => {
+                        // If fallback also fails, use the final placeholder
+                        imgElement.src = placeholderUrl;
+                    };
+                    imgElement.src = fallbackUrl;
+                } else {
+                    // Otherwise, just use the placeholder
+                    imgElement.src = placeholderUrl;
+                }
+            };
+        }
+
 
         // --- View Management ---
         function showView(viewId, data = null) {
@@ -507,6 +852,20 @@
             // Scroll to top when changing views
             window.scrollTo(0, 0);
 
+            // Show/hide floating nav and language switcher based on view
+            if (viewId === 'attraction-list-view') {
+                floatingNav.style.display = 'flex'; // Use flex to maintain column layout
+                langSwitcher.style.display = 'block'; // Show language switcher
+            } else if (viewId === 'attraction-detail-view') {
+                floatingNav.style.display = 'none'; // Hide floating nav
+                langSwitcher.style.display = 'block'; // Show language switcher
+            }
+            else if (viewId === 'purchase-view') {
+                floatingNav.style.display = 'none'; // Hide floating nav
+                langSwitcher.style.display = 'none'; // Hide language switcher on purchase page
+            }
+
+
             // Load data if needed for the view
             if (viewId === 'attraction-detail-view' && data) {
                 loadAttractionDetail(data); // data is attractionId
@@ -514,7 +873,7 @@
                 setupPurchaseForm(data); // data is attraction object
             } else if (viewId === 'attraction-list-view') {
                 // Optionally reload list if needed, or just show
-                if (attractionsGrid.children.length === 0 && !attractionsLoadingDiv.classList.contains('active')) {
+                if (attractionsListContainer.children.length === 0 && !attractionsLoadingDiv.classList.contains('active')) {
                     loadAttractionList(); // Reload if empty and not already loading
                 }
             }
@@ -522,9 +881,13 @@
 
         // --- Language Function ---
         function setLanguage(lang) {
+            console.log(`Attempting to set language to: ${lang}`); // Log language change attempt
             currentLang = lang;
             localStorage.setItem('preferredLang', lang);
             document.documentElement.lang = lang;
+
+            // Set the selected value in the dropdown
+            languageSelect.value = lang;
 
             // Update static text
             pageTitle.textContent = translations[lang].title;
@@ -534,8 +897,11 @@
             modalOrderLabel.textContent = translations[lang].modalOrderLabel;
             modalQrLabel.textContent = translations[lang].modalQrLabel;
             modalEmailInfo.textContent = translations[lang].modalEmailInfo;
-            document.querySelector('.back-to-list-text').textContent = translations[lang].backToList;
-            document.querySelector('.back-to-detail-text').textContent = translations[lang].backToDetail;
+            // Update back buttons
+            document.querySelectorAll('.back-to-list-text').forEach(el => el.textContent = translations[lang].backToList);
+            document.querySelectorAll('.back-to-detail-text').forEach(el => el.textContent = translations[lang].backToDetail);
+
+            // Update texts in purchase view (even if switcher is hidden, in case user navigates back)
             document.querySelector('.ticket-selection-title').textContent = translations[lang].ticketSelectionTitle;
             document.querySelector('.attendee-info-title').textContent = translations[lang].attendeeInfoTitle;
             document.querySelector('.attendees-label').textContent = translations[lang].attendeesLabel;
@@ -543,45 +909,78 @@
             document.querySelector('.usage-date-label').textContent = translations[lang].usageDateLabel;
             document.querySelector('.total-price-label').textContent = translations[lang].totalPriceLabel;
             document.querySelector('.proceed-payment-btn-text').textContent = translations[lang].proceedPaymentBtnText;
+
             // Update tooltip text dynamically (important!)
             document.querySelector('.tooltip-discount-text').innerHTML = `<b>${translations[lang].ticketTypeDiscountLabel.replace(':', '')}</b> ${translations[lang].tooltipDiscount}`;
             document.querySelector('.tooltip-free-text').innerHTML = `<b>${translations[lang].ticketTypeFreeLabel.replace(':', '')}</b> ${translations[lang].tooltipFree}`;
 
+            // Update detail section titles if detail view is active
+            if (attractionDetailView.classList.contains('active')) {
+                const detailDescTitle = detailContent.querySelector('.detail-desc-title');
+                if (detailDescTitle) detailDescTitle.textContent = translations[lang].detailSectionDescription;
+                const detailGalleryTitle = detailContent.querySelector('.detail-gallery-title');
+                if (detailGalleryTitle) detailGalleryTitle.textContent = translations[lang].detailSectionGallery;
+                const detailInfoTitle = detailContent.querySelector('.detail-info-title');
+                if (detailInfoTitle) detailInfoTitle.textContent = translations[lang].detailSectionInfo;
+                // Update info labels
+                const contactLabelEl = detailContent.querySelector('.contact-label');
+                if (contactLabelEl) contactLabelEl.textContent = translations[lang].contactLabel;
+                const addressLabelEl = detailContent.querySelector('.address-label');
+                if (addressLabelEl) addressLabelEl.textContent = translations[lang].addressLabel;
+                const transportLabelEl = detailContent.querySelector('.transport-label');
+                if (transportLabelEl) transportLabelEl.textContent = translations[lang].transportLabel;
+            }
 
-            langEnBtn.classList.toggle('active', lang === 'en');
-            langZhBtn.classList.toggle('active', lang === 'zh');
+            // No longer needed for dropdown
+            // langEnBtn.classList.toggle('active', lang === 'en');
+            // langZhBtn.classList.toggle('active', lang === 'zh');
 
-            // Reload the current view to update dynamic content
+            // --- Reload the current view to update dynamic content from API ---
             const activeView = document.querySelector('.view.active');
             if (activeView) {
+                console.log(`Active view is: ${activeView.id}`); // Log active view
                 if (activeView.id === 'attraction-list-view') {
-                    loadAttractionList();
+                    loadAttractionList(); // Reload list to update names, summaries, etc.
                 } else if (activeView.id === 'attraction-detail-view' && currentAttractionId) {
-                    loadAttractionDetail(currentAttractionId);
-                } else if (activeView.id === 'purchase-view' && currentAttractionId) {
-                    // Need to refetch attraction details to update purchase form labels correctly
-                    fetchAttractionData(currentAttractionId).then(attraction => {
-                        if (attraction) setupPurchaseForm(attraction);
-                    });
+                    loadAttractionDetail(currentAttractionId); // Reload detail to update text
                 }
+                // Removed the purchase view specific reload as per user request to hide switcher
+                // else if (activeView.id === 'purchase-view' && currentAttractionId) {
+                //     console.log(`Language switched to ${lang} on purchase view for attraction ID: ${currentAttractionId}. Fetching updated data...`); // Log fetch attempt
+                //     fetchAttractionData(currentAttractionId).then(attraction => {
+                //         console.log("Fetched attraction data for purchase view:", attraction); // Log fetched data
+                //         if (attraction) {
+                //             setupPurchaseForm(attraction);
+                //             console.log("setupPurchaseForm called with updated data."); // Log setup call
+                //         } else {
+                //             console.error("Failed to fetch updated attraction data for purchase view."); // Log fetch failure
+                //         }
+                //     });
+                // }
+            } else {
+                console.log("No active view found."); // Log if no active view
             }
         }
 
         // --- Data Loading ---
         async function fetchAttractionData(attractionId) {
+            console.log(`Fetching data for attraction ID: ${attractionId} with language: ${currentLang}`); // Log fetch data call
             try {
                 const response = await fetch(`${API_BASE_URL}/attractions/${attractionId}?lang=${currentLang}`);
                 if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
-                return await response.json();
+                const data = await response.json();
+                console.log("Attraction data fetched successfully:", data); // Log successful fetch
+                return data;
             } catch (error) {
-                console.error(`Error fetching attraction ${attractionId}:`, error);
+                console.error(`Error fetching attraction ${attractionId}:`, error); // Log fetch error
                 return null; // Indicate failure
             }
         }
 
         async function loadAttractionList() {
+            console.log(`Loading attraction list with language: ${currentLang}`); // Log list load call
             attractionsLoadingDiv.classList.remove('hidden');
-            attractionsGrid.classList.add('hidden');
+            attractionsListContainer.classList.add('hidden'); // Hide the container
             attractionsErrorDiv.classList.add('hidden');
             loadingText.textContent = translations[currentLang].loadingText;
 
@@ -592,17 +991,32 @@
                     throw new Error(errorData.message || `Failed to load attractions (HTTP ${response.status})`);
                 }
                 const attractions = await response.json();
+                console.log("Attraction list fetched successfully:", attractions); // Log successful fetch
 
-                attractionsGrid.innerHTML = '';
+                attractionsListContainer.innerHTML = ''; // Clear previous list
+                floatingNav.innerHTML = ''; // Clear previous nav buttons
+                colorIndex = 0; // Reset color index
+
                 if (attractions.length === 0) {
-                    attractionsGrid.innerHTML = `<p class="text-center text-gray-500 col-span-1 sm:col-span-2 lg:col-span-3">${translations[currentLang].noAttractions}</p>`;
+                    attractionsListContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full">${translations[currentLang].noAttractions}</p>`;
                 } else {
                     attractions.forEach(attraction => {
-                        const card = createAttractionListCard(attraction);
-                        attractionsGrid.appendChild(card);
+                        const attractionBlock = createAttractionListBlock(attraction);
+                        attractionsListContainer.appendChild(attractionBlock);
+
+                        // Add button to floating nav
+                        const navButton = document.createElement('button');
+                        navButton.textContent = attraction.name;
+                        navButton.onclick = () => {
+                            // Scroll to the attraction block
+                            document.getElementById(`attraction-${attraction.attraction_id}`).scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                        };
+                        floatingNav.appendChild(navButton);
                     });
                 }
-                attractionsGrid.classList.remove('hidden');
+                attractionsListContainer.classList.remove('hidden'); // Show the container
 
             } catch (error) {
                 console.error('Failed to load attractions:', error);
@@ -613,27 +1027,47 @@
             }
         }
 
-        function createAttractionListCard(attraction) {
-            const card = document.createElement('div');
-            // Use onclick to navigate to detail view
-            card.className = 'p-0 border rounded-lg shadow bg-white card overflow-hidden'; // No padding, let image fill
-            card.onclick = () => showView('attraction-detail-view', attraction.attraction_id);
+        function createAttractionListBlock(attraction) {
+            // Assign a background color and increment index
+            const bgColorClass = backgroundColors[colorIndex % backgroundColors.length];
+            colorIndex++;
 
-            const imageUrl = attraction.image_url || 'https://placehold.co/600x400/cccccc/666666?text=Image+Not+Available';
+            const block = document.createElement('div');
+            // Add ID for scrolling
+            block.id = `attraction-${attraction.attraction_id}`;
+            block.className = `attraction-block ${bgColorClass}`;
+
+            // Local image path simulation for homepage
+            const localImagePath = `res/homepage/${attraction.attraction_id}.jpg`;
+            const fallbackImageUrl = attraction.image_url || 'https://placehold.co/600x400/cccccc/666666?text=Image+Not+Available';
+
+
             const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translations[currentLang].pricePending;
 
-            card.innerHTML = `
-                <img src="${imageUrl}" alt="${attraction.name}" class="w-full h-48 object-cover" onerror="this.onerror=null; this.src='https://placehold.co/600x400/cccccc/666666?text=Image+Error';">
-                <div class="p-4">
-                    <h3 class="text-lg font-semibold mb-1 text-gray-800 truncate">${attraction.name}</h3>
-                    <p class="text-sm text-gray-600 mb-2 truncate">${attraction.description || translations[currentLang].noDesc}</p>
-                    <p class="text-md font-bold text-blue-600">${priceFormatted}</p>
+            block.innerHTML = `
+                <div class="attraction-image-container">
+                    <img src="" alt="${attraction.name}" class="attraction-image">
+                </div>
+                <div class="attraction-info">
+                    <h3>${attraction.name}</h3>
+                    <p class="summary">${attraction.summary || translations[currentLang].noSummary}</p>
+                    <p class="price">${priceFormatted}</p>
+                    <button onclick="showView('attraction-detail-view', '${attraction.attraction_id}')" class="book-button">
+                       <span class="book-now-button">${translations[currentLang].bookNowButton}</span>
+                    </button>
                 </div>
             `;
-            return card;
+
+            // Use the checkLocalImage function for the main image
+            const imgElement = block.querySelector('.attraction-image');
+            checkLocalImage(imgElement, localImagePath, fallbackImageUrl);
+
+            return block;
         }
 
+
         async function loadAttractionDetail(attractionId) {
+            console.log(`Loading attraction detail for ID: ${attractionId} with language: ${currentLang}`); // Log detail load call
             currentAttractionId = attractionId; // Store current ID
             detailContent.innerHTML = `<div class="spinner"></div><p>${translations[currentLang].loadingText}</p>`; // Show loading
             detailError.classList.add('hidden');
@@ -641,15 +1075,38 @@
             const attraction = await fetchAttractionData(attractionId);
 
             if (attraction) {
-                const imageUrl = attraction.image_url || 'https://placehold.co/800x400/cccccc/666666?text=Image+Not+Available';
+                // Local image path simulation for detail gallery
+                const detailGalleryImagesHTML = await loadDetailGalleryImages(attraction.attraction_id);
+
                 const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translations[currentLang].pricePending;
                 currentAttractionBasePrice = attraction.price; // Store base price
 
+                // Reordered sections: Gallery first, then Description, then Info
                 detailContent.innerHTML = `
-                    <h2 class="text-3xl font-bold mb-3">${attraction.name}</h2>
-                    <img src="${imageUrl}" alt="${attraction.name}" class="w-full object-cover rounded shadow mb-4" onerror="this.onerror=null; this.src='https://placehold.co/800x400/cccccc/666666?text=Image+Error';">
-                    <p class="text-gray-700 mb-4">${attraction.description || translations[currentLang].noDesc}</p>
-                    <p class="text-xl font-bold text-blue-600 mb-6"><span class="base-price-label">${translations[currentLang].basePriceLabel}</span> ${priceFormatted}</p>
+                    <h2 class="text-3xl font-bold mb-6 text-gray-800">${attraction.name}</h2>
+
+                    <div class="detail-section">
+                        <h3 class="detail-gallery-title">${translations[currentLang].detailSectionGallery}</h3>
+                        <div class="image-gallery">
+                            ${detailGalleryImagesHTML}
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3 class="detail-desc-title">${translations[currentLang].detailSectionDescription}</h3>
+                        <p>${attraction.details || translations[currentLang].noDetails}</p>
+                    </div>
+
+                    <div class="detail-section contact-info">
+                        <h3 class="detail-info-title">${translations[currentLang].detailSectionInfo}</h3>
+                        <p><strong class="contact-label">${translations[currentLang].contactLabel}</strong> ${attraction.contact_info || translations[currentLang].noContact}</p>
+                        <p><strong class="address-label">${translations[currentLang].addressLabel}</strong> ${attraction.address_info || translations[currentLang].addressInfo}</p>
+                        <p><strong class="transport-label">${translations[currentLang].transportLabel}</strong> ${attraction.transport_info || translations[currentLang].noTransport}</p>
+                    </div>
+
+
+                    <p class="text-xl font-bold text-blue-600 mb-6 text-right"><span class="base-price-label">${translations[currentLang].basePriceLabel}</span> ${priceFormatted}</p>
+
                     <button onclick="showView('purchase-view', ${JSON.stringify(attraction).replace(/"/g, '&quot;')})" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg shadow text-lg transition duration-300">
                        <span class="book-now-button">${translations[currentLang].bookNowButton}</span>
                     </button>
@@ -661,8 +1118,51 @@
             }
         }
 
+        // Simulate loading multiple detail images
+        async function loadDetailGalleryImages(attractionId) {
+            let imagesHTML = '';
+            const placeholderUrl = 'https://placehold.co/150x150/cccccc/666666?text=Image'; // Placeholder for gallery
+            const maxImagesToTry = 5; // Attempt to load up to 5 images
+
+            for (let i = 1; i <= maxImagesToTry; i++) {
+                const localImagePath = `res/details/${attractionId}_${i}.jpg`;
+                // Create a temporary image element to check if the image loads
+                const img = new Image();
+                let loaded = false;
+
+                // Use a Promise to wait for load or error
+                await new Promise((resolve) => {
+                    img.onload = () => {
+                        loaded = true;
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        loaded = false;
+                        resolve();
+                    };
+                    img.src = localImagePath;
+                });
+
+                if (loaded) {
+                    imagesHTML += `<img src="${localImagePath}" alt="${attractionId} Image ${i}">`;
+                } else {
+                    // Optionally add a placeholder if an image is missing in the sequence
+                    // imagesHTML += `<img src="${placeholderUrl}" alt="Image not available">`;
+                }
+            }
+
+            // If no images were found after trying, add a single placeholder
+            if (imagesHTML === '') {
+                imagesHTML = `<img src="${placeholderUrl}" alt="${translations[currentLang].imageGalleryError}">`;
+            }
+
+            return imagesHTML;
+        }
+
+
         // --- Purchase Form Logic ---
         function setupPurchaseForm(attraction) {
+            console.log("setupPurchaseForm called with attraction:", attraction); // Log setup call
             currentAttractionId = attraction.attraction_id; // Ensure this is set
             currentAttractionBasePrice = parseFloat(attraction.price || 0);
             purchaseAttractionName.textContent = attraction.name;
@@ -776,12 +1276,15 @@
             }
             if (!allNamesFilled) {
                 showError(translations[currentLang].fillNamesError, purchaseErrorDiv); return;
+                return; // Stop execution
             }
             if (!customerEmail || !usageDate) {
                 showError(translations[currentLang].fillFieldsError, purchaseErrorDiv); return;
+                return; // Stop execution
             }
             if (new Date(usageDate) < new Date()) {
                 showError(translations[currentLang].datePastError, purchaseErrorDiv); return;
+                return; // Stop execution
             }
 
 
@@ -835,10 +1338,22 @@
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             const preferredLang = localStorage.getItem('preferredLang') || 'en';
-            setLanguage(preferredLang);
-            showView('attraction-list-view'); // Start at the list view
-        });
+            // Set the initial value of the select dropdown
+            languageSelect.value = preferredLang;
+            setLanguage(preferredLang); // Call setLanguage with the initial preferred language
 
+            // Add event listener for the dropdown change
+            languageSelect.addEventListener('change', (event) => {
+                setLanguage(event.target.value);
+            });
+
+            // Add a check for QRCode.CorrectLevel on DOMContentLoaded
+            if (typeof QRCode !== 'undefined' && QRCode.CorrectLevel) {
+                console.log("QRCode.CorrectLevel is available on DOMContentLoaded.");
+            } else {
+                console.error("QRCode or QRCode.CorrectLevel is NOT available on DOMContentLoaded.");
+            }
+        });
     </script>
 
 </body>

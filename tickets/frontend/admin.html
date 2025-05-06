@@ -32,7 +32,7 @@
         }
 
         textarea.input-field {
-            min-height: 80px;
+            min-height: 60px;
         }
 
         .spinner {
@@ -153,6 +153,11 @@
         .stats-list li {
             margin-bottom: 0.25rem;
         }
+
+        /* Hide default file input */
+        #json-file-input {
+            display: none;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -165,18 +170,13 @@
         <div class="bg-white p-8 rounded-lg shadow-md">
             <h1 class="text-2xl font-bold text-center mb-6">Admin Login</h1>
             <form id="login-form" onsubmit="handleLogin(event)">
-                <div class="mb-4">
-                    <label for="username" class="block text-gray-700">Username:</label>
-                    <input type="text" id="username" name="username" required class="input-field">
-                </div>
-                <div class="mb-6">
-                    <label for="password" class="block text-gray-700">Password:</label>
-                    <input type="password" id="password" name="password" required class="input-field">
-                </div>
+                <div class="mb-4"><label for="username">Username:</label><input type="text" id="username"
+                        name="username" required class="input-field"></div>
+                <div class="mb-6"><label for="password">Password:</label><input type="password" id="password"
+                        name="password" required class="input-field"></div>
                 <button type="submit" id="login-btn"
-                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50">
-                    Login <span id="login-spinner" class="spinner hidden"></span>
-                </button>
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Login
+                    <span id="login-spinner" class="spinner hidden"></span></button>
                 <div id="login-error" class="text-red-500 text-center mt-4 text-sm hidden"></div>
             </form>
         </div>
@@ -185,66 +185,70 @@
     <div id="admin-main-view" class="admin-view container mx-auto max-w-6xl">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-3xl font-bold text-gray-800">Ticketing Admin Dashboard</h1>
-            <div>
-                <span id="welcome-user" class="mr-4 text-gray-600"></span>
-                <button onclick="handleLogout()"
-                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded text-sm">Logout</button>
-            </div>
+            <div><span id="welcome-user" class="mr-4 text-gray-600"></span><button onclick="handleLogout()"
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded text-sm">Logout</button></div>
         </div>
-
         <div class="bg-white p-6 rounded-lg shadow-md">
             <div class="border-b border-gray-200 mb-6">
-                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button onclick="showAdminTab('attractions-tab')" id="tab-btn-attractions"
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs"><button onclick="showAdminTab('attractions-tab')"
+                        id="tab-btn-attractions"
                         class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm active">Attraction
-                        Management</button>
-                    <button onclick="showAdminTab('stats-tab')" id="tab-btn-stats"
+                        Management</button><button onclick="showAdminTab('stats-tab')" id="tab-btn-stats"
                         class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Sales
-                        Statistics</button>
-                    <button onclick="showAdminTab('orders-tab')" id="tab-btn-orders"
+                        Statistics</button><button onclick="showAdminTab('orders-tab')" id="tab-btn-orders"
                         class="tab-button whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Order
-                        Search</button>
-                </nav>
+                        Search</button></nav>
             </div>
-
             <div id="admin-tab-content">
                 <div id="attractions-tab" class="admin-tab active">
                     <h2 class="text-2xl font-semibold mb-4">Attraction Management</h2>
                     <div id="admin-attractions-error" class="text-red-600 mb-3 hidden"></div>
-                    <button onclick="toggleAddAttractionForm()"
-                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded mb-4 text-sm">Add New
-                        Attraction</button>
-                    <form id="add-attraction-form" class="hidden mb-6 p-4 border rounded bg-gray-50"
-                        onsubmit="handleAddAttraction(event)">
-                        <h3 class="text-lg font-semibold mb-3">Add New Attraction</h3>
+                    <div class="flex space-x-3 mb-4">
+                        <button onclick="showAddAttractionForm()"
+                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded text-sm">Add New
+                            Attraction</button>
+                        <button id="add-from-json-btn" onclick="triggerJsonUpload()"
+                            class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-1 rounded text-sm">Add from
+                            JSON</button>
+                        <input type="file" id="json-file-input" accept=".json" onchange="handleJsonFileSelected(event)">
+                    </div>
+                    <div id="json-upload-status" class="text-sm text-gray-600 mb-4 hidden"></div>
+
+                    <form id="attraction-form" class="hidden mb-6 p-4 border rounded bg-gray-50"
+                        onsubmit="handleSaveAttraction(event)">
+                        <h3 id="form-title" class="text-lg font-semibold mb-3">Add New Attraction</h3>
+                        <input type="hidden" id="edit-attraction-id" name="edit_attraction_id">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label for="add-attraction-id">Attraction ID:</label><input type="text"
-                                    id="add-attraction-id" name="attraction_id" required
+                            <div><label for="form-attraction-id">Attraction ID*:</label><input type="text"
+                                    id="form-attraction-id" name="attraction_id" required
                                     pattern="[a-z0-9]+(?:-[a-z0-9]+)*" class="input-field" placeholder="e.g., palace-a">
                             </div>
-                            <div><label for="add-price">Base Price (Rp):</label><input type="number" id="add-price"
-                                    name="price" required min="0" step="100" class="input-field"
-                                    placeholder="e.g., 50000"></div>
-                            <div><label for="add-name-en">Name (English):</label><input type="text" id="add-name-en"
-                                    name="name_en" required class="input-field"></div>
-                            <div><label for="add-name-zh">Name (Chinese):</label><input type="text" id="add-name-zh"
-                                    name="name_zh" required class="input-field"></div>
-                            <div class="md:col-span-2"><label for="add-image-url">Image URL:</label><input type="url"
-                                    id="add-image-url" name="image_url" class="input-field" placeholder="https://...">
-                            </div>
-                            <div class="md:col-span-2"><label for="add-desc-en">Description (English):</label><textarea
-                                    id="add-desc-en" name="description_en" class="input-field"></textarea></div>
-                            <div class="md:col-span-2"><label for="add-desc-zh">Description (Chinese):</label><textarea
-                                    id="add-desc-zh" name="description_zh" class="input-field"></textarea></div>
+                            <div><label for="form-price">Base Price (Rp)*:</label><input type="number" id="form-price"
+                                    name="price" required min="0" step="100" class="input-field"></div>
+                            <div class="md:col-span-2"><label for="form-name-en">Name (English)*:</label><input
+                                    type="text" id="form-name-en" name="name_en" required class="input-field"></div>
+                            <div class="md:col-span-2"><label for="form-image-url">Image URL:</label><input type="url"
+                                    id="form-image-url" name="image_url" class="input-field"></div>
+                            <div class="md:col-span-2"><label for="form-summary-en">Summary (English):</label><textarea
+                                    id="form-summary-en" name="summary_en" class="input-field"></textarea></div>
+                            <div class="md:col-span-2"><label for="form-details-en">Details (English):</label><textarea
+                                    id="form-details-en" name="details_en"
+                                    class="input-field !min-h-[100px]"></textarea></div>
+                            <div><label for="form-contact">Contact Info:</label><input type="text" id="form-contact"
+                                    name="contact_info" class="input-field"></div>
+                            <div><label for="form-address">Address Info:</label><input type="text" id="form-address"
+                                    name="address_info" class="input-field"></div>
+                            <div class="md:col-span-2"><label for="form-transport">Transport Info:</label><input
+                                    type="text" id="form-transport" name="transport_info" class="input-field"></div>
                         </div>
                         <div class="mt-4">
-                            <button type="submit" id="add-attraction-submit-btn"
+                            <button type="submit" id="save-attraction-btn"
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-1.5 rounded shadow">Save
-                                Attraction <span id="add-spinner" class="spinner hidden !w-4 !h-4"></span></button>
-                            <button type="button" onclick="toggleAddAttractionForm(false)"
+                                Attraction <span id="save-spinner" class="spinner hidden !w-4 !h-4"></span></button>
+                            <button type="button" onclick="hideAttractionForm()"
                                 class="ml-2 text-gray-600 hover:underline">Cancel</button>
                         </div>
-                        <div id="add-attraction-error" class="text-red-500 text-sm mt-2 hidden"></div>
+                        <div id="attraction-form-error" class="text-red-500 text-sm mt-2 hidden"></div>
                     </form>
                     <div id="attractions-table-loading" class="text-center hidden">
                         <div class="spinner"></div> Loading attractions...
@@ -254,8 +258,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Name (English)</th>
-                                    <th>Name (Chinese)</th>
+                                    <th>Name (EN)</th>
                                     <th>Price (Rp)</th>
                                     <th>Actions</th>
                                 </tr>
@@ -264,7 +267,6 @@
                         </table>
                     </div>
                 </div>
-
                 <div id="stats-tab" class="admin-tab">
                     <h2 class="text-2xl font-semibold mb-4">Sales Statistics</h2>
                     <div id="stats-loading" class="text-center hidden">
@@ -288,14 +290,13 @@
                         </div>
                         <div class="stats-section">
                             <h3>Statistics for Specific Date</h3>
-                            <div class="flex items-center space-x-3 mb-4">
-                                <label for="stats-date-picker" class="font-medium">Select Date:</label>
-                                <input type="date" id="stats-date-picker" class="input-field !w-auto !mb-0">
-                                <button id="fetch-date-stats-btn" onclick="fetchAdminStatsForDate()"
-                                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1 rounded text-sm disabled:opacity-50">
-                                    Fetch Stats <span id="date-stats-spinner" class="spinner hidden !w-4 !h-4"></span>
-                                </button>
-                            </div>
+                            <div class="flex items-center space-x-3 mb-4"><label for="stats-date-picker"
+                                    class="font-medium">Select Date:</label><input type="date" id="stats-date-picker"
+                                    class="input-field !w-auto !mb-0"><button id="fetch-date-stats-btn"
+                                    onclick="fetchAdminStatsForDate()"
+                                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1 rounded text-sm disabled:opacity-50">Fetch
+                                    Stats <span id="date-stats-spinner"
+                                        class="spinner hidden !w-4 !h-4"></span></button></div>
                             <div id="stats-date-result" class="hidden">
                                 <p>Total Tickets Sold on <span id="stats-selected-date"></span>: <strong
                                         id="stats-date-total">N/A</strong></p>
@@ -307,18 +308,16 @@
                         </div>
                     </div>
                 </div>
-
                 <div id="orders-tab" class="admin-tab">
                     <h2 class="text-2xl font-semibold mb-4">Order Search</h2>
                     <div
                         class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
-                        <label for="order-id-input" class="font-medium mb-1 sm:mb-0">Enter Order ID:</label>
-                        <input type="text" id="order-id-input" placeholder="Paste Order ID..."
-                            class="input-field mb-0 w-full sm:w-auto flex-grow">
-                        <button id="search-order-btn" onclick="searchAdminOrder()"
-                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-1.5 rounded-lg shadow transition duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
-                            Search <span id="search-spinner" class="spinner hidden"></span>
-                        </button>
+                        <label for="order-id-input" class="font-medium mb-1 sm:mb-0">Enter Order ID:</label><input
+                            type="text" id="order-id-input" placeholder="Paste Order ID..."
+                            class="input-field mb-0 w-full sm:w-auto flex-grow"><button id="search-order-btn"
+                            onclick="searchAdminOrder()"
+                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-1.5 rounded-lg shadow transition duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">Search
+                            <span id="search-spinner" class="spinner hidden"></span></button>
                     </div>
                     <div id="order-details" class="bg-gray-100 p-4 rounded-md text-left border min-h-[5em] hidden">
                     </div>
@@ -333,6 +332,7 @@
     <script>
         const API_BASE_URL = 'http://127.0.0.1:5000/api';
         let currentUserRole = null;
+        let attractionsCache = {};
 
         // --- DOM Elements ---
         const loginView = document.getElementById('login-view');
@@ -345,14 +345,23 @@
         const adminTabContent = document.getElementById('admin-tab-content');
         const adminTabs = adminTabContent.querySelectorAll('.admin-tab');
         const tabButtons = document.querySelectorAll('.tab-button');
-        const addAttractionForm = document.getElementById('add-attraction-form');
-        const addAttractionError = document.getElementById('add-attraction-error');
-        const addAttractionSubmitBtn = document.getElementById('add-attraction-submit-btn');
-        const addSpinner = document.getElementById('add-spinner');
+        // Attraction Form Elements
+        const attractionForm = document.getElementById('attraction-form');
+        const formTitle = document.getElementById('form-title');
+        const editAttractionIdField = document.getElementById('edit-attraction-id');
+        const formAttractionIdInput = document.getElementById('form-attraction-id');
+        const attractionFormError = document.getElementById('attraction-form-error');
+        const saveAttractionBtn = document.getElementById('save-attraction-btn');
+        const saveSpinner = document.getElementById('save-spinner');
+        // JSON Upload Elements
+        const jsonFileInput = document.getElementById('json-file-input');
+        const jsonUploadStatus = document.getElementById('json-upload-status');
+        // Attractions Table
         const attractionsTable = document.getElementById('attractions-table');
         const attractionsTableBody = document.getElementById('attractions-table-body');
         const attractionsTableLoading = document.getElementById('attractions-table-loading');
         const adminAttractionsError = document.getElementById('admin-attractions-error');
+        // Stats Tab Elements
         const statsLoading = document.getElementById('stats-loading');
         const statsErrorDiv = document.getElementById('stats-error');
         const statsContent = document.getElementById('stats-content');
@@ -369,13 +378,13 @@
         const statsDateTotal = document.getElementById('stats-date-total');
         const statsDateByAttraction = document.getElementById('stats-date-by-attraction');
         const statsDateError = document.getElementById('stats-date-error');
+        // Orders Tab Elements
         const orderIdInput = document.getElementById('order-id-input');
         const searchOrderBtn = document.getElementById('search-order-btn');
         const orderDetailsDiv = document.getElementById('order-details');
         const orderSearchErrorDiv = document.getElementById('order-search-error');
         const orderNotFoundDiv = document.getElementById('order-not-found');
         const searchSpinner = document.getElementById('search-spinner');
-
 
         // --- Helper Functions ---
         function showError(msg, target) { target.textContent = msg; target.classList.remove('hidden'); }
@@ -386,51 +395,69 @@
         function formatAdminDateTime(isoString) { if (!isoString) return 'N/A'; try { return new Date(isoString).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return isoString; } }
 
         // --- Authentication ---
-        async function checkLoginStatus() { try { const r = await fetch(`${API_BASE_URL}/admin/status`, { credentials: 'include' }); if (r.ok) { const d = await r.json(); currentUserRole = d.role; showAdminView(d.username); } else { showLoginView(); } } catch (e) { console.error("Status check error:", e); showLoginView(); showError("Cannot connect to server", loginError); } }
+        async function checkLoginStatus() { try { const r = await fetch(`${API_BASE_URL}/admin/status`, { credentials: 'include' }); if (r.ok) { const d = await r.json(); if (d.logged_in) { currentUserRole = d.role; showAdminView(d.username); } else { showLoginView(); } } else { showLoginView(); } } catch (e) { console.error("Status check error:", e); showLoginView(); showError("Cannot connect to server", loginError); } }
         function showLoginView() { loginView.classList.add('active'); adminMainView.classList.remove('active'); currentUserRole = null; }
-        function showAdminView(username) { loginView.classList.remove('active'); adminMainView.classList.add('active'); welcomeUser.textContent = `Welcome, ${username}!`; showAdminTab('attractions-tab'); } // Load default tab
+        function showAdminView(username) { loginView.classList.remove('active'); adminMainView.classList.add('active'); welcomeUser.textContent = `Welcome, ${username}!`; showAdminTab('attractions-tab'); }
         async function handleLogin(event) { event.preventDefault(); clearError(loginError); setLoadingState(loginBtn, loginSpinner, true); const u = loginForm.elements['username'].value; const p = loginForm.elements['password'].value; try { const r = await fetch(`${API_BASE_URL}/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ username: u, password: p }), }); const d = await r.json(); if (r.ok) { currentUserRole = d.role; showAdminView(d.username); } else { throw new Error(d.message || `Login failed (HTTP ${r.status})`); } } catch (e) { console.error("Login failed:", e); showError(e.message, loginError); } finally { setLoadingState(loginBtn, loginSpinner, false); } }
         async function handleLogout() { try { await fetch(`${API_BASE_URL}/admin/logout`, { method: 'POST', credentials: 'include' }); } catch (e) { console.error("Logout error:", e); } finally { showLoginView(); } }
 
-
         // --- Admin Tabs ---
-        function showAdminTab(tabId) {
-            // Hide all tabs, show the target one
-            adminTabs.forEach(tab => tab.classList.toggle('active', tab.id === tabId));
-            // Update button styles - FIXED LOGIC
-            tabButtons.forEach(btn => {
-                const targetTabIdForButton = btn.id.replace('tab-btn-', '') + '-tab';
-                const isActive = targetTabIdForButton === tabId;
-                // Set base inactive styles first
-                btn.classList.remove('border-indigo-500', 'text-indigo-600', 'active'); // Remove active explicitly
-                btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                // Apply active styles if this is the active button
-                if (isActive) {
-                    btn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                    btn.classList.add('border-indigo-500', 'text-indigo-600', 'active');
-                }
-            });
-
-            // Load data for the activated tab if needed
-            if (tabId === 'attractions-tab' && attractionsTableBody.children.length === 0) { loadAdminAttractions(); }
-            else if (tabId === 'stats-tab' && statsOverallTotal.textContent === 'N/A') { fetchAdminStats(); }
-            else if (tabId === 'orders-tab') { /* Orders loaded on search */ }
-        }
+        function showAdminTab(tabId) { adminTabs.forEach(tab => tab.classList.toggle('active', tab.id === tabId)); tabButtons.forEach(btn => { const targetId = btn.id.replace('tab-btn-', '') + '-tab'; const isActive = targetId === tabId; btn.classList.toggle('active', isActive); btn.classList.toggle('border-indigo-500', isActive); btn.classList.toggle('text-indigo-600', isActive); btn.classList.toggle('border-transparent', !isActive); btn.classList.toggle('text-gray-500', !isActive); btn.classList.toggle('hover:text-gray-700', !isActive); btn.classList.toggle('hover:border-gray-300', !isActive); }); if (tabId === 'attractions-tab' && Object.keys(attractionsCache).length === 0) { loadAdminAttractions(); } else if (tabId === 'stats-tab' && statsOverallTotal.textContent === 'N/A') { fetchAdminStats(); } else if (tabId === 'orders-tab') { /* Orders loaded on search */ } }
 
         // --- Attraction Management ---
-        // (loadAdminAttractions needs credentials added)
-        function toggleAddAttractionForm(show = null) { const shouldShow = show === null ? addAttractionForm.classList.contains('hidden') : show; addAttractionForm.classList.toggle('hidden', !shouldShow); if (shouldShow) { addAttractionForm.reset(); clearError(addAttractionError); } }
+        function hideAttractionForm() {
+            attractionForm.classList.add('hidden');
+            attractionForm.reset();
+            editAttractionIdField.value = '';
+            formAttractionIdInput.disabled = false;
+            clearError(attractionFormError);
+        }
+
+        function showAddAttractionForm() {
+            hideAttractionForm();
+            formTitle.textContent = "Add New Attraction";
+            attractionForm.classList.remove('hidden');
+            attractionForm.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showEditAttractionForm(attractionId) {
+            const attraction = attractionsCache[attractionId];
+            if (!attraction) { showError("Could not find attraction data to edit.", adminAttractionsError); return; }
+            hideAttractionForm();
+            formTitle.textContent = "Edit Attraction";
+            editAttractionIdField.value = attractionId;
+            formAttractionIdInput.value = attraction.attraction_id;
+            formAttractionIdInput.disabled = true;
+
+            // Populate form with only required fields (English + others)
+            // Use ?. operator for safe access to potentially missing language keys
+            attractionForm.elements['name_en'].value = attraction.name?.en || '';
+            attractionForm.elements['price'].value = attraction.price || 0;
+            attractionForm.elements['image_url'].value = attraction.image_url || '';
+            attractionForm.elements['summary_en'].value = attraction.summary?.en || '';
+            attractionForm.elements['details_en'].value = attraction.details?.en || '';
+            attractionForm.elements['contact_info'].value = attraction.contact_info || '';
+            attractionForm.elements['address_info'].value = attraction.address_info || '';
+            attractionForm.elements['transport_info'].value = attraction.transport_info || '';
+
+            attractionForm.classList.remove('hidden');
+            attractionForm.scrollIntoView({ behavior: 'smooth' });
+        }
+
         async function loadAdminAttractions() {
-            attractionsTable.classList.add('hidden'); attractionsTableLoading.classList.remove('hidden'); clearError(adminAttractionsError);
+            // (already fetches full data)
+            attractionsTable.classList.add('hidden'); attractionsTableLoading.classList.remove('hidden'); clearError(adminAttractionsError); attractionsCache = {};
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/attractions`, { credentials: 'include' });
                 const attractions = await response.json(); if (!response.ok) throw new Error(attractions.message || `HTTP ${response.status}`);
                 attractionsTableBody.innerHTML = '';
-                if (attractions.length === 0) { attractionsTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-gray-500">No attractions found.</td></tr>'; }
+                if (attractions.length === 0) { attractionsTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500">No attractions found.</td></tr>'; }
                 else {
                     attractions.forEach(a => {
+                        attractionsCache[a.attraction_id] = a; // Cache full data
                         const row = attractionsTableBody.insertRow();
-                        row.innerHTML = `<td>${a.attraction_id}</td><td>${a.name_en}</td><td>${a.name_zh}</td><td>${formatRp(a.price)}</td><td><button class="bg-yellow-500 text-white rounded hover:bg-yellow-600" disabled title="Edit function not implemented">Edit</button> <button onclick="handleDeleteAttraction('${a.attraction_id}')" class="bg-red-500 text-white rounded hover:bg-red-600">Delete</button></td>`;
+                        // Display only EN name and price in table
+                        row.innerHTML = `<td>${a.attraction_id}</td><td>${a.name?.en || 'N/A'}</td><td>${formatRp(a.price)}</td><td><button onclick="showEditAttractionForm('${a.attraction_id}')" class="bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</button> <button onclick="handleDeleteAttraction('${a.attraction_id}')" class="bg-red-500 text-white rounded hover:bg-red-600">Delete</button></td>`;
                     });
                 }
                 attractionsTable.classList.remove('hidden');
@@ -438,17 +465,61 @@
                 console.error("Error loading admin attractions:", error); showError(`Failed to load attractions: ${error.message}`, adminAttractionsError);
             } finally { attractionsTableLoading.classList.add('hidden'); }
         }
-        async function handleAddAttraction(event) {
-            event.preventDefault(); clearError(addAttractionError); setLoadingState(addAttractionSubmitBtn, addSpinner, true);
-            const formData = new FormData(addAttractionForm); const data = Object.fromEntries(formData.entries()); data.price = parseFloat(data.price);
+
+        async function handleSaveAttraction(event) {
+            event.preventDefault();
+            clearError(attractionFormError);
+            setLoadingState(saveAttractionBtn, saveSpinner, true);
+
+            const formData = new FormData(attractionForm);
+            const editId = formData.get('edit_attraction_id');
+            const isEditing = !!editId;
+
+            // Construct the data payload, creating JSONB structure for multilingual fields
+            const data = {
+                price: parseFloat(formData.get('price')),
+                image_url: formData.get('image_url'),
+                contact_info: formData.get('contact_info'),
+                address_info: formData.get('address_info'),
+                transport_info: formData.get('transport_info'),
+                // Create JSON objects for multilingual fields
+                name: { en: formData.get('name_en') }, // Only saving English for now
+                summary: { en: formData.get('summary_en') },
+                details: { en: formData.get('details_en') }
+                // If editing existing data with other languages, merge them here if needed
+                // For simplicity, this overwrites with only English from the form
+            };
+
+            // Add ID only if adding new
+            if (!isEditing) {
+                data.attraction_id = formData.get('attraction_id');
+            }
+
+            const url = isEditing ? `${API_BASE_URL}/admin/attractions/${editId}` : `${API_BASE_URL}/admin/attractions`;
+            const method = isEditing ? 'PUT' : 'POST';
+
             try {
-                const response = await fetch(`${API_BASE_URL}/admin/attractions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data) });
-                const result = await response.json(); if (!response.ok) throw new Error(result.message || `HTTP ${response.status}`);
-                alert('Attraction added successfully!'); toggleAddAttractionForm(false); loadAdminAttractions();
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data), // Send structured data
+                });
+                const result = await response.json();
+                if (!response.ok) { throw new Error(result.message || `HTTP ${response.status}`); }
+
+                alert(`Attraction ${isEditing ? 'updated' : 'added'} successfully!`);
+                hideAttractionForm();
+                loadAdminAttractions(); // Refresh table
+
             } catch (error) {
-                console.error("Error adding attraction:", error); showError(`Failed to add: ${error.message}`, addAttractionError);
-            } finally { setLoadingState(addAttractionSubmitBtn, addSpinner, false); }
+                console.error(`Error ${isEditing ? 'updating' : 'adding'} attraction:`, error);
+                showError(`Save failed: ${error.message}`, attractionFormError);
+            } finally {
+                setLoadingState(saveAttractionBtn, saveSpinner, false);
+            }
         }
+
         async function handleDeleteAttraction(attractionId) {
             if (!confirm(`Are you sure you want to delete attraction "${attractionId}"? This cannot be undone.`)) return;
             clearError(adminAttractionsError);
@@ -459,70 +530,135 @@
             } catch (error) { console.error(`Error deleting ${attractionId}:`, error); showError(`Delete failed: ${error.message}`, adminAttractionsError); }
         }
 
+        // --- Add from JSON ---
+        function triggerJsonUpload() {
+            jsonFileInput.click(); // Trigger hidden file input
+        }
+
+        function handleJsonFileSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                let attractionsToAdd = [];
+                try {
+                    attractionsToAdd = JSON.parse(e.target.result);
+                    if (!Array.isArray(attractionsToAdd)) {
+                        throw new Error("JSON file must contain an array of attractions.");
+                    }
+                } catch (err) {
+                    showError(`Error reading JSON file: ${err.message}`, adminAttractionsError);
+                    jsonFileInput.value = ''; // Reset file input
+                    return;
+                }
+
+                if (attractionsToAdd.length === 0) {
+                    showError("No attractions found in the JSON file.", adminAttractionsError);
+                    jsonFileInput.value = ''; // Reset file input
+                    return;
+                }
+
+                jsonUploadStatus.textContent = `Attempting to add ${attractionsToAdd.length} attractions from JSON...`;
+                jsonUploadStatus.classList.remove('hidden', 'text-red-600', 'text-green-600');
+                jsonUploadStatus.classList.add('text-blue-600');
+
+                let successCount = 0;
+                let failCount = 0;
+                const errors = [];
+
+                // Add attractions one by one (could be improved with a bulk endpoint)
+                for (const attractionData of attractionsToAdd) {
+                    // Check if attraction ID already exists in the cache
+                    if (attractionsCache[attractionData.id]) {
+                        failCount++;
+                        errors.push(`Skipped item (ID already exists): ${attractionData.id}`);
+                        console.warn(`Skipped adding attraction with duplicate ID: ${attractionData.id}`);
+                        continue; // Skip to the next item in the loop
+                    }
+
+                    const payload = {
+                        attraction_id: attractionData.id,
+                        price: parseFloat(attractionData.price || 0),
+                        name: attractionData.name || {}, // Expects {"en": "...", "zh": "..."}
+                        summary: attractionData.description || {}, // Map description to summary
+                        details: attractionData.history || {}, // Map history to details
+                        contact_info: attractionData.contact,
+                        address_info: attractionData.address,
+                        transport_info: attractionData.transportation,
+                        image_url: attractionData.image_url
+                    };
+
+                    // Basic validation before sending
+                    if (!payload.attraction_id || payload.price === undefined || !payload.name?.en) {
+                        failCount++;
+                        errors.push(`Skipped item (missing ID, price, or English name): ${JSON.stringify(attractionData).substring(0, 100)}...`);
+                        continue;
+                    }
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/admin/attractions`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        if (!response.ok) {
+                            failCount++;
+                            errors.push(`Failed to add ${payload.attraction_id}: ${result.message || `HTTP ${response.status}`}`);
+                        } else {
+                            successCount++;
+                            // Optionally update cache with newly added item if successful
+                            // attractionsCache[payload.attraction_id] = payload; // This might need full data from backend response
+                        }
+                    } catch (err) {
+                        failCount++;
+                        errors.push(`Network or server error adding ${payload.attraction_id}: ${err.message}`);
+                    }
+                }
+
+                // Display final status
+                let statusMessage = `JSON Upload Complete: ${successCount} added, ${failCount} failed.`;
+                if (errors.length > 0) {
+                    statusMessage += "\nErrors:\n" + errors.slice(0, 5).join("\n"); // Show first 5 errors
+                    if (errors.length > 5) statusMessage += "\n...";
+                    jsonUploadStatus.classList.remove('text-blue-600');
+                    jsonUploadStatus.classList.add('text-red-600');
+                } else {
+                    jsonUploadStatus.classList.remove('text-blue-600');
+                    jsonUploadStatus.classList.add('text-green-600');
+                }
+                jsonUploadStatus.textContent = statusMessage;
+                jsonUploadStatus.classList.remove('hidden');
+
+                jsonFileInput.value = ''; // Reset file input
+                loadAdminAttractions(); // Refresh table to show newly added items and update cache
+            };
+
+            reader.onerror = (e) => {
+                showError("Error reading file.", adminAttractionsError);
+                jsonFileInput.value = ''; // Reset file input
+            };
+
+            reader.readAsText(file);
+        }
+
 
         // --- Statistics (Admin) ---
-        function displayStatsSection(totalElement, byAttractionElement, totalTickets, ticketsByAttraction) {
-            totalElement.textContent = totalTickets;
-            if (ticketsByAttraction && ticketsByAttraction.length > 0) { let listHtml = '<ul class="stats-list">'; ticketsByAttraction.forEach(item => { listHtml += `<li>${item.name} (ID: ${item.id}): <span class="font-bold">${item.count}</span></li>`; }); listHtml += '</ul>'; byAttractionElement.innerHTML = listHtml; }
-            else { byAttractionElement.innerHTML = '<p class="text-gray-500 mt-2">No sales data for attractions.</p>'; }
-        }
-        async function fetchAdminStats(targetDate = null) { // Fetches overall and today/target date
-            clearError(statsErrorDiv); statsContent.classList.add('hidden'); statsLoading.classList.remove('hidden');
-            const url = targetDate ? `${API_BASE_URL}/stats?date=${targetDate}` : `${API_BASE_URL}/stats`; // Backend handles default date
-            try {
-                const response = await fetch(url, { credentials: 'include' });
-                const stats = await response.json(); if (!response.ok) throw new Error(stats.message || `HTTP ${response.status}`);
-                displayStatsSection(statsOverallTotal, statsOverallByAttraction, stats.overall_total_tickets, stats.overall_tickets_by_attraction);
-                const displayDate = stats.query_date || new Date().toLocaleDateString('en-CA');
-                statsTodayTitle.textContent = `Statistics for ${displayDate}`;
-                displayStatsSection(statsTodayTotal, statsTodayByAttraction, stats.specific_date_total_tickets, stats.specific_date_tickets_by_attraction);
-                statsContent.classList.remove('hidden');
-            } catch (error) {
-                console.error('Failed fetch stats:', error); showError(`Failed to load statistics: ${error.message}`, statsErrorDiv);
-            } finally { statsLoading.classList.add('hidden'); }
-        }
-        async function fetchAdminStatsForDate() { // Fetches only specific date for date picker
-            const selectedDate = statsDatePicker.value; if (!selectedDate) { showError("Please select a date.", statsDateError); return; }
-            clearError(statsDateError); statsDateResult.classList.add('hidden'); setLoadingState(fetchDateStatsBtn, dateStatsSpinner, true);
-            const url = `${API_BASE_URL}/stats?date=${selectedDate}`;
-            try {
-                const response = await fetch(url, { credentials: 'include' });
-                const stats = await response.json(); if (!response.ok) throw new Error(stats.message || `HTTP ${response.status}`);
-                statsSelectedDate.textContent = stats.query_date;
-                displayStatsSection(statsDateTotal, statsDateByAttraction, stats.specific_date_total_tickets, stats.specific_date_tickets_by_attraction);
-                statsDateResult.classList.remove('hidden');
-            } catch (error) {
-                console.error(`Failed fetch stats for ${selectedDate}:`, error); showError(`Failed to load statistics for ${selectedDate}: ${error.message}`, statsDateError);
-            } finally { setLoadingState(fetchDateStatsBtn, dateStatsSpinner, false); }
-        }
+        function displayStatsSection(totalElement, byAttractionElement, totalTickets, ticketsByAttraction) { totalElement.textContent = totalTickets; if (ticketsByAttraction && ticketsByAttraction.length > 0) { let listHtml = '<ul class="stats-list">'; ticketsByAttraction.forEach(item => { listHtml += `<li>${item.name} (ID: ${item.id}): <span class="font-bold">${item.count}</span></li>`; }); listHtml += '</ul>'; byAttractionElement.innerHTML = listHtml; } else { byAttractionElement.innerHTML = '<p class="text-gray-500 mt-2">No sales data for attractions.</p>'; } }
+        async function fetchAdminStats(targetDate = null) { clearError(statsErrorDiv); statsContent.classList.add('hidden'); statsLoading.classList.remove('hidden'); const url = targetDate ? `${API_BASE_URL}/stats?date=${targetDate}` : `${API_BASE_URL}/stats`; try { const response = await fetch(url, { credentials: 'include' }); const stats = await response.json(); if (!response.ok) throw new Error(stats.message || `HTTP ${response.status}`); displayStatsSection(statsOverallTotal, statsOverallByAttraction, stats.overall_total_tickets, stats.overall_tickets_by_attraction); const displayDate = stats.query_date || new Date().toLocaleDateString('en-CA'); statsTodayTitle.textContent = `Statistics for ${displayDate}`; displayStatsSection(statsTodayTotal, statsTodayByAttraction, stats.specific_date_total_tickets, stats.specific_date_tickets_by_attraction); statsContent.classList.remove('hidden'); } catch (error) { console.error('Failed fetch stats:', error); showError(`Failed to load statistics: ${error.message}`, statsErrorDiv); } finally { statsLoading.classList.add('hidden'); } }
+        async function fetchAdminStatsForDate() { const selectedDate = statsDatePicker.value; if (!selectedDate) { showError("Please select a date.", statsDateError); return; } clearError(statsDateError); statsDateResult.classList.add('hidden'); setLoadingState(fetchDateStatsBtn, dateStatsSpinner, true); const url = `${API_BASE_URL}/stats?date=${selectedDate}`; try { const response = await fetch(url, { credentials: 'include' }); const stats = await response.json(); if (!response.ok) throw new Error(stats.message || `HTTP ${response.status}`); statsSelectedDate.textContent = stats.query_date; displayStatsSection(statsDateTotal, statsDateByAttraction, stats.specific_date_total_tickets, stats.specific_date_tickets_by_attraction); statsDateResult.classList.remove('hidden'); } catch (error) { console.error(`Failed fetch stats for ${selectedDate}:`, error); showError(`Failed to load statistics for ${selectedDate}: ${error.message}`, statsDateError); } finally { setLoadingState(fetchDateStatsBtn, dateStatsSpinner, false); } }
 
         // --- Order Search (Admin) ---
-        async function searchAdminOrder() {
-            clearError(orderSearchErrorDiv); orderDetailsDiv.classList.add('hidden'); orderNotFoundDiv.classList.add('hidden');
-            const orderId = orderIdInput.value.trim(); if (!orderId) { showError('Please enter an Order ID.', orderSearchErrorDiv); return; }
-            setLoadingState(searchOrderBtn, searchSpinner, true);
-            try {
-                const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, { credentials: 'include' });
-                const orderData = await response.json();
-                if (!response.ok) { if (response.status === 404) { orderNotFoundDiv.classList.remove('hidden'); } else { throw new Error(orderData.message || `HTTP ${response.status}`); } }
-                else { displayAdminOrderDetails(orderData); orderDetailsDiv.classList.remove('hidden'); }
-            } catch (error) {
-                console.error('Order search failed:', error); showError(`Failed to search order: ${error.message}`, orderSearchErrorDiv);
-            } finally { setLoadingState(searchOrderBtn, searchSpinner, false); }
-        }
-        function displayAdminOrderDetails(order) {
-            let detailsHtml = `<h3 class="text-xl font-semibold mb-3 border-b pb-2">Order Details (ID: ${order.order_id})</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mb-4">`; const namesDisplay = Array.isArray(order.customer_names) ? order.customer_names.join(', ') : (order.customer_names || 'N/A');
-            detailsHtml += `<div><span class="detail-label">Names:</span> <span class="detail-value">${namesDisplay}</span></div><div><span class="detail-label">Email:</span> <span class="detail-value">${order.customer_email || 'N/A'}</span></div><div><span class="detail-label">Usage Date:</span> <span class="detail-value">${formatDate(order.usage_date)}</span></div><div><span class="detail-label">Purchase Time:</span> <span class="detail-value">${formatAdminDateTime(order.purchase_time)}</span></div><div><span class="detail-label">Status:</span> <span class="detail-value">${order.status || 'N/A'}</span></div><div><span class="detail-label">Total:</span> <span class="detail-value font-bold">${formatRp(order.total_amount)}</span></div><div><span class="detail-label">Created At:</span> <span class="detail-value">${formatAdminDateTime(order.created_at)}</span></div></div>`;
-            if (order.items && order.items.length > 0) { detailsHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 border-t pt-2">Items:</h4><ul class="list-disc list-inside space-y-1">`; order.items.forEach(item => { detailsHtml += `<li> ${item.quantity} x ${item.attraction_name || item.attraction_id} (${item.ticket_type_name_en || item.ticket_type}) @ ${formatRp(item.price_per_ticket)} each </li>`; }); detailsHtml += `</ul>`; }
-            else { detailsHtml += `<p class="mt-3 text-gray-500">No items found.</p>`; } orderDetailsDiv.innerHTML = detailsHtml;
-        }
+        async function searchAdminOrder() { clearError(orderSearchErrorDiv); orderDetailsDiv.classList.add('hidden'); orderNotFoundDiv.classList.add('hidden'); const orderId = orderIdInput.value.trim(); if (!orderId) { showError('Please enter an Order ID.', orderSearchErrorDiv); return; } setLoadingState(searchOrderBtn, searchSpinner, true); try { const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, { credentials: 'include' }); const orderData = await response.json(); if (!response.ok) { if (response.status === 404) { orderNotFoundDiv.classList.remove('hidden'); } else { throw new Error(orderData.message || `HTTP ${response.status}`); } } else { displayAdminOrderDetails(orderData); orderDetailsDiv.classList.remove('hidden'); } } catch (error) { console.error('Order search failed:', error); showError(`Failed to search order: ${error.message}`, orderSearchErrorDiv); } finally { setLoadingState(searchOrderBtn, searchSpinner, false); } }
+        function displayAdminOrderDetails(order) { let detailsHtml = `<h3 class="text-xl font-semibold mb-3 border-b pb-2">Order Details (ID: ${order.order_id})</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mb-4">`; const namesDisplay = Array.isArray(order.customer_names) ? order.customer_names.join(', ') : (order.customer_names || 'N/A'); detailsHtml += `<div><span class="detail-label">Names:</span> <span class="detail-value">${namesDisplay}</span></div><div><span class="detail-label">Email:</span> <span class="detail-value">${order.customer_email || 'N/A'}</span></div><div><span class="detail-label">Usage Date:</span> <span class="detail-value">${formatDate(order.usage_date)}</span></div><div><span class="detail-label">Purchase Time:</span> <span class="detail-value">${formatAdminDateTime(order.purchase_time)}</span></div><div><span class="detail-label">Status:</span> <span class="detail-value">${order.status || 'N/A'}</span></div><div><span class="detail-label">Total:</span> <span class="detail-value font-bold">${formatRp(order.total_amount)}</span></div><div><span class="detail-label">Created At:</span> <span class="detail-value">${formatAdminDateTime(order.created_at)}</span></div></div>`; if (order.items && order.items.length > 0) { detailsHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 border-t pt-2">Items:</h4><ul class="list-disc list-inside space-y-1">`; order.items.forEach(item => { detailsHtml += `<li> ${item.quantity} x ${item.attraction_name || item.attraction_id} (${item.ticket_type_name_en || item.ticket_type}) @ ${formatRp(item.price_per_ticket)} each </li>`; }); detailsHtml += `</ul>`; } else { detailsHtml += `<p class="mt-3 text-gray-500">No items found.</p>`; } orderDetailsDiv.innerHTML = detailsHtml; }
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            // checkLoginStatus();
-            showLoginView(); // For testing purposes, show login view by default
-            // Set default date for date picker
-            statsDatePicker.value = new Date().toISOString().split('T')[0];
+            // checkLoginStatus(); // Re-enable this for production
+            showLoginView(); // Show login first
+            statsDatePicker.value = new Date().toISOString().split('T')[0]; // Set default date
         });
 
     </script>

@@ -112,7 +112,9 @@ def send_purchase_email(order_details):
 # --- 数据库初始化 ---
 def init_db():
     """初始化数据库表结构、示例数据和默认管理员"""
-    if not pool: print("Database pool unavailable, cannot initialize DB."); return
+    if not pool:
+        print("Database pool unavailable, cannot initialize DB.")
+        return
     try:
         with pool.connection() as conn, conn.cursor() as cur:
             print("Initializing database tables...")
@@ -282,10 +284,11 @@ def handle_purchase():
     """处理购票请求"""
     if not pool: return jsonify({"message": "Database service unavailable"}), 503
     if not request.is_json: return jsonify({"message": "Request must be JSON"}), 400
-    data = request.get_json(); required = ["attraction_id", "quantities", "customer_names", "customer_email", "usage_date"]
+    data = request.get_json()
+    required = ["attraction_id", "quantities", "customer_names", "customer_email", "usage_date"]
     if not all(f in data for f in required): return jsonify({"message": "Missing required fields"}), 400
     attraction_id, quantities, names, email, date_str = data["attraction_id"], data.get("quantities",{}), data.get("customer_names",[]), data.get("customer_email"), data.get("usage_date")
-    total_q = 0;
+    total_q = 0
     if not isinstance(quantities, dict): return jsonify({"message": "Invalid quantities format"}), 400
     for type, q in quantities.items():
         if type not in TICKET_TYPES: return jsonify({"message": f"Invalid ticket type: {type}"}), 400
@@ -295,19 +298,27 @@ def handle_purchase():
     if not isinstance(names, list) or len(names) != total_q: return jsonify({"message": "Names count mismatch"}), 400
     if not all(isinstance(n, str) and n.strip() for n in names): return jsonify({"message": "Names cannot be empty"}), 400
     if not email or "@" not in email: return jsonify({"message": "Invalid email"}), 400
-    try: usage_date = date.fromisoformat(date_str); assert usage_date >= date.today()
-    except: return jsonify({"message": "Invalid usage date"}), 400
+    try:
+        usage_date = date.fromisoformat(date_str)
+        assert usage_date >= date.today()
+    except:
+        return jsonify({"message": "Invalid usage date"}), 400
 
     order_id, purchase_time, names_json = str(uuid.uuid4()), datetime.now(timezone.utc), json.dumps(names)
     try:
         with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
             # 获取景点价格和默认名称 (用于邮件)
-            cur.execute("SELECT price, name->>%s AS name FROM attractions WHERE attraction_id = %s", (DEFAULT_LANGUAGE, attraction_id,)); attraction = cur.fetchone(); assert attraction
+            cur.execute("SELECT price, name->>%s AS name FROM attractions WHERE attraction_id = %s", (DEFAULT_LANGUAGE, attraction_id,))
+            attraction = cur.fetchone()
+            assert attraction
             base_price, attraction_name = float(attraction['price'] or 0.0), attraction['name'] or attraction_id # Fallback name
 
             total_amount, items = 0.0, []
             for type, q in quantities.items():
-                if q > 0: price_per = base_price * TICKET_TYPES[type]["multiplier"]; total_amount += price_per * q; items.append((order_id, attraction_id, type, q, price_per))
+                if q > 0:
+                    price_per = base_price * TICKET_TYPES[type]["multiplier"]
+                    total_amount += price_per * q
+                    items.append((order_id, attraction_id, type, q, price_per))
 
             cur.execute("INSERT INTO orders (order_id, customer_names, customer_email, usage_date, purchase_time, total_amount) VALUES (%s, %s, %s, %s, %s, %s);", (order_id, names_json, email, usage_date, purchase_time, total_amount))
             cur.executemany("INSERT INTO order_items (order_id, attraction_id, ticket_type, quantity, price_per_ticket) VALUES (%s, %s, %s, %s, %s);", items)
@@ -323,9 +334,11 @@ def get_order_details(order_id):
     if not pool: return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
-            cur.execute("SELECT * FROM orders WHERE order_id = %s;", (order_id,)); order = cur.fetchone(); assert order
-
-            cur.execute("SELECT oi.*, COALESCE(a.name->>%s, oi.attraction_id) AS attraction_name FROM order_items oi LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id WHERE oi.order_id = %s ORDER BY oi.item_id;", (DEFAULT_LANGUAGE, order_id,)); items = cur.fetchall()
+            cur.execute("SELECT * FROM orders WHERE order_id = %s;", (order_id,))
+            order = cur.fetchone()
+            assert order
+            cur.execute("SELECT oi.*, COALESCE(a.name->>%s, oi.attraction_id) AS attraction_name FROM order_items oi LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id WHERE oi.order_id = %s ORDER BY oi.item_id;", (DEFAULT_LANGUAGE, order_id,))
+            items = cur.fetchall()
             details = dict(order)
             try: details['customer_names'] = json.loads(details['customer_names'] or '[]')
             except: details['customer_names'] = [n.strip() for n in (details.get('customer_names') or '').split(',') if n.strip()]
@@ -333,8 +346,8 @@ def get_order_details(order_id):
             details['total_amount'] = float(details['total_amount'] or 0.0)
             details['items'] = []
             for item in items:
-                i_dict = dict(item); i_dict['price_per_ticket'] = float(i_dict['price_per_ticket'] or 0.0)
-                
+                i_dict = dict(item)
+                i_dict['price_per_ticket'] = float(i_dict['price_per_ticket'] or 0.0)
                 i_dict['ticket_type_name_en'] = TICKET_TYPES.get(i_dict['ticket_type'], {}).get('name_en', i_dict['ticket_type'])
                 i_dict['ticket_type_name_zh'] = TICKET_TYPES.get(i_dict['ticket_type'], {}).get('name_zh', i_dict['ticket_type'])
                 details['items'].append(i_dict)
@@ -369,7 +382,8 @@ def get_stats():
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
     if not request.is_json: return jsonify({"message": "Request must be JSON"}), 400
-    data = request.get_json(); username, password = data.get('username'), data.get('password')
+    data = request.get_json()
+    username, password = data.get('username'), data.get('password')
     if not username or not password: return jsonify({"message": "Username and password required"}), 400
     if not pool: return jsonify({"message": "Database service unavailable"}), 503
     try:
@@ -377,7 +391,10 @@ def admin_login():
             cur.execute("SELECT user_id, username, password_hash, role FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
             if user and check_password_hash(user['password_hash'], password):
-                session.permanent = True; session['user_id'] = user['user_id']; session['username'] = user['username']; session['role'] = user['role']
+                session.permanent = True
+                session['user_id'] = user['user_id']
+                session['username'] = user['username']
+                session['role'] = user['role']
                 return jsonify({"message": "Login successful", "username": user['username'], "role": user['role']}), 200
             else: return jsonify({"message": "Invalid username or password"}), 401
     except Exception as e: print(f"Login error: {e}"); return jsonify({"message": "Error during login"}), 500
@@ -422,9 +439,12 @@ def admin_add_attraction():
     # 验证核心语言内容是否存在
     name_json = data.get('name', {})
     if not isinstance(name_json, dict) or not name_json.get(DEFAULT_LANGUAGE):
-         return jsonify({"message": f"Missing default language '{DEFAULT_LANGUAGE}' for name"}), 400
-    try: price = float(data['price']); assert price >= 0
-    except: return jsonify({"message": "Invalid price"}), 400
+        return jsonify({"message": f"Missing default language '{DEFAULT_LANGUAGE}' for name"}), 400
+    try:
+        price = float(data['price'])
+        assert price >= 0
+    except:
+        return jsonify({"message": "Invalid price"}), 400
 
     name_jsonb = json.dumps(data.get('name', {}))
     summary_jsonb = json.dumps(data.get('summary', {}))
@@ -447,8 +467,9 @@ def admin_add_attraction():
             new = cur.fetchone()
             return jsonify({"message": "Attraction added", "attraction": new}), 201
     except DatabaseError as e:
-         if "duplicate key value violates unique constraint" in str(e): return jsonify({"message": f"ID '{data['attraction_id']}' already exists"}), 409
-         print(f"DB error adding attraction: {e}"); return jsonify({"message": "Database error"}), 500
+        if "duplicate key value violates unique constraint" in str(e): return jsonify({"message": f"ID '{data['attraction_id']}' already exists"}), 409
+        print(f"DB error adding attraction: {e}")
+        return jsonify({"message": "Database error"}), 500
     except Exception as e: print(f"Error adding attraction: {e}"); return jsonify({"message": "Server error"}), 500
 
 @app.route('/api/admin/attractions/<string:attraction_id>', methods=['PUT'])
@@ -459,8 +480,11 @@ def admin_update_attraction(attraction_id):
     
     if not data.get('price') or not isinstance(data.get('name'), dict): return jsonify({"message": "Missing price or name object"}), 400
     if not data['name'].get(DEFAULT_LANGUAGE): return jsonify({"message": f"Missing default language '{DEFAULT_LANGUAGE}' for name"}), 400
-    try: price = float(data['price']); assert price >= 0
-    except: return jsonify({"message": "Invalid price"}), 400
+    try:
+        price = float(data['price'])
+        assert price >= 0
+    except:
+        return jsonify({"message": "Invalid price"}), 400
 
     name_jsonb = json.dumps(data.get('name', {}))
     summary_jsonb = json.dumps(data.get('summary', {}))
@@ -495,8 +519,9 @@ def admin_delete_attraction(attraction_id):
             if deleted: return jsonify({"message": "Attraction deleted", "attraction_id": deleted['attraction_id']}), 200
             else: return jsonify({"message": "Attraction not found"}), 404
     except DatabaseError as e:
-         if "violates foreign key constraint" in str(e): return jsonify({"message": "Cannot delete: referenced by orders"}), 409
-         print(f"DB error deleting attraction: {e}"); return jsonify({"message": "Database error"}), 500
+        if "violates foreign key constraint" in str(e): return jsonify({"message": "Cannot delete: referenced by orders"}), 409
+        print(f"DB error deleting attraction: {e}")
+        return jsonify({"message": "Database error"}), 500
     except Exception as e: print(f"Error deleting attraction: {e}"); return jsonify({"message": "Server error"}), 500
 
 # --- 应用启动 ---
@@ -504,6 +529,6 @@ if __name__ == '__main__':
     if pool is None:
         print("Error: Database pool not initialized. Exiting.")
         exit(1)
-    init_db();
+    init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
 

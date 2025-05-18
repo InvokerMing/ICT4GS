@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solo City Attractions - Online Ticketing</title>
+    <title data-translate="appTitle">Solo City Attractions - Online Ticketing</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
@@ -481,21 +481,31 @@
 
 <body class="bg-gray-100 p-4 md:p-8">
 
+    <div class="bg-gradient-to-br from-blue-600 to-indigo-700 pt-12 pb-10 px-4 shadow-xl relative">
+        <!-- Language Switcher -->
     <div id="lang-switcher" class="lang-switcher">
-        <select id="language-select">
-            <option value="en">English</option>
-            <option value="zh">中文</option>
+            <label for="language-switcher" class="sr-only" data-translate="selectLanguage">Language:</label>
+            <select id="language-switcher" name="language-switcher" class="text-sm">
+                <!-- Options will be populated by JavaScript -->
         </select>
     </div>
+        <h1 class="text-4xl font-extrabold text-center text-white page-title" data-translate="appTitle">Solo City Attractions - Online Ticketing</h1>
+
+        <nav class="mt-6 bg-white/80 backdrop-blur-md shadow-lg rounded-xl p-2 max-w-3xl mx-auto sticky top-4 z-40">
+            <ul class="flex justify-center items-center space-x-2 md:space-x-6 text-sm md:text-base">
+                <li><a href="#" onclick="showView('attraction-list-view')" class="px-3 py-2 rounded-md hover:bg-blue-100 transition-colors text-gray-700" data-translate="navHome">Home</a></li>
+                <li><a href="#" onclick="showView('order-lookup-view')" class="px-3 py-2 rounded-md hover:bg-blue-100 transition-colors text-gray-700" data-translate="navViewTickets">View My Tickets</a></li>
+            </ul>
+        </nav>
+    </header>
 
     <div class="container mx-auto max-w-6xl bg-white p-6 rounded-lg shadow-md">
 
         <div id="attraction-list-view" class="view active">
-            <h1 id="main-title" class="text-3xl font-bold text-center text-gray-800 mb-8">Solo City Attractions Online
-                Ticketing</h1>
+            <h1 id="main-title" class="text-3xl font-bold text-center text-gray-800 mb-8" data-translate="selectAttraction">Select Attraction</h1>
             <div id="attractions-loading" class="text-center py-10">
                 <div class="spinner"></div>
-                <p id="loading-text" class="text-gray-500">Loading attraction information...</p>
+                <p data-translate="loading">Loading attractions...</p>
             </div>
             <div id="attractions-list-container" class="flex flex-col gap-8 mb-8 hidden">
             </div>
@@ -503,36 +513,36 @@
         </div>
 
         <div id="attraction-detail-view" class="view">
-            <button onclick="showView('attraction-list-view')" class="mb-4 text-blue-600 hover:underline">&larr; <span
-                    class="back-to-list-text">Back to List</span></button>
+            <button onclick="showView('attraction-list-view')" class="mb-4 text-blue-600 hover:underline">&larr; <span data-translate="backToList">Back to List</span></button>
             <div id="detail-content">
+                <!-- Content will be loaded here by loadAttractionDetail -->
             </div>
             <div id="detail-error" class="text-center text-red-600 font-medium mb-4 hidden"></div>
         </div>
 
         <div id="purchase-view" class="view">
             <button onclick="showView('attraction-detail-view', currentAttractionId)"
-                class="mb-4 text-blue-600 hover:underline">&larr; <span class="back-to-detail-text">Back to
+                class="mb-4 text-blue-600 hover:underline">&larr; <span class="back-to-detail-text" data-translate="backToDetails">Back to
                     Details</span></button>
-            <h2 id="purchase-title" class="text-2xl font-semibold mb-4">Book Tickets for: <span
+            <h2 id="purchase-title" class="text-2xl font-semibold mb-4"><span data-translate="bookTicketsTitle">Book Tickets for: </span><span
                     id="purchase-attraction-name"></span></h2>
             <form id="purchase-form" onsubmit="handleProceedToPayment(event)">
                 <div class="mb-4 p-4 border rounded bg-gray-50">
-                    <h3 class="text-lg font-medium mb-3"><span class="ticket-selection-title">Ticket Selection</span>
+                    <h3 class="text-lg font-medium mb-3"><span class="ticket-selection-title" data-translate="ticketSelectionTitle">Ticket Selection</span>
                     </h3>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
-                            <label for="quantity-full" class="mb-0 ticket-type-full-label">Full Price Ticket:</label>
+                            <label for="quantity-full" class="mb-0 ticket-type-full-label" data-translate="ticketTypeFullLabel">Full Price Ticket:</label>
                             <input type="number" id="quantity-full" name="quantity_full" value="1" min="0" max="10"
                                 class="input-field quantity-input mb-0" oninput="updatePurchaseSummary()">
                         </div>
                         <div class="flex justify-between items-center">
-                            <label for="quantity-discount" class="mb-0 ticket-type-discount-label">
+                            <label for="quantity-discount" class="mb-0 ticket-type-discount-label" data-translate="ticketTypeDiscountLabel">
                                 Discount Ticket (50%):
                                 <span class="tooltip-trigger" tabindex="0" onclick="toggleTooltip(this)"
                                     onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"
                                     onfocus="showTooltip(this)" onblur="hideTooltip(this)">?
-                                    <span class="tooltip-text tooltip-discount-text">Eligible: Students, Seniors (60+),
+                                    <span class="tooltip-text tooltip-discount-text" data-translate="tooltipDiscountEligibility">Eligible: Students, Seniors (60+),
                                         Children (under 12). Proof may be required.</span>
                                 </span>
                             </label>
@@ -540,12 +550,12 @@
                                 max="10" class="input-field quantity-input mb-0" oninput="updatePurchaseSummary()">
                         </div>
                         <div class="flex justify-between items-center">
-                            <label for="quantity-free" class="mb-0 ticket-type-free-label">
+                            <label for="quantity-free" class="mb-0 ticket-type-free-label" data-translate="ticketTypeFreeLabel">
                                 Free Ticket:
                                 <span class="tooltip-trigger" tabindex="0" onclick="toggleTooltip(this)"
                                     onmouseenter="showTooltip(this)" onmouseleave="hideTooltip(this)"
                                     onfocus="showTooltip(this)" onblur="hideTooltip(this)">?
-                                    <span class="tooltip-text tooltip-free-text">Eligible: Infants (under 2), Specific
+                                    <span class="tooltip-text tooltip-free-text" data-translate="tooltipFreeEligibility">Eligible: Infants (under 2), Specific
                                         promotions. Check details.</span>
                                 </span>
                             </label>
@@ -556,27 +566,26 @@
                 </div>
 
                 <div id="purchase-name-fields" class="mb-4 p-4 border rounded">
-                    <h3 class="text-lg font-medium mb-3"><span class="attendee-info-title">Attendee Information</span>
-                        (<span id="total-tickets-count">1</span> <span class="attendees-label">attendee(s)</span>)</h3>
+                    <h3 class="text-lg font-medium mb-3"><span class="attendee-info-title" data-translate="attendeeInfoTitle">Attendee Information</span>
+                        (<span id="total-tickets-count">1</span> <span class="attendees-label" data-translate="attendeesLabel">attendee(s)</span>)</h3>
                 </div>
 
                 <div class="mb-4 p-4 border rounded bg-gray-50">
-                    <label for="purchase-email"><span class="email-label">Email:</span></label>
+                    <label for="purchase-email"><span class="email-label" data-translate="emailLabel">Email:</span></label>
                     <input type="email" id="purchase-email" name="customer_email" required class="input-field">
 
-                    <label for="purchase-usage-date"><span class="usage-date-label">Usage Date:</span></label>
+                    <label for="purchase-usage-date"><span class="usage-date-label" data-translate="usageDateLabel">Usage Date:</span></label>
                     <input type="date" id="purchase-usage-date" name="usage_date" required
                         onchange="validateUsageDate(this)" class="input-field">
                 </div>
 
                 <div class="text-right font-semibold my-4 text-xl">
-                    <span class="total-price-label">Estimated Total:</span> <span id="purchase-total-price">Rp 0</span>
+                    <span class="total-price-label" data-translate="totalPriceLabel">Estimated Total:</span> <span id="purchase-total-price">Rp 0</span>
                 </div>
 
                 <button type="submit" id="proceed-to-payment-btn"
                     class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg shadow transition duration-300 text-lg">
-                    <span class="proceed-payment-btn-text">Proceed to Payment (Simulation - Direct to Successful
-                        Purchase)</span>
+                    <span class="proceed-payment-btn-text" data-translate="proceedPaymentBtnText">Proceed to Payment</span>
                 </button>
             </form>
             <div id="purchase-error" class="text-center text-red-600 font-medium mt-4 hidden"></div>
@@ -590,12 +599,12 @@
     <div id="successModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">&times;</span>
-            <h2 id="modal-title" class="text-2xl font-semibold mb-4 text-green-600">Purchase Successful!</h2>
-            <p id="modal-order-label" class="mb-2">Your Order ID is:</p>
+            <h2 id="modal-title" class="text-2xl font-semibold mb-4 text-green-600" data-translate="modalTitleSuccess">Purchase Successful!</h2>
+            <p id="modal-order-label" class="mb-2" data-translate="modalOrderIdLabel">Your Order ID is:</p>
             <p id="modalOrderId" class="text-xl font-bold mb-4"></p>
-            <p id="modal-qr-label" class="mb-3">Please use the QR code below for entry:</p>
+            <p id="modal-qr-label" class="mb-3" data-translate="modalQrLabel">Please use the QR code below for entry:</p>
             <div id="qrcode"></div>
-            <p id="modal-email-info" class="text-sm text-gray-500 mt-4">Details have been sent to your email
+            <p id="modal-email-info" class="text-sm text-gray-500 mt-4" data-translate="modalEmailInfo">Details have been sent to your email
                 (simulation).</p>
         </div>
     </div>
@@ -612,152 +621,64 @@
         ];
         let colorIndex = 0; // To cycle through colors
 
-        // --- Translations ---
-        const translations = {
-            en: {
-                title: "Solo City Attractions - Online Ticketing",
-                mainTitle: "Solo City Attractions Online Ticketing",
-                loadingText: "Loading attraction information...",
-                noAttractions: "No attractions available for booking currently.",
-                loadError: "Failed to load attractions:",
-                detailLoadError: "Failed to load attraction details:",
-                datePastError: "Date must be today or later.",
-                basePriceLabel: "Base Price:",
-                pricePending: "Free or Price TBD",
-                noDesc: "No detailed description available.",
-                noSummary: "No summary available.", // Added summary translation
-                noDetails: "No detailed description available.", // Added details translation
-                bookNowButton: "Book Now",
-                backToList: "Back to List",
-                backToDetail: "Back to Details",
-                purchaseTitle: "Book Tickets for:",
-                ticketSelectionTitle: "Ticket Selection",
-                ticketTypeFullLabel: "Full Price Ticket:",
-                ticketTypeDiscountLabel: "Discount Ticket (50%):",
-                ticketTypeFreeLabel: "Free Ticket:",
-                attendeeInfoTitle: "Attendee Information",
-                attendeesLabel: "attendee(s)",
-                nameLabel: "Name", // Numbered
-                emailLabel: "Email:",
-                usageDateLabel: "Usage Date:",
-                totalPriceLabel: "Estimated Total:",
-                proceedPaymentBtnText: "Proceed to Payment (Simulation - Direct to Successful Purchase)",
-                purchaseButtonLoading: "Processing...",
-                fillFieldsError: "Please fill in all required fields",
-                fillNamesError: "Please enter names for all attendees",
-                quantityError: "Total quantity must be between 1 and 10",
-                purchaseSuccess: "Purchase successful! Order ID:",
-                purchaseFail: "Purchase failed:",
-                modalTitle: "Purchase Successful!",
-                modalOrderLabel: "Your Order ID is:",
-                modalQrLabel: "Please use the QR code below for entry:",
-                modalEmailInfo: "Details have been sent to your email (simulation).",
-                tooltipDiscount: "Eligible: Students, Seniors (60+), Children (under 12). Proof may be required.",
-                tooltipFree: "Eligible: Infants (under 2), Specific promotions. Check details.",
-                detailSectionDescription: "Detailed Description", // Added detail section titles
-                detailSectionGallery: "Image Gallery",
-                detailSectionInfo: "Related Information",
-                contactLabel: "Contact:",
-                addressLabel: "Address:",
-                transportLabel: "Transportation:",
-                noContact: "No contact information available.",
-                noAddress: "No address information available.",
-                noTransport: "No transportation information available.",
-                imageGalleryError: "Failed to load some images.", // Added image gallery error
-            },
-            zh: {
-                title: "梭罗市景点票务 - 在线购票",
-                mainTitle: "梭罗市景点在线票务",
-                loadingText: "正在加载景点信息...",
-                noAttractions: "暂无可售票的景点。",
-                loadError: "加载景点列表失败:",
-                detailLoadError: "加载景点详情失败:",
-                datePastError: "日期必须是今天或更晚。",
-                basePriceLabel: "基础价格:",
-                pricePending: "免费或价格待定",
-                noDesc: "暂无详细描述。",
-                noSummary: "暂无简介。", // Added summary translation
-                noDetails: "暂无详细介绍。", // Added details translation
-                bookNowButton: "立即预订",
-                backToList: "返回列表",
-                backToDetail: "返回详情",
-                purchaseTitle: "预订门票:",
-                ticketSelectionTitle: "选择票种和数量",
-                ticketTypeFullLabel: "全价票:",
-                ticketTypeDiscountLabel: "优惠票 (50%):",
-                ticketTypeFreeLabel: "免费票:",
-                attendeeInfoTitle: "游客信息",
-                attendeesLabel: "位游客",
-                nameLabel: "姓名", // Numbered
-                emailLabel: "邮箱:",
-                usageDateLabel: "使用日期:",
-                totalPriceLabel: "预计总价:",
-                proceedPaymentBtnText: "确认订单 (模拟支付)",
-                purchaseButtonLoading: "处理中...",
-                fillFieldsError: "请填写所有必填项",
-                fillNamesError: "请输入所有游客的姓名",
-                quantityError: "总票数必须在 1 到 10 之间",
-                purchaseSuccess: "购买成功！订单号:",
-                purchaseFail: "购买失败:",
-                modalTitle: "购买成功!",
-                modalOrderLabel: "您的订单号是:",
-                modalQrLabel: "请使用下方二维码入场:",
-                modalEmailInfo: "详细信息已发送至您的邮箱 (模拟)。",
-                tooltipDiscount: "适用人群：学生、老年人（60岁以上）、儿童（12岁以下）。可能需要证件。",
-                tooltipFree: "适用人群：婴幼儿（2岁以下）、特定活动。请查看详情。",
-                detailSectionDescription: "详细介绍", // Added detail section titles
-                detailSectionGallery: "图片展览",
-                detailSectionInfo: "相关信息",
-                contactLabel: "联系方式:",
-                addressLabel: "地址:",
-                transportLabel: "交通:",
-                noContact: "暂无联系方式。",
-                noAddress: "暂无地址信息。",
-                noTransport: "暂无交通信息。",
-                imageGalleryError: "部分图片加载失败。", // Added image gallery error
-            }
-        };
-        let currentLang = 'en';
-        let currentAttractionId = null; // Store ID of attraction being booked
-        let currentAttractionBasePrice = 0; // Store base price for calculation
-
-        // --- DOM Elements ---
-        const views = document.querySelectorAll('.view');
-        const attractionListView = document.getElementById('attraction-list-view');
-        const attractionDetailView = document.getElementById('attraction-detail-view');
-        const purchaseView = document.getElementById('purchase-view');
-        // Changed from attractionsGrid to attractionsListContainer
-        const attractionsListContainer = document.getElementById('attractions-list-container');
+        // --- Global DOM Element Variables ---
+        // It's good practice to define these early if they are used by multiple functions
+        // and to ensure they are defined before functions like initLocalization might trigger their use.
         const attractionsLoadingDiv = document.getElementById('attractions-loading');
+        const attractionsListContainer = document.getElementById('attractions-list-container');
         const attractionsErrorDiv = document.getElementById('attractions-error');
+        const floatingNav = document.getElementById('floating-nav');
         const detailContent = document.getElementById('detail-content');
         const detailError = document.getElementById('detail-error');
-        const purchaseForm = document.getElementById('purchase-form');
         const purchaseAttractionName = document.getElementById('purchase-attraction-name');
+        const purchaseForm = document.getElementById('purchase-form');
+        const totalTicketsCountSpan = document.getElementById('total-tickets-count');
         const purchaseNameFieldsContainer = document.getElementById('purchase-name-fields');
         const purchaseTotalPrice = document.getElementById('purchase-total-price');
-        const totalTicketsCountSpan = document.getElementById('total-tickets-count');
+        const proceedBtn = document.getElementById('proceed-to-payment-btn'); // Assuming this is the correct ID for the proceed button
         const purchaseErrorDiv = document.getElementById('purchase-error');
-        const proceedBtn = document.getElementById('proceed-to-payment-btn');
-        const messageDiv = document.getElementById('message'); // Shared message divs
+        const messageDiv = document.getElementById('message');
         const errorMessageDiv = document.getElementById('error-message');
         const successModal = document.getElementById('successModal');
         const modalOrderId = document.getElementById('modalOrderId');
         const qrCodeContainer = document.getElementById('qrcode');
-        const pageTitle = document.querySelector('title');
-        const mainTitle = document.getElementById('main-title');
-        const loadingText = document.getElementById('loading-text');
-        const modalTitle = document.getElementById('modal-title');
-        const modalOrderLabel = document.getElementById('modal-order-label');
-        const modalQrLabel = document.getElementById('modal-qr-label');
-        const modalEmailInfo = document.getElementById('modal-email-info');
-        // Removed individual language buttons
-        // const langEnBtn = document.getElementById('lang-en');
-        // const langZhBtn = document.getElementById('lang-zh');
-        const floatingNav = document.getElementById('floating-nav'); // Floating nav bar
-        const langSwitcher = document.getElementById('lang-switcher'); // Language switcher container
-        const languageSelect = document.getElementById('language-select'); // Language select dropdown
+        // Variables for attraction detail view elements if they need to be globally accessible
+        // let currentAttractionId = null; // Already declared later, but good to be mindful
+        // let currentAttractionBasePrice = 0; // Already declared later
 
+        // --- View Management ---
+        const views = document.querySelectorAll('.view');
+        const navLinks = document.querySelectorAll('nav a');
+        // Add other view-specific elements that need to be globally accessible if any
+
+        function showView(viewId, params = null) {
+            console.log(`DEBUG: showView CALLED with viewId: ${viewId}`, params || "(no params)");
+            views.forEach(view => {
+                view.classList.toggle('active', view.id === viewId);
+            });
+            navLinks.forEach(link => {
+                link.classList.toggle('text-blue-500', link.getAttribute('onclick')?.includes(viewId));
+                link.classList.toggle('text-gray-700', !link.getAttribute('onclick')?.includes(viewId));
+            });
+
+            // Handle view-specific logic
+            if (viewId === 'attraction-list-view') {
+                console.log("DEBUG: showView - Condition for 'attraction-list-view' MET. Calling loadAttractionList.");
+                loadAttractionList();
+            } else if (viewId === 'attraction-detail-view' && params) {
+                console.log(`DEBUG: showView - Condition for 'attraction-detail-view' MET. Params (attractionId): ${params}. Calling loadAttractionDetail.`);
+                loadAttractionDetail(params); // Corrected: Was displayAttractionDetails(params)
+            } else if (viewId === 'purchase-view' && params) {
+                console.log("DEBUG: showView - Condition for 'purchase-view' MET. Calling setupPurchaseForm.");
+                setupPurchaseForm(params); // params should be attraction object
+            } else if (viewId === 'order-lookup-view') {
+                // Clear previous results if any
+                document.getElementById('order-details-container').innerHTML = '';
+                document.getElementById('order-lookup-form').reset();
+                document.getElementById('order-lookup-error').classList.add('hidden');
+            }
+            window.scrollTo(0, 0); // Scroll to top on view change
+        }
 
         // --- Helper Functions ---
         function validateUsageDate(input) {
@@ -768,7 +689,7 @@
             selected.setHours(0, 0, 0, 0);
 
             if (selected < today) {
-                showError(translations[currentLang].datePastError); // Show general error
+                showError(translateText('dateInvalidPast')); // Use translateText
                 input.value = ''; // Clear the invalid date
                 return false;
             }
@@ -789,8 +710,12 @@
         function setLoadingState(button, isLoading, loadingTextKey = 'purchaseButtonLoading') {
             if (button) {
                 button.disabled = isLoading;
-                if (isLoading) { button.dataset.originalText = button.textContent; button.textContent = translations[currentLang][loadingTextKey]; }
-                else if (button.dataset.originalText) { button.textContent = button.dataset.originalText; }
+                if (isLoading) { 
+                    button.dataset.originalText = button.textContent; 
+                    button.textContent = translateText(loadingTextKey); // Use translateText
+                } else if (button.dataset.originalText) { 
+                    button.textContent = button.dataset.originalText; 
+                }
             }
         }
         function openModal(orderId, qrData) {
@@ -842,131 +767,11 @@
             };
         }
 
-
-        // --- View Management ---
-        function showView(viewId, data = null) {
-            clearMessages(); // Clear messages when changing views
-            views.forEach(view => {
-                view.classList.toggle('active', view.id === viewId);
-            });
-            // Scroll to top when changing views
-            window.scrollTo(0, 0);
-
-            // Show/hide floating nav and language switcher based on view
-            if (viewId === 'attraction-list-view') {
-                floatingNav.style.display = 'flex'; // Use flex to maintain column layout
-                langSwitcher.style.display = 'block'; // Show language switcher
-            } else if (viewId === 'attraction-detail-view') {
-                floatingNav.style.display = 'none'; // Hide floating nav
-                langSwitcher.style.display = 'block'; // Show language switcher
-            }
-            else if (viewId === 'purchase-view') {
-                floatingNav.style.display = 'none'; // Hide floating nav
-                langSwitcher.style.display = 'none'; // Hide language switcher on purchase page
-            }
-
-
-            // Load data if needed for the view
-            if (viewId === 'attraction-detail-view' && data) {
-                loadAttractionDetail(data); // data is attractionId
-            } else if (viewId === 'purchase-view' && data) {
-                setupPurchaseForm(data); // data is attraction object
-            } else if (viewId === 'attraction-list-view') {
-                // Optionally reload list if needed, or just show
-                if (attractionsListContainer.children.length === 0 && !attractionsLoadingDiv.classList.contains('active')) {
-                    loadAttractionList(); // Reload if empty and not already loading
-                }
-            }
-        }
-
-        // --- Language Function ---
-        function setLanguage(lang) {
-            console.log(`Attempting to set language to: ${lang}`); // Log language change attempt
-            currentLang = lang;
-            localStorage.setItem('preferredLang', lang);
-            document.documentElement.lang = lang;
-
-            // Set the selected value in the dropdown
-            languageSelect.value = lang;
-
-            // Update static text
-            pageTitle.textContent = translations[lang].title;
-            mainTitle.textContent = translations[lang].mainTitle;
-            loadingText.textContent = translations[lang].loadingText;
-            modalTitle.textContent = translations[lang].modalTitle;
-            modalOrderLabel.textContent = translations[lang].modalOrderLabel;
-            modalQrLabel.textContent = translations[lang].modalQrLabel;
-            modalEmailInfo.textContent = translations[lang].modalEmailInfo;
-            // Update back buttons
-            document.querySelectorAll('.back-to-list-text').forEach(el => el.textContent = translations[lang].backToList);
-            document.querySelectorAll('.back-to-detail-text').forEach(el => el.textContent = translations[lang].backToDetail);
-
-            // Update texts in purchase view (even if switcher is hidden, in case user navigates back)
-            document.querySelector('.ticket-selection-title').textContent = translations[lang].ticketSelectionTitle;
-            document.querySelector('.attendee-info-title').textContent = translations[lang].attendeeInfoTitle;
-            document.querySelector('.attendees-label').textContent = translations[lang].attendeesLabel;
-            document.querySelector('.email-label').textContent = translations[lang].emailLabel;
-            document.querySelector('.usage-date-label').textContent = translations[lang].usageDateLabel;
-            document.querySelector('.total-price-label').textContent = translations[lang].totalPriceLabel;
-            document.querySelector('.proceed-payment-btn-text').textContent = translations[lang].proceedPaymentBtnText;
-
-            // Update tooltip text dynamically (important!)
-            document.querySelector('.tooltip-discount-text').innerHTML = `<b>${translations[lang].ticketTypeDiscountLabel.replace(':', '')}</b> ${translations[lang].tooltipDiscount}`;
-            document.querySelector('.tooltip-free-text').innerHTML = `<b>${translations[lang].ticketTypeFreeLabel.replace(':', '')}</b> ${translations[lang].tooltipFree}`;
-
-            // Update detail section titles if detail view is active
-            if (attractionDetailView.classList.contains('active')) {
-                const detailDescTitle = detailContent.querySelector('.detail-desc-title');
-                if (detailDescTitle) detailDescTitle.textContent = translations[lang].detailSectionDescription;
-                const detailGalleryTitle = detailContent.querySelector('.detail-gallery-title');
-                if (detailGalleryTitle) detailGalleryTitle.textContent = translations[lang].detailSectionGallery;
-                const detailInfoTitle = detailContent.querySelector('.detail-info-title');
-                if (detailInfoTitle) detailInfoTitle.textContent = translations[lang].detailSectionInfo;
-                // Update info labels
-                const contactLabelEl = detailContent.querySelector('.contact-label');
-                if (contactLabelEl) contactLabelEl.textContent = translations[lang].contactLabel;
-                const addressLabelEl = detailContent.querySelector('.address-label');
-                if (addressLabelEl) addressLabelEl.textContent = translations[lang].addressLabel;
-                const transportLabelEl = detailContent.querySelector('.transport-label');
-                if (transportLabelEl) transportLabelEl.textContent = translations[lang].transportLabel;
-            }
-
-            // No longer needed for dropdown
-            // langEnBtn.classList.toggle('active', lang === 'en');
-            // langZhBtn.classList.toggle('active', lang === 'zh');
-
-            // --- Reload the current view to update dynamic content from API ---
-            const activeView = document.querySelector('.view.active');
-            if (activeView) {
-                console.log(`Active view is: ${activeView.id}`); // Log active view
-                if (activeView.id === 'attraction-list-view') {
-                    loadAttractionList(); // Reload list to update names, summaries, etc.
-                } else if (activeView.id === 'attraction-detail-view' && currentAttractionId) {
-                    loadAttractionDetail(currentAttractionId); // Reload detail to update text
-                }
-                // Removed the purchase view specific reload as per user request to hide switcher
-                // else if (activeView.id === 'purchase-view' && currentAttractionId) {
-                //     console.log(`Language switched to ${lang} on purchase view for attraction ID: ${currentAttractionId}. Fetching updated data...`); // Log fetch attempt
-                //     fetchAttractionData(currentAttractionId).then(attraction => {
-                //         console.log("Fetched attraction data for purchase view:", attraction); // Log fetched data
-                //         if (attraction) {
-                //             setupPurchaseForm(attraction);
-                //             console.log("setupPurchaseForm called with updated data."); // Log setup call
-                //         } else {
-                //             console.error("Failed to fetch updated attraction data for purchase view."); // Log fetch failure
-                //         }
-                //     });
-                // }
-            } else {
-                console.log("No active view found."); // Log if no active view
-            }
-        }
-
         // --- Data Loading ---
         async function fetchAttractionData(attractionId) {
-            console.log(`Fetching data for attraction ID: ${attractionId} with language: ${currentLang}`); // Log fetch data call
+            console.log(`Fetching data for attraction ID: ${attractionId} with language: ${currentLanguage}`); 
             try {
-                const response = await fetch(`${API_BASE_URL}/attractions/${attractionId}?lang=${currentLang}`);
+                const response = await fetch(`${API_BASE_URL}/attractions/${attractionId}?lang=${currentLanguage}`); 
                 if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
                 const data = await response.json();
                 console.log("Attraction data fetched successfully:", data); // Log successful fetch
@@ -978,14 +783,20 @@
         }
 
         async function loadAttractionList() {
-            console.log(`Loading attraction list with language: ${currentLang}`); // Log list load call
+            console.log(`DEBUG: loadAttractionList CALLED. Language: ${currentLanguage}`);
+            if (!attractionsLoadingDiv || !attractionsListContainer || !attractionsErrorDiv) {
+                console.error("DEBUG: loadAttractionList - CRITICAL: One or more DOM elements (attractionsLoadingDiv, attractionsListContainer, attractionsErrorDiv) are not defined!");
+                return; // Stop execution if essential elements are missing
+            }
+            console.log("DEBUG: loadAttractionList - DOM elements checked.");
+
             attractionsLoadingDiv.classList.remove('hidden');
             attractionsListContainer.classList.add('hidden'); // Hide the container
             attractionsErrorDiv.classList.add('hidden');
-            loadingText.textContent = translations[currentLang].loadingText;
+            // loadingText.textContent = translations[currentLang].loadingText; // loadingText itself has data-translate now
 
             try {
-                const response = await fetch(`${API_BASE_URL}/attractions?lang=${currentLang}`);
+                const response = await fetch(`${API_BASE_URL}/attractions`); // Lang parameter removed, API sends EN
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || `Failed to load attractions (HTTP ${response.status})`);
@@ -998,7 +809,7 @@
                 colorIndex = 0; // Reset color index
 
                 if (attractions.length === 0) {
-                    attractionsListContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full">${translations[currentLang].noAttractions}</p>`;
+                    attractionsListContainer.innerHTML = `<p class="text-center text-gray-500 col-span-full" data-translate="noAttractions">No attractions currently available. Please check back later.</p>`;
                 } else {
                     attractions.forEach(attraction => {
                         const attractionBlock = createAttractionListBlock(attraction);
@@ -1006,9 +817,8 @@
 
                         // Add button to floating nav
                         const navButton = document.createElement('button');
-                        navButton.textContent = attraction.name;
+                        navButton.textContent = attraction.name; // Name is from API (English)
                         navButton.onclick = () => {
-                            // Scroll to the attraction block
                             document.getElementById(`attraction-${attraction.attraction_id}`).scrollIntoView({
                                 behavior: 'smooth'
                             });
@@ -1017,11 +827,12 @@
                     });
                 }
                 attractionsListContainer.classList.remove('hidden'); // Show the container
+                applyTranslations(); // Apply translations to newly added static content
 
             } catch (error) {
                 console.error('Failed to load attractions:', error);
-                const errorPrefix = translations[currentLang].loadError;
-                showError(`${errorPrefix} ${error.message}`, attractionsErrorDiv);
+                const errorPrefix = translateText('loadAttractionsError'); // Use translateText for error messages
+                showError(`${errorPrefix}: ${error.message}`, attractionsErrorDiv);
             } finally {
                 attractionsLoadingDiv.classList.add('hidden');
             }
@@ -1033,16 +844,14 @@
             colorIndex++;
 
             const block = document.createElement('div');
-            // Add ID for scrolling
             block.id = `attraction-${attraction.attraction_id}`;
             block.className = `attraction-block ${bgColorClass}`;
 
-            // Local image path simulation for homepage
             const localImagePath = `res/homepage/${attraction.attraction_id}.jpg`;
             const fallbackImageUrl = attraction.image_url || 'https://placehold.co/600x400/cccccc/666666?text=Image+Not+Available';
 
-
-            const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translations[currentLang].pricePending;
+            // Price is dynamic, name and summary are from API (English)
+            const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translateText('ticketType_free');
 
             block.innerHTML = `
                 <div class="attraction-image-container">
@@ -1050,15 +859,14 @@
                 </div>
                 <div class="attraction-info">
                     <h3>${attraction.name}</h3>
-                    <p class="summary">${attraction.summary || translations[currentLang].noSummary}</p>
-                    <p class="price">${priceFormatted}</p>
+                    <p class="summary">${attraction.summary || translateText('noSummary', {defaultValue: 'No summary available.'})}</p>
+                    <p class="price"><span data-translate="attractionPrice">Price</span>: ${priceFormatted}</p>
                     <button onclick="showView('attraction-detail-view', '${attraction.attraction_id}')" class="book-button">
-                       <span class="book-now-button">${translations[currentLang].bookNowButton}</span>
+                       <span data-translate="attractionDetails">Details</span>
                     </button>
                 </div>
             `;
 
-            // Use the checkLocalImage function for the main image
             const imgElement = block.querySelector('.attraction-image');
             checkLocalImage(imgElement, localImagePath, fallbackImageUrl);
 
@@ -1067,55 +875,63 @@
 
 
         async function loadAttractionDetail(attractionId) {
-            console.log(`Loading attraction detail for ID: ${attractionId} with language: ${currentLang}`); // Log detail load call
-            currentAttractionId = attractionId; // Store current ID
-            detailContent.innerHTML = `<div class="spinner"></div><p>${translations[currentLang].loadingText}</p>`; // Show loading
+            console.log(`DEBUG: loadAttractionDetail CALLED with attractionId: ${attractionId}`); 
+            if (!detailContent || !detailError) {
+                console.error("DEBUG: loadAttractionDetail - CRITICAL: DOM elements (detailContent, detailError) are not defined!");
+                return; 
+            }
+            currentAttractionId = attractionId; // Set global current attraction ID
+            
+            detailContent.innerHTML = `<div class="spinner"></div><p data-translate="loading">${translateText("loading")}</p>`; 
             detailError.classList.add('hidden');
+            applyTranslations(); // Apply translation to the loading message itself
+            console.log("DEBUG: loadAttractionDetail - Showing loading state.");
 
-            const attraction = await fetchAttractionData(attractionId);
+            const attraction = await fetchAttractionData(attractionId); 
+            console.log("DEBUG: loadAttractionDetail - fetchAttractionData response:", attraction);
 
             if (attraction) {
-                // Local image path simulation for detail gallery
+                console.log("DEBUG: loadAttractionDetail - Attraction data fetched successfully. Rendering details.");
                 const detailGalleryImagesHTML = await loadDetailGalleryImages(attraction.attraction_id);
+                const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translateText('ticketType_free');
+                currentAttractionBasePrice = parseFloat(attraction.price || 0); // Ensure base price is float
 
-                const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translations[currentLang].pricePending;
-                currentAttractionBasePrice = attraction.price; // Store base price
-
-                // Reordered sections: Gallery first, then Description, then Info
                 detailContent.innerHTML = `
-                    <h2 class="text-3xl font-bold mb-6 text-gray-800">${attraction.name}</h2>
+                    <h2 class="text-3xl font-bold mb-6 text-gray-800">${attraction.name}</h2> <!-- Name from API (English) -->
 
                     <div class="detail-section">
-                        <h3 class="detail-gallery-title">${translations[currentLang].detailSectionGallery}</h3>
+                        <h3 class="detail-gallery-title" data-translate="detailSectionGallery">Image Gallery</h3>
                         <div class="image-gallery">
                             ${detailGalleryImagesHTML}
                         </div>
                     </div>
 
                     <div class="detail-section">
-                        <h3 class="detail-desc-title">${translations[currentLang].detailSectionDescription}</h3>
-                        <p>${attraction.details || translations[currentLang].noDetails}</p>
+                        <h3 class="detail-desc-title" data-translate="detailSectionDescription">Description/History</h3>
+                        <p>${attraction.details || translateText('noDetails', {defaultValue: 'No details available.'})}</p> <!-- Details from API (English) -->
                     </div>
 
                     <div class="detail-section contact-info">
-                        <h3 class="detail-info-title">${translations[currentLang].detailSectionInfo}</h3>
-                        <p><strong class="contact-label">${translations[currentLang].contactLabel}</strong> ${attraction.contact_info || translations[currentLang].noContact}</p>
-                        <p><strong class="address-label">${translations[currentLang].addressLabel}</strong> ${attraction.address_info || translations[currentLang].addressInfo}</p>
-                        <p><strong class="transport-label">${translations[currentLang].transportLabel}</strong> ${attraction.transport_info || translations[currentLang].noTransport}</p>
+                        <h3 class="detail-info-title" data-translate="detailSectionInfo">Information</h3>
+                        <p><strong data-translate="attractionContact">Contact:</strong> ${attraction.contact_info || translateText('noContact', {defaultValue: 'N/A'})}</p>
+                        <p><strong data-translate="attractionAddress">Address:</strong> ${attraction.address_info || translateText('noAddress', {defaultValue: 'N/A'})}</p>
+                        <p><strong data-translate="attractionTransport">Transport:</strong> ${attraction.transport_info || translateText('noTransport', {defaultValue: 'N/A'})}</p>
                     </div>
 
-
-                    <p class="text-xl font-bold text-blue-600 mb-6 text-right"><span class="base-price-label">${translations[currentLang].basePriceLabel}</span> ${priceFormatted}</p>
+                    <p class="text-xl font-bold text-blue-600 mb-6 text-right"><span data-translate="basePriceLabel">Base Price:</span> ${priceFormatted}</p>
 
                     <button onclick="showView('purchase-view', ${JSON.stringify(attraction).replace(/"/g, '&quot;')})" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg shadow text-lg transition duration-300">
-                       <span class="book-now-button">${translations[currentLang].bookNowButton}</span>
+                       <span data-translate="bookTickets">Book Tickets</span>
                     </button>
                 `;
+                applyTranslations(); // Apply translations to newly set innerHTML
             } else {
-                const errorPrefix = translations[currentLang].detailLoadError;
+                console.error(`DEBUG: loadAttractionDetail - Failed to load attraction data for ID: ${attractionId}`);
+                const errorPrefix = translateText('detailLoadError');
                 showError(`${errorPrefix} Attraction ID: ${attractionId}`, detailError);
-                detailContent.innerHTML = ''; // Clear loading indicator
+                detailContent.innerHTML = ''; 
             }
+            console.log("DEBUG: loadAttractionDetail COMPLETED.");
         }
 
         // Simulate loading multiple detail images
@@ -1153,7 +969,7 @@
 
             // If no images were found after trying, add a single placeholder
             if (imagesHTML === '') {
-                imagesHTML = `<img src="${placeholderUrl}" alt="${translations[currentLang].imageGalleryError}">`;
+                imagesHTML = `<img src="${placeholderUrl}" alt="${translateText('imageGalleryError')}">`;
             }
 
             return imagesHTML;
@@ -1200,7 +1016,7 @@
             // Enforce overall max quantity (e.g., if user enters 6 full, 6 discount)
             if (totalQuantity > 10) {
                 // This case is tricky. How to reduce? Simplest is to show error and disable purchase.
-                showError(translations[currentLang].quantityError, purchaseErrorDiv);
+                showError(translateText('quantityError'), purchaseErrorDiv); // Use translateText
                 proceedBtn.disabled = true;
                 totalQuantity = 10; // Cap for display purposes
             } else {
@@ -1222,11 +1038,10 @@
         function updatePurchaseNameFields(totalQuantity) {
             purchaseNameFieldsContainer.innerHTML = ''; // Clear existing
             if (totalQuantity > 0 && totalQuantity <= 10) {
-                const nameLabelBase = translations[currentLang].nameLabel;
                 for (let i = 1; i <= totalQuantity; i++) {
                     const label = document.createElement('label');
                     label.htmlFor = `purchase_name_${i}`;
-                    label.textContent = `${nameLabelBase} ${i}:`;
+                    label.textContent = translateText('customerNameIndexed', { count: i });
 
                     const input = document.createElement('input');
                     input.type = 'text';
@@ -1240,7 +1055,7 @@
                 }
             } else if (totalQuantity > 10) {
                 // Handled by disabling button and showing error in updatePurchaseSummary
-                purchaseNameFieldsContainer.innerHTML = `<p class="text-red-600">${translations[currentLang].quantityError}</p>`;
+                purchaseNameFieldsContainer.innerHTML = `<p class="text-red-600">${translateText('quantityError')}</p>`;
             }
         }
 
@@ -1272,19 +1087,16 @@
 
             // Validation
             if (totalQuantity <= 0 || totalQuantity > 10) {
-                showError(translations[currentLang].quantityError, purchaseErrorDiv); return;
+                showError(translateText('quantityError'), purchaseErrorDiv); return; // Use translateText
             }
             if (!allNamesFilled) {
-                showError(translations[currentLang].fillNamesError, purchaseErrorDiv); return;
-                return; // Stop execution
+                showError(translateText('fillNamesError'), purchaseErrorDiv); return; // Use translateText
             }
             if (!customerEmail || !usageDate) {
-                showError(translations[currentLang].fillFieldsError, purchaseErrorDiv); return;
-                return; // Stop execution
+                showError(translateText('fillFieldsError'), purchaseErrorDiv); return; // Use translateText
             }
-            if (new Date(usageDate) < new Date()) {
-                showError(translations[currentLang].datePastError, purchaseErrorDiv); return;
-                return; // Stop execution
+            if (new Date(usageDate) < new Date(new Date().setHours(0,0,0,0))) { // Ensure comparing date part only
+                showError(translateText('dateInvalidPast'), purchaseErrorDiv); return; // Use translateText
             }
 
 
@@ -1327,7 +1139,7 @@
 
             } catch (error) {
                 console.error('Purchase submission failed:', error);
-                const failPrefix = translations[currentLang].purchaseFail;
+                const failPrefix = translateText('purchaseFail'); // Use translateText
                 showError(`${failPrefix} ${error.message}`, purchaseErrorDiv); // Show error in purchase view
             } finally {
                 setLoadingState(proceedBtn, false); // Re-enable button after API call
@@ -1336,24 +1148,234 @@
 
 
         // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const preferredLang = localStorage.getItem('preferredLang') || 'en';
-            // Set the initial value of the select dropdown
-            languageSelect.value = preferredLang;
-            setLanguage(preferredLang); // Call setLanguage with the initial preferred language
+        // document.addEventListener('DOMContentLoaded', () => { // KEEP THIS COMMENTED or REMOVE
+        //     const preferredLang = localStorage.getItem('preferredLang') || 'en'; // OLD
+        //     // Set the initial value of the select dropdown
+        //     languageSelect.value = preferredLang; // OLD languageSelect, might be undefined
+        //     setLanguage(preferredLang); // OLD setLanguage, should be removed or fully deprecated
 
-            // Add event listener for the dropdown change
-            languageSelect.addEventListener('change', (event) => {
-                setLanguage(event.target.value);
-            });
+        //     // Add event listener for the dropdown change
+        //     languageSelect.addEventListener('change', (event) => { // OLD languageSelect
+        //         setLanguage(event.target.value);
+        //     });
 
-            // Add a check for QRCode.CorrectLevel on DOMContentLoaded
-            if (typeof QRCode !== 'undefined' && QRCode.CorrectLevel) {
-                console.log("QRCode.CorrectLevel is available on DOMContentLoaded.");
+        //     // Add a check for QRCode.CorrectLevel on DOMContentLoaded
+        //     if (typeof QRCode !== 'undefined' && QRCode.CorrectLevel) {
+        //         console.log("QRCode.CorrectLevel is available on DOMContentLoaded.");
+        //     } else {
+        //         console.error("QRCode or QRCode.CorrectLevel is NOT available on DOMContentLoaded.");
+        //     }
+        // });
+    </script>
+
+    <script>
+        // --- Localization ---
+        let currentLanguage = 'en';
+        let translations = {};
+        let englishTranslations = {};
+        const defaultLanguage = 'en'; // Default language for fallback and initial load
+
+        // Fetches translation file for the given language code
+        async function fetchTranslations(langCode) {
+            try {
+                const response = await fetch(`languages/${langCode}.json?v=${new Date().getTime()}`); // Cache buster
+                if (!response.ok) {
+                    console.warn(`Failed to load ${langCode}.json. Falling back to English.`);
+                    if (langCode !== defaultLanguage) {
+                        return await fetchTranslations(defaultLanguage); // Try fetching default language
+                    }
+                    throw new Error(`Failed to load ${defaultLanguage}.json`);
+                }
+                translations = await response.json();
+
+                if (langCode !== defaultLanguage && Object.keys(englishTranslations).length === 0) {
+                    const enResponse = await fetch(`languages/${defaultLanguage}.json?v=${new Date().getTime()}`);
+                    if (enResponse.ok) {
+                        englishTranslations = await enResponse.json();
             } else {
-                console.error("QRCode or QRCode.CorrectLevel is NOT available on DOMContentLoaded.");
+                        console.error("Failed to load English fallback translations.");
+                    }
+                } else if (langCode === defaultLanguage) {
+                    englishTranslations = translations; // If current is English, fallback is also English
+                }
+                console.log(`Translations for ${langCode} loaded.`);
+                return true;
+            } catch (error) {
+                console.error(`Error fetching translations for ${langCode}:`, error);
+                if (langCode !== defaultLanguage) { // If fetching a non-default language fails, try default
+                    console.warn(`Attempting to load ${defaultLanguage} as fallback.`);
+                    alert(`Could not load translations for '${langCode}'. Attempting to load English.`);
+                    await changeLanguage(defaultLanguage, true); // Force change to default
+                } else { // If default language itself fails
+                     alert('Critical error: Could not load default language file (' + defaultLanguage + '.json). Some text may not appear correctly.');
+                }
+                return false;
             }
-        });
+        }
+
+        // Translates a key using loaded translations, with fallback to English
+        function translateText(key, params = {}) {
+            let text = translations[key];
+            if (text === undefined) {
+                text = englishTranslations[key];
+                if (text !== undefined) {
+                    console.warn(`Translation missing for key '${key}' in '${currentLanguage}'. Used English fallback.`);
+                } else {
+                    console.warn(`Translation missing for key '${key}' in '${currentLanguage}' and in English fallback.`);
+                    return key; // Return the key itself if no translation is found
+                }
+            }
+
+            // Replace placeholders like {{variable}}
+            if (text && typeof text === 'string') {
+                Object.keys(params).forEach(paramKey => {
+                    const regex = new RegExp(`{{\\s*${paramKey}\\s*}}`, 'g');
+                    text = text.replace(regex, params[paramKey]);
+                });
+            }
+            return text;
+        }
+
+        // Applies translations to all elements with data-translate attributes
+        function applyTranslations() {
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                element.innerText = translateText(key);
+            });
+            document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-translate-placeholder');
+                element.placeholder = translateText(key);
+            });
+            document.querySelectorAll('[data-translate-title]').forEach(element => {
+                const key = element.getAttribute('data-translate-title');
+                element.title = translateText(key);
+            });
+            document.querySelectorAll('[data-translate-value]').forEach(element => {
+                const key = element.getAttribute('data-translate-value');
+                element.value = translateText(key);
+            });
+             // Special handling for document title
+            if (translations.appTitle) {
+                document.title = translateText('appTitle');
+            }
+        }
+
+        // Changes the language, fetches new translations, and reapplies them
+        async function changeLanguage(langCode, isFallbackAttempt = false) {
+            console.log(`DEBUG: changeLanguage CALLED with langCode: ${langCode}, isFallbackAttempt: ${isFallbackAttempt}`);
+            if (!langCode) {
+                console.warn("DEBUG: changeLanguage - No langCode provided. Returning.");
+                return;
+            }
+            currentLanguage = langCode;
+            console.log(`DEBUG: changeLanguage - currentLanguage SET to: ${currentLanguage}`);
+            const success = await fetchTranslations(langCode);
+            console.log(`DEBUG: changeLanguage - fetchTranslations success: ${success}`);
+            if (success) {
+                applyTranslations();
+                localStorage.setItem('preferredLanguage', langCode);
+                // Update language switcher selection
+                const langSwitcher = document.getElementById('language-switcher');
+                if (langSwitcher) {
+                    langSwitcher.value = langCode;
+                }
+            } else if (!isFallbackAttempt) {
+                // If not a fallback attempt and still failed, it means the primary attempt failed.
+                // The fetchTranslations function would have tried to load English already.
+                console.error('Failed to load translations for ' + langCode + ' and fallback to English also likely failed or was English itself.');
+            }
+        }
+
+        // Populates the language switcher dropdown
+        function populateLanguageSwitcher(availableLanguages, selectElement) {
+            if (!selectElement) return;
+            selectElement.innerHTML = ''; // Clear existing options
+            availableLanguages.forEach(langCode => {
+                const option = document.createElement('option');
+                option.value = langCode;
+                // For now, display lang code. Could map to full names later if needed.
+                // e.g. {'en': 'English', 'zh': '中文'}
+                let langName = langCode;
+                if (langCode === 'en') langName = 'English';
+                if (langCode === 'zh') langName = '中文';
+                option.textContent = langName; 
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Initializes localization on page load
+        async function initLocalization() {
+            console.log("DEBUG: initLocalization CALLED");
+            const langSwitcher = document.getElementById('language-switcher');
+            if (!langSwitcher) {
+                console.error("DEBUG: initLocalization - Language switcher element not found.");
+            }
+
+            try {
+                console.log("DEBUG: initLocalization - In try block, fetching /api/languages.");
+                const response = await fetch('/api/languages');
+                const availableLanguages = await response.json();
+                console.log("DEBUG: initLocalization - Available languages fetched:", availableLanguages);
+                
+                if (langSwitcher && availableLanguages && availableLanguages.length > 0) {
+                    populateLanguageSwitcher(availableLanguages, langSwitcher);
+                    langSwitcher.addEventListener('change', (event) => {
+                        console.log("DEBUG: initLocalization - Language switcher CHANGED to:" + event.target.value);
+                        changeLanguage(event.target.value);
+                    });
+                } else if (langSwitcher) {
+                    populateLanguageSwitcher([defaultLanguage], langSwitcher);
+                    console.warn("DEBUG: initLocalization - API returned no languages or failed; added default to switcher.");
+                }
+
+                const preferredLanguage = localStorage.getItem('preferredLanguage');
+                let initialLang = defaultLanguage;
+                console.log(`DEBUG: initLocalization - Preferred language from localStorage: ${preferredLanguage}, Default language: ${defaultLanguage}`);
+
+                if (preferredLanguage && (!availableLanguages || availableLanguages.includes(preferredLanguage))) {
+                    initialLang = preferredLanguage;
+                } else if (availableLanguages && availableLanguages.length > 0 && !availableLanguages.includes(initialLang)) {
+                    initialLang = availableLanguages[0];
+                }
+                console.log(`DEBUG: initLocalization - Determined initialLang: ${initialLang}`);
+
+                await changeLanguage(initialLang);
+                console.log("DEBUG: initLocalization - changeLanguage(initialLang) COMPLETED.");
+                
+                // Ensure the initial view is loaded after localization setup
+                if (document.getElementById('attraction-list-view').classList.contains('active')) {
+                     console.log("DEBUG: initLocalization - 'attraction-list-view' is ACTIVE. Calling showView('attraction-list-view').");
+                     showView('attraction-list-view');
+                } else {
+                    console.log("DEBUG: initLocalization - 'attraction-list-view' is NOT ACTIVE. Not calling showView explicitly here.");
+                }
+
+            } catch (error) {
+                console.error("DEBUG: initLocalization - ERROR in try block:", error);
+                // Fallback to default language if API call for languages fails
+                if(langSwitcher) populateLanguageSwitcher([defaultLanguage], langSwitcher); 
+                await changeLanguage(defaultLanguage);
+                console.warn("DEBUG: initLocalization - Loaded default language due to error.");
+                // Attempt to show the default view even in case of error
+                if (document.getElementById('attraction-list-view').classList.contains('active')) {
+                    console.log("DEBUG: initLocalization - In CATCH, 'attraction-list-view' is ACTIVE. Calling showView('attraction-list-view').");
+                    showView('attraction-list-view');
+                }
+                alert("Could not fetch available languages. Defaulting to English.");
+            }
+            console.log("DEBUG: initLocalization COMPLETED");
+        }
+
+        // --- API Interaction & UI Update Functions (existing, may need to call applyTranslations()) ---
+
+        // Example of how you might integrate applyTranslations after dynamic content load:
+        // async function loadAttractions() {
+        // ... fetch data ...
+        // renderAttractions(data);
+        // applyTranslations(); // Re-apply translations if new static text elements were added
+        // }
+        
+        document.addEventListener('DOMContentLoaded', initLocalization);
     </script>
 
 </body>

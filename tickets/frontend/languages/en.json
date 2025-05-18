@@ -2,6 +2,7 @@
   "appTitle": "Solo City Attractions - Online Ticketing",
   "navHome": "Home",
   "navViewTickets": "View My Tickets",
+  "navSearchOrder": "Search Order",
   "selectAttraction": "Select Attraction",
   "attractionDetails": "Details",
   "loading": "Loading...",
@@ -48,6 +49,8 @@
   "total": "Total:",
   "idrCurrency": "Rp",
   "search": "Search",
+  "searchButtonText": "Search",
+  "searchingButtonText": "Searching...",
   "nameRequired": "Name is required.",
   "emailRequired": "Email is required.",
   "emailInvalid": "Invalid email format.",
@@ -58,6 +61,19 @@
   "namesMismatch": "Number of names must match total ticket quantity.",
   "namesEmpty": "Customer names cannot be empty.",
   "selectLanguage": "Language:",
+  "detailsTitle": "Details",
+  "contactInfoTitle": "Contact Information",
+  "galleryTitle": "Image Gallery",
+  "bookNowButton": "Book Now",
+  "noImagesAvailable": "No images available for this attraction.",
+  "noContactInfo": "Contact information not available.",
+  "contactPhone": "Phone",
+  "contactEmail": "Email",
+  "contactWebsite": "Website",
+  "contactAddress": "Address",
+  "contactHours": "Opening Hours",
+  "nextSlide": "Next",
+  "prevSlide": "Previous",
 
   "adminLoginTitle": "Admin Login",
   "usernameLabel": "Username:",
@@ -138,8 +154,8 @@
   "usageDateLabel": "Usage Date:",
   "totalPriceLabel": "Estimated Total:",
   "proceedPaymentBtnText": "Proceed to Payment",
-  "noSummary": "No summary available.",
-  "noDetails": "No details available.",
+  "noSummary": "No summary available for this attraction in the current language.",
+  "noDetails": "No detailed information available for this attraction in the current language.",
   "noContact": "N/A",
   "noAddress": "N/A",
   "noTransport": "N/A",
@@ -184,5 +200,23 @@
   "itemTicketType": "Ticket Type",
   "itemQuantity": "Quantity",
   "itemPricePer": "Price/Ticket",
-  "itemSubtotal": "Subtotal"
+  "itemSubtotal": "Subtotal",
+
+  "attractions": {
+    "solo-palace": {
+      "name": "Kraton Surakarta Hadiningrat",
+      "summary": "Kraton Surakarta Hadiningrat, also known as Solo Palace, is a historical palace in Central Java, Indonesia. Built in 1745, it was the official seat of the Sunanate of Surakarta and a significant center of Javanese culture.",
+      "details": "Kraton Surakarta Hadiningrat, located in Solo, Central Java, Indonesia, is the palace of the Sunanate of Surakarta, established in 1745 by Pakubuwono II after the division of the Mataram Sultanate in 1755. As one of the principal Javanese palaces, it served as the center of Javanese culture, spirituality, and politics. The palace architecture is a blend of traditional Javanese design and European influences. Although some parts were damaged by fire in 1985 and subsequently rebuilt, the Kraton retains its historical importance and houses many valuable artifacts. Today, a section of the palace functions as a museum, displaying royal collections including artifacts, gamelan instruments, and historical photographs, offering visitors a glimpse into the life and grandeur of the Javanese royalty. The palace and its surrounding area remain a focal point for local cultural activities and traditions."
+    },
+    "pura-mangkunegaran": {
+      "name": "Pura Mangkunegaran",
+      "summary": "Pura Mangkunegaran is a palace complex in Surakarta, Indonesia, the official residence of the Mangkunegara dukes. Established in 1757, it showcases distinctive Javanese architecture and a rich collection of royal artifacts.",
+      "details": "Pura Mangkunegaran is a historical palace complex in Surakarta, built starting in 1757 following the Treaty of Salatiga. It served as the official palace and residence for the Mangkunegara dynasty. Unlike the Kraton, Pura Mangkunegaran was an independent principality. The complex features unique Javanese architecture, notably the large Pendopo Ageng (Grand Hall), one of the largest in Indonesia, used for ceremonies and performances. The palace also houses a museum with a collection of royal artifacts, weaponry, traditional clothing, and art, offering insights into the history and culture of the Mangkunegaran lineage."
+    },
+    "museum-batik-danar-hadi": {
+      "name": "Museum Batik Danar Hadi",
+      "summary": "Museum Batik Danar Hadi houses one of the largest private batik collections in Indonesia, showcasing diverse batik styles and history across different eras and cultural influences.",
+      "details": "Founded by H. Santosa Doellah, the Museum Batik Danar Hadi is renowned for its extensive collection of over 10,000 pieces of antique batik. Located within the Ndalem Wuryaningratan complex, a historical building itself, the museum provides a comprehensive overview of Indonesian batik's history, techniques, and cultural significance. The collection includes various styles such as court batik, Dutch batik, Chinese batik, and Hokokai batik. Visitors can take guided tours to learn about the intricate process of batik making and the stories behind different motifs. The museum is integrated with a workshop and gallery, offering a complete batik experience."
+    }
+  }
 } 

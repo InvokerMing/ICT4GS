@@ -226,14 +226,9 @@
                             <div><label for="form-price">Base Price (Rp)*:</label><input type="number" id="form-price"
                                     name="price" required min="0" step="100" class="input-field"></div>
                             <div class="md:col-span-2"><label for="form-name-en">Name (English)*:</label><input
-                                    type="text" id="form-name-en" name="name_en" required class="input-field"></div>
+                                    type="text" id="form-name-en" name="name" required class="input-field"></div>
                             <div class="md:col-span-2"><label for="form-image-url">Image URL:</label><input type="url"
                                     id="form-image-url" name="image_url" class="input-field"></div>
-                            <div class="md:col-span-2"><label for="form-summary-en">Summary (English):</label><textarea
-                                    id="form-summary-en" name="summary_en" class="input-field"></textarea></div>
-                            <div class="md:col-span-2"><label for="form-details-en">Details (English):</label><textarea
-                                    id="form-details-en" name="details_en"
-                                    class="input-field !min-h-[100px]"></textarea></div>
                             <div><label for="form-contact">Contact Info:</label><input type="text" id="form-contact"
                                     name="contact_info" class="input-field"></div>
                             <div><label for="form-address">Address Info:</label><input type="text" id="form-address"
@@ -430,12 +425,9 @@
             formAttractionIdInput.disabled = true;
 
             // Populate form with only required fields (English + others)
-            // Use ?. operator for safe access to potentially missing language keys
-            attractionForm.elements['name_en'].value = attraction.name?.en || '';
+            attractionForm.elements['name'].value = attraction.name || '';
             attractionForm.elements['price'].value = attraction.price || 0;
             attractionForm.elements['image_url'].value = attraction.image_url || '';
-            attractionForm.elements['summary_en'].value = attraction.summary?.en || '';
-            attractionForm.elements['details_en'].value = attraction.details?.en || '';
             attractionForm.elements['contact_info'].value = attraction.contact_info || '';
             attractionForm.elements['address_info'].value = attraction.address_info || '';
             attractionForm.elements['transport_info'].value = attraction.transport_info || '';
@@ -475,19 +467,14 @@
             const editId = formData.get('edit_attraction_id');
             const isEditing = !!editId;
 
-            // Construct the data payload, creating JSONB structure for multilingual fields
+            // Construct the data payload
             const data = {
                 price: parseFloat(formData.get('price')),
+                name: formData.get('name'),
                 image_url: formData.get('image_url'),
                 contact_info: formData.get('contact_info'),
                 address_info: formData.get('address_info'),
-                transport_info: formData.get('transport_info'),
-                // Create JSON objects for multilingual fields
-                name: { en: formData.get('name_en') }, // Only saving English for now
-                summary: { en: formData.get('summary_en') },
-                details: { en: formData.get('details_en') }
-                // If editing existing data with other languages, merge them here if needed
-                // For simplicity, this overwrites with only English from the form
+                transport_info: formData.get('transport_info')
             };
 
             // Add ID only if adding new
@@ -503,7 +490,7 @@
                     method: method,
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify(data), // Send structured data
+                    body: JSON.stringify(data),
                 });
                 const result = await response.json();
                 if (!response.ok) { throw new Error(result.message || `HTTP ${response.status}`); }
@@ -580,9 +567,7 @@
                     const payload = {
                         attraction_id: attractionData.id,
                         price: parseFloat(attractionData.price || 0),
-                        name: attractionData.name || {}, // Expects {"en": "...", "zh": "..."}
-                        summary: attractionData.description || {}, // Map description to summary
-                        details: attractionData.history || {}, // Map history to details
+                        name: typeof attractionData.name === 'string' ? attractionData.name : attractionData.name?.en,
                         contact_info: attractionData.contact,
                         address_info: attractionData.address,
                         transport_info: attractionData.transportation,
@@ -590,7 +575,7 @@
                     };
 
                     // Basic validation before sending
-                    if (!payload.attraction_id || payload.price === undefined || !payload.name?.en) {
+                    if (!payload.attraction_id || payload.price === undefined || !payload.name) {
                         failCount++;
                         errors.push(`Skipped item (missing ID, price, or English name): ${JSON.stringify(attractionData).substring(0, 100)}...`);
                         continue;

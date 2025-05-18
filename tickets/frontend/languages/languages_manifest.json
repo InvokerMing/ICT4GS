@@ -1,0 +1,6 @@
+{
+  "available_languages": [
+    { "code": "en", "name": "English", "data_file": "en.json" },
+    { "code": "zh", "name": "中文", "data_file": "zh.json" }
+  ]
+} 

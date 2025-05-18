@@ -430,11 +430,140 @@
 
         #attraction-detail-view .image-gallery img {
             width: 100%;
-            height: 150px;
-            /* Fixed height for gallery images */
-            object-fit: cover;
+            /* height: 150px; */ /* Removed fixed height */
+            aspect-ratio: 1 / 1; /* Make them square, adjust as needed e.g., 4/3 */
+            object-fit: cover; /* Ensures the image covers the area, cropping if necessary */
             border-radius: 0.375rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        #attraction-detail-view .image-gallery .gallery-image-container {
+            overflow: hidden;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        #attraction-detail-view .image-gallery .gallery-image-container:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        #attraction-detail-view .image-gallery .missing-image {
+            opacity: 0.6;
+        }
+        
+        @media (min-width: 768px) {
+            #attraction-detail-view .image-gallery {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+        
+        /* 轮播图样式 */
+        .image-carousel {
+            position: relative;
+            margin: 0 auto;
+            max-width: 800px;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .carousel-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .carousel-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            display: none;
+        }
+        
+        .carousel-slide.active {
+            opacity: 1;
+            display: block;
+        }
+        
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 15px 20px;
+            z-index: 10;
+            font-size: 24px;
+            border-radius: 50%;
+            opacity: 0.7;
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .carousel-btn:hover {
+            opacity: 1;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .prev-btn {
+            left: 15px;
+        }
+        
+        .next-btn {
+            right: 15px;
+        }
+        
+        .carousel-indicators {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .indicator.active {
+            background-color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .image-carousel {
+                height: 350px;
+            }
+            
+            .carousel-btn {
+                padding: 10px 15px;
+                font-size: 16px;
+            }
         }
 
         #attraction-detail-view .contact-info p {
@@ -494,7 +623,7 @@
         <nav class="mt-6 bg-white/80 backdrop-blur-md shadow-lg rounded-xl p-2 max-w-3xl mx-auto sticky top-4 z-40">
             <ul class="flex justify-center items-center space-x-2 md:space-x-6 text-sm md:text-base">
                 <li><a href="#" onclick="showView('attraction-list-view')" class="px-3 py-2 rounded-md hover:bg-blue-100 transition-colors text-gray-700" data-translate="navHome">Home</a></li>
-                <li><a href="#" onclick="showView('order-lookup-view')" class="px-3 py-2 rounded-md hover:bg-blue-100 transition-colors text-gray-700" data-translate="navViewTickets">View My Tickets</a></li>
+                <li><a href="#" onclick="showView('order-lookup-view')" class="px-3 py-2 rounded-md hover:bg-blue-100 transition-colors text-gray-700" data-translate="navSearchOrder">Search Order</a></li>
             </ul>
         </nav>
     </header>
@@ -591,6 +720,25 @@
             <div id="purchase-error" class="text-center text-red-600 font-medium mt-4 hidden"></div>
         </div>
 
+        <div id="order-lookup-view" class="view">
+            <h2 class="text-2xl font-semibold mb-6 text-center" data-translate="orderLookupTitle">Find Your Order</h2>
+            <div class="flex flex-col sm:flex-row items-stretch justify-center space-y-3 sm:space-y-0 sm:space-x-3 mb-6 max-w-lg mx-auto">
+                <input type="text" id="consumer-order-id-input" placeholder="Enter your Order ID"
+                       class="input-field mb-0 w-full sm:flex-grow rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" 
+                       aria-label="Order ID" data-translate-placeholder="searchOrderIdPlaceholder">
+                <button id="consumer-search-order-btn" onclick="searchConsumerOrder()"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-md shadow-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 w-full sm:w-auto disabled:opacity-50">
+                    <span data-translate="searchButtonText">Search</span>
+                    <span id="consumer-search-spinner" class="spinner hidden !w-4 !h-4 !ml-2"></span>
+                </button>
+            </div>
+            <div id="consumer-order-details-container" class="mt-6 hidden">
+                <!-- Order details and QR codes will be displayed here -->
+            </div>
+            <div id="consumer-order-lookup-error" class="text-center text-red-600 font-medium mt-4 hidden"></div>
+            <div id="consumer-order-not-found" class="text-center text-gray-500 font-medium mt-4 hidden" data-translate="orderNotFound">Order not found. Please check the ID and try again.</div>
+        </div>
+
         <div id="message" class="text-center text-green-600 font-medium mb-4 min-h-[1.5em]"></div>
         <div id="error-message" class="text-center text-red-600 font-medium mb-4 min-h-[1.5em]"></div>
 
@@ -621,6 +769,10 @@
             'bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100'
         ];
         let colorIndex = 0; // To cycle through colors
+        
+        // 轮播图相关变量
+        let currentSlide = 0;
+        let totalSlides = 0;
 
         // --- Global DOM Element Variables ---
         // It's good practice to define these early if they are used by multiple functions
@@ -642,9 +794,17 @@
         const errorMessageDiv = document.getElementById('error-message');
         const successModal = document.getElementById('successModal');
         const modalOrderId = document.getElementById('modalOrderId');
+        // Order Lookup View Elements
+        const consumerOrderIdInput = document.getElementById('consumer-order-id-input');
+        const consumerSearchOrderBtn = document.getElementById('consumer-search-order-btn');
+        const consumerSearchSpinner = document.getElementById('consumer-search-spinner');
+        const consumerOrderDetailsContainer = document.getElementById('consumer-order-details-container');
+        const consumerOrderLookupError = document.getElementById('consumer-order-lookup-error');
+        const consumerOrderNotFound = document.getElementById('consumer-order-not-found');
+
         // Variables for attraction detail view elements if they need to be globally accessible
-        // let currentAttractionId = null; // Already declared later, but good to be mindful
-        // let currentAttractionBasePrice = 0; // Already declared later
+        let currentAttractionId = null; // Already declared later, but good to be mindful
+        let currentAttractionBasePrice = 0; // Already declared later
 
         // --- View Management ---
         const views = document.querySelectorAll('.view');
@@ -673,9 +833,11 @@
                 setupPurchaseForm(params); // params should be attraction object
             } else if (viewId === 'order-lookup-view') {
                 // Clear previous results if any
-                document.getElementById('order-details-container').innerHTML = '';
-                document.getElementById('order-lookup-form').reset();
-                document.getElementById('order-lookup-error').classList.add('hidden');
+                consumerOrderDetailsContainer.innerHTML = '';
+                consumerOrderDetailsContainer.classList.add('hidden');
+                if(consumerOrderIdInput) consumerOrderIdInput.value = ''; // Clear input field
+                if(consumerOrderLookupError) consumerOrderLookupError.classList.add('hidden');
+                if(consumerOrderNotFound) consumerOrderNotFound.classList.add('hidden');
             }
             window.scrollTo(0, 0); // Scroll to top on view change
         }
@@ -710,11 +872,28 @@
         function setLoadingState(button, isLoading, loadingTextKey = 'purchaseButtonLoading') {
             if (button) {
                 button.disabled = isLoading;
+                const spinner = button.querySelector('.spinner') || document.getElementById(button.id + '-spinner'); // Generalize spinner finding
+
                 if (isLoading) { 
-                    button.dataset.originalText = button.textContent; 
-                    button.textContent = translateText(loadingTextKey); // Use translateText
-                } else if (button.dataset.originalText) { 
-                    button.textContent = button.dataset.originalText; 
+                    // 保存按钮的原始翻译键，而不是文本内容
+                    const originalTextSpan = button.querySelector('span:not(.spinner)');
+                    if (originalTextSpan && originalTextSpan.hasAttribute('data-translate')) {
+                        button.dataset.originalTranslateKey = originalTextSpan.getAttribute('data-translate');
+                    }
+                    button.dataset.originalText = button.querySelector('span:not(.spinner)')?.textContent || button.textContent; 
+                    
+                    if(button.querySelector('span:not(.spinner)')) button.querySelector('span:not(.spinner)').textContent = translateText(loadingTextKey);
+                    else button.textContent = translateText(loadingTextKey);
+                    if(spinner) spinner.classList.remove('hidden');
+                } else { 
+                    // 从加载状态恢复时，优先使用保存的翻译键重新翻译
+                    if (button.dataset.originalTranslateKey && button.querySelector('span:not(.spinner)')) {
+                        button.querySelector('span:not(.spinner)').textContent = translateText(button.dataset.originalTranslateKey);
+                    } else if (button.dataset.originalText) {
+                        if(button.querySelector('span:not(.spinner)')) button.querySelector('span:not(.spinner)').textContent = button.dataset.originalText;
+                        else button.textContent = button.dataset.originalText;
+                    }
+                    if(spinner) spinner.classList.add('hidden');
                 }
             }
         }
@@ -824,6 +1003,43 @@
         function toggleTooltip(element) { element.classList.toggle('active'); }
         function showTooltip(element) { /* CSS handles this */ }
         function hideTooltip(element) { element.classList.remove('active'); }
+        
+        // 轮播图函数
+        function changeSlide(direction) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            if (slides.length === 0) return;
+            
+            // 清除当前激活状态
+            slides[currentSlide].classList.remove('active');
+            indicators[currentSlide].classList.remove('active');
+            
+            // 计算新的幻灯片索引
+            currentSlide = (currentSlide + direction + slides.length) % slides.length;
+            
+            // 激活新的幻灯片
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+        }
+        
+        function goToSlide(slideIndex) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            if (slides.length === 0 || slideIndex < 0 || slideIndex >= slides.length) return;
+            
+            // 清除当前激活状态
+            slides[currentSlide].classList.remove('active');
+            indicators[currentSlide].classList.remove('active');
+            
+            // 设置新的当前幻灯片
+            currentSlide = slideIndex;
+            
+            // 激活新的幻灯片
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+        }
 
         // Function to check for local image and fallback
         function checkLocalImage(imgElement, localPath, fallbackUrl, placeholderUrl = 'https://placehold.co/600x400/cccccc/666666?text=Image+Not+Available') {
@@ -848,19 +1064,19 @@
         }
 
         // --- Data Loading ---
-        async function fetchAttractionData(attractionId) {
-            console.log(`Fetching data for attraction ID: ${attractionId} with language: ${currentLanguage}`); 
-            try {
-                const response = await fetch(`${API_BASE_URL}/attractions/${attractionId}?lang=${currentLanguage}`); 
-                if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
-                const data = await response.json();
-                console.log("Attraction data fetched successfully:", data); // Log successful fetch
-                return data;
-            } catch (error) {
-                console.error(`Error fetching attraction ${attractionId}:`, error); // Log fetch error
-                return null; // Indicate failure
-            }
-        }
+        // async function fetchAttractionData(attractionId) {
+        //     console.log(`Fetching data for attraction ID: ${attractionId} with language: ${currentLanguage}`); 
+        //     try {
+        //         const response = await fetch(`${API_BASE_URL}/attractions/${attractionId}?lang=${currentLanguage}`); 
+        //         if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
+        //         const data = await response.json();
+        //         console.log("Attraction data fetched successfully:", data); // Log successful fetch
+        //         return data;
+        //     } catch (error) {
+        //         console.error(`Error fetching attraction ${attractionId}:`, error); // Log fetch error
+        //         return null; // Indicate failure
+        //     }
+        // }
 
         async function loadAttractionList() {
             console.log(`DEBUG: loadAttractionList CALLED. Language: ${currentLanguage}`);
@@ -930,16 +1146,20 @@
             const localImagePath = `res/homepage/${attraction.attraction_id}.jpg`;
             const fallbackImageUrl = attraction.image_url || 'https://placehold.co/600x400/cccccc/666666?text=Image+Not+Available';
 
-            // Price is dynamic, name and summary are from API (English)
-            const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translateText('ticketType_free');
+            // Price is dynamic. Name and summary will be fetched from translations.
+            const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translateText('ticketType_free', {defaultValue: 'Free'});
+            
+            // Get translated texts using attraction_id
+            const translatedName = translateText(`attractions.${attraction.attraction_id}.name`, { defaultValue: attraction.name }); // Fallback to API name if translation missing
+            const translatedSummary = translateText(`attractions.${attraction.attraction_id}.summary`, { defaultValue: 'No summary available.' });
 
             block.innerHTML = `
                 <div class="attraction-image-container">
-                    <img src="" alt="${attraction.name}" class="attraction-image">
+                    <img src="" alt="${translatedName}" class="attraction-image">
                 </div>
                 <div class="attraction-info">
-                    <h3>${attraction.name}</h3>
-                    <p class="summary">${attraction.summary || translateText('noSummary', {defaultValue: 'No summary available.'})}</p>
+                    <h3>${translatedName}</h3>
+                    <p class="summary">${translatedSummary}</p>
                     <p class="price"><span data-translate="attractionPrice">Price</span>: ${priceFormatted}</p>
                     <button onclick="showView('attraction-detail-view', '${attraction.attraction_id}')" class="book-button">
                        <span data-translate="attractionDetails">Details</span>
@@ -962,106 +1182,147 @@
             }
             currentAttractionId = attractionId; // Set global current attraction ID
             
-            detailContent.innerHTML = `<div class="spinner"></div><p data-translate="loading">${translateText("loading")}</p>`; 
-            detailError.classList.add('hidden');
-            applyTranslations(); // Apply translation to the loading message itself
-            console.log("DEBUG: loadAttractionDetail - Showing loading state.");
+            // Show loading spinner with translated text
+            detailContent.innerHTML = `<div class="spinner"></div><p data-translate="loading">${translateText("loading", {defaultValue: "Loading..."})}</p>`; 
+            clearMessages(detailError);
 
-            const attraction = await fetchAttractionData(attractionId); 
-            console.log("DEBUG: loadAttractionDetail - fetchAttractionData response:", attraction);
+            try {
+                // Fetch base attraction data (non-translatable fields like image_url, price, contacts etc.)
+                const response = await fetch(`${API_BASE_URL}/attractions/${attractionId}`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Failed to load attraction details (HTTP ${response.status})`);
+                }
+                const attraction = await response.json(); // This data contains attraction_id, image_url, price, etc.
+                currentAttractionBasePrice = attraction.price; // Store base price for purchase form
 
-            if (attraction) {
-                console.log("DEBUG: loadAttractionDetail - Attraction data fetched successfully. Rendering details.");
-                const detailGalleryImagesHTML = await loadDetailGalleryImages(attraction.attraction_id);
-                const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translateText('ticketType_free');
-                currentAttractionBasePrice = parseFloat(attraction.price || 0); // Ensure base price is float
+                // Get translated texts using attraction_id
+                const name = translateText(`attractions.${attractionId}.name`, { defaultValue: attraction.name }); // Fallback to API name
+                const summary = translateText(`attractions.${attractionId}.summary`, { defaultValue: 'Summary not available.' });
+                const details = translateText(`attractions.${attractionId}.details`, { defaultValue: 'Details not available.' });
+                const contactInfoTitle = translateText('contactInfoTitle', { defaultValue: 'Contact Information' });
+                const galleryTitle = translateText('galleryTitle', { defaultValue: 'Image Gallery' });
+                const bookNowButtonText = translateText('bookNowButton', { defaultValue: 'Book Now' });
+
+                // 预加载检测图片存在性并筛选有效图片
+                const galleryImagesWithPreload = await preloadAndFilterImages(attractionId, 10); // 最多10张图片
+                
+                // 准备联系信息
+                let contactHtml = '';
+                const contactInfo = {
+                    phone: attraction.contact_info || "+62 812 1234 5678",
+                    email: attraction.contact_info ? "" : "info@" + attractionId.replace(/-/g, '') + ".solocity.id",
+                    website: attraction.contact_info ? "" : "www." + attractionId.replace(/-/g, '') + ".solocity.id",
+                    address: attraction.address_info || translateText('noAddress', { defaultValue: 'Address information not available' }),
+                    hours: attraction.contact_info ? "" : "8:00 - 17:00 (Mon-Sun)"
+                };
+                
+                if (contactInfo) {
+                    // 生成联系信息HTML
+                    contactHtml = `
+                        <p><strong>${translateText('contactPhone', { defaultValue: 'Phone' })}:</strong> ${contactInfo.phone}</p>
+                        ${contactInfo.email ? `<p><strong>${translateText('contactEmail', { defaultValue: 'Email' })}:</strong> ${contactInfo.email}</p>` : ''}
+                        ${contactInfo.website ? `<p><strong>${translateText('contactWebsite', { defaultValue: 'Website' })}:</strong> ${contactInfo.website}</p>` : ''}
+                        <p><strong>${translateText('contactAddress', { defaultValue: 'Address' })}:</strong> ${contactInfo.address}</p>
+                        ${contactInfo.hours ? `<p><strong>${translateText('contactHours', { defaultValue: 'Opening Hours' })}:</strong> ${contactInfo.hours}</p>` : ''}
+                    `;
+                } else {
+                    contactHtml = `<p data-translate="noContactInfo">${translateText('noContactInfo', { defaultValue: 'Contact information not available.' })}</p>`;
+                }
+                
+                // 设置正确的图片路径
+                const localImagePath = `res/homepage/${attraction.attraction_id}.jpg`;
+                const fallbackBannerUrl = attraction.image_url || 'https://placehold.co/1200x400/cccccc/666666?text=Attraction+Image';
+
+                // 只有当有有效图片时才显示轮播图
+                let galleryHtml = '';
+                if (galleryImagesWithPreload.length > 0) {
+                    galleryHtml = `
+                        <div class="image-carousel">
+                            <div class="carousel-container">
+                                ${galleryImagesWithPreload.map((imgPath, index) => 
+                                    `<div class="carousel-slide${index === 0 ? ' active' : ''}">
+                                        <img src="${imgPath}" alt="${name} Gallery Image ${index + 1}">
+                                    </div>`
+                                ).join('')}
+                            </div>
+                            <button class="carousel-btn prev-btn" onclick="changeSlide(-1)">
+                                <span>&lt;</span>
+                            </button>
+                            <button class="carousel-btn next-btn" onclick="changeSlide(1)">
+                                <span>&gt;</span>
+                            </button>
+                            <div class="carousel-indicators">
+                                ${galleryImagesWithPreload.map((_, index) => 
+                                    `<span class="indicator${index === 0 ? ' active' : ''}" onclick="goToSlide(${index})"></span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    galleryHtml = `<p data-translate="noImagesAvailable">${translateText('noImagesAvailable', { defaultValue: 'No images available for this attraction.' })}</p>`;
+                }
 
                 detailContent.innerHTML = `
-                    <h2 class="text-3xl font-bold mb-6 text-gray-800">${attraction.name}</h2> <!-- Name from API (English) -->
+                    <div class="mb-6 rounded-lg overflow-hidden shadow-xl">
+                        <img id="attraction-banner-img" src="" alt="${name}" class="w-full h-64 md:h-96 object-cover">
+                    </div>
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-3">${name}</h2>
+                    <p class="text-lg text-gray-600 mb-6 leading-relaxed">${summary}</p>
+                    
+                    <div class="detail-section mb-6">
+                        <h3 data-translate="detailsTitle">${translateText('detailsTitle', {defaultValue: 'Details'})}</h3>
+                        <p>${details.replace(/\n/g, '<br>')}</p>
+                    </div>
 
-                    <div class="detail-section">
-                        <h3 class="detail-gallery-title" data-translate="detailSectionGallery">Image Gallery</h3>
-                        <div class="image-gallery">
-                            ${detailGalleryImagesHTML}
+                    <div class="detail-section mb-6 contact-info">
+                        <h3 data-translate="contactInfoTitle">${contactInfoTitle}</h3>
+                        ${contactHtml}
+                    </div>
+
+                    <div class="detail-section mb-6">
+                        <h3 data-translate="galleryTitle">${galleryTitle}</h3>
+                        <div class="mt-4">
+                            ${galleryHtml}
                         </div>
                     </div>
 
-                    <div class="detail-section">
-                        <h3 class="detail-desc-title" data-translate="detailSectionDescription">Description/History</h3>
-                        <p>${attraction.details || translateText('noDetails', {defaultValue: 'No details available.'})}</p> <!-- Details from API (English) -->
+                    <div class="mt-8 text-center">
+                        <button onclick="showView('purchase-view', currentAttractionDataForPurchase)" 
+                                class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-xl shadow-md hover:shadow-lg transition-transform transform hover:scale-105">
+                            <span data-translate="bookNowButton">${bookNowButtonText}</span>
+                        </button>
                     </div>
-
-                    <div class="detail-section contact-info">
-                        <h3 class="detail-info-title" data-translate="detailSectionInfo">Information</h3>
-                        <p><strong data-translate="attractionContact">Contact:</strong> ${attraction.contact_info || translateText('noContact', {defaultValue: 'N/A'})}</p>
-                        <p><strong data-translate="attractionAddress">Address:</strong> ${attraction.address_info || translateText('noAddress', {defaultValue: 'N/A'})}</p>
-                        <p><strong data-translate="attractionTransport">Transport:</strong> ${attraction.transport_info || translateText('noTransport', {defaultValue: 'N/A'})}</p>
-                    </div>
-
-                    <p class="text-xl font-bold text-blue-600 mb-6 text-right"><span data-translate="basePriceLabel">Base Price:</span> ${priceFormatted}</p>
-
-                    <button onclick="showView('purchase-view', ${JSON.stringify(attraction).replace(/"/g, '&quot;')})" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg shadow text-lg transition duration-300">
-                       <span data-translate="bookTickets">Book Tickets</span>
-                    </button>
                 `;
-                applyTranslations(); // Apply translations to newly set innerHTML
-            } else {
-                console.error(`DEBUG: loadAttractionDetail - Failed to load attraction data for ID: ${attractionId}`);
-                const errorPrefix = translateText('detailLoadError');
-                showError(`${errorPrefix} Attraction ID: ${attractionId}`, detailError);
-                detailContent.innerHTML = ''; 
-            }
-            console.log("DEBUG: loadAttractionDetail COMPLETED.");
+                
+                const bannerImgElement = document.getElementById('attraction-banner-img');
+                checkLocalImage(bannerImgElement, localImagePath, fallbackBannerUrl, 'https://placehold.co/1200x400/cccccc/666666?text=Attraction+Image');
+
+                // Pass the original attraction object to setupPurchaseForm, which includes price, id etc.
+                // It also contains the English name (`attraction.name`) that setupPurchaseForm uses for the title.
+                // This is fine, as the purchase form itself isn't fully translated yet, and relies on this.
+                 currentAttractionDataForPurchase = attraction; // Store for purchase form setup
+                
+                // 重置轮播图状态和初始化
+                currentSlide = 0;
+                totalSlides = galleryImagesWithPreload.length;
+
+                applyTranslations(); // Apply translations to any static data-translate elements added
+
+            } catch (error) {
+                console.error(`Failed to load attraction details for ${attractionId}:`, error);
+                const errorPrefix = translateText('loadAttractionDetailError', {defaultValue: 'Error loading details'});
+                showError(`${errorPrefix}: ${error.message}`, detailError);
+            } 
         }
+        
+        let currentAttractionDataForPurchase = null; // Used to pass data to purchase form setup
 
-        // Simulate loading multiple detail images
-        async function loadDetailGalleryImages(attractionId) {
-            let imagesHTML = '';
-            const placeholderUrl = 'https://placehold.co/150x150/cccccc/666666?text=Image'; // Placeholder for gallery
-            const maxImagesToTry = 5; // Attempt to load up to 5 images
-
-            for (let i = 1; i <= maxImagesToTry; i++) {
-                const localImagePath = `res/details/${attractionId}_${i}.jpg`;
-                // Create a temporary image element to check if the image loads
-                const img = new Image();
-                let loaded = false;
-
-                // Use a Promise to wait for load or error
-                await new Promise((resolve) => {
-                    img.onload = () => {
-                        loaded = true;
-                        resolve();
-                    };
-                    img.onerror = () => {
-                        loaded = false;
-                        resolve();
-                    };
-                    img.src = localImagePath;
-                });
-
-                if (loaded) {
-                    imagesHTML += `<img src="${localImagePath}" alt="${attractionId} Image ${i}">`;
-                } else {
-                    // Optionally add a placeholder if an image is missing in the sequence
-                    // imagesHTML += `<img src="${placeholderUrl}" alt="Image not available">`;
-                }
-            }
-
-            // If no images were found after trying, add a single placeholder
-            if (imagesHTML === '') {
-                imagesHTML = `<img src="${placeholderUrl}" alt="${translateText('imageGalleryError')}">`;
-            }
-
-            return imagesHTML;
-        }
-
-
-        // --- Purchase Form Logic ---
-        function setupPurchaseForm(attraction) {
-            console.log("setupPurchaseForm called with attraction:", attraction); // Log setup call
-            currentAttractionId = attraction.attraction_id; // Ensure this is set
-            currentAttractionBasePrice = parseFloat(attraction.price || 0);
-            purchaseAttractionName.textContent = attraction.name;
+        async function setupPurchaseForm(attractionData) { // Renamed param for clarity
+            console.log("setupPurchaseForm called with attraction:", attractionData); // Log setup call
+            currentAttractionId = attractionData.attraction_id; // Ensure this is set
+            currentAttractionBasePrice = attractionData.price;
+            purchaseAttractionName.textContent = attractionData.name;
 
             // Reset form fields to defaults
             purchaseForm.reset(); // Resets native form elements
@@ -1268,6 +1529,123 @@
         }
 
 
+        // --- Order Lookup Specific Functions (Consumer) ---
+        async function searchConsumerOrder() {
+            clearMessages(consumerOrderLookupError);
+            clearMessages(consumerOrderNotFound);
+            consumerOrderDetailsContainer.classList.add('hidden');
+            consumerOrderDetailsContainer.innerHTML = '';
+
+            const orderId = consumerOrderIdInput.value.trim();
+            if (!orderId) {
+                showError(translateText('enterOrderIdPrompt', { defaultValue: 'Please enter an Order ID.' }), consumerOrderLookupError);
+                return;
+            }
+
+            setLoadingState(consumerSearchOrderBtn, true, 'searchingButtonText');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders/${orderId}`);
+                const orderData = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        consumerOrderNotFound.classList.remove('hidden');
+                        consumerOrderNotFound.textContent = translateText('orderNotFound', { defaultValue: 'Order not found. Please check the ID and try again.'});
+                    } else {
+                        throw new Error(orderData.message || `HTTP ${response.status}`);
+                    }
+                } else {
+                    displayConsumerOrderDetails(orderData);
+                    consumerOrderDetailsContainer.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Consumer order search failed:', error);
+                showError(translateText('orderSearchFailed', { defaultValue: 'Failed to search order: '}) + error.message, consumerOrderLookupError);
+            } finally {
+                setLoadingState(consumerSearchOrderBtn, false);
+                // 不再需要这段代码，因为 setLoadingState 已经会应用正确的翻译
+                // const searchButtonTextSpan = consumerSearchOrderBtn.querySelector('span:not(.spinner)');
+                // if (searchButtonTextSpan) {
+                //     searchButtonTextSpan.textContent = translateText('searchButtonText');
+                // }
+            }
+        }
+
+        function displayConsumerOrderDetails(order) {
+            let detailsHtml = `<div class="bg-gray-50 p-6 rounded-lg shadow">`;
+            detailsHtml += `<h3 class="text-xl font-semibold mb-4 text-indigo-700 border-b pb-2" data-translate="orderDetailsTitle">Order Details</h3>`;
+            
+            detailsHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm mb-4">`;
+            detailsHtml += `<p><strong data-translate="orderIdLabel">Order ID:</strong> <span class="font-mono">${order.order_id}</span></p>`;
+            const namesDisplay = Array.isArray(order.customer_names) ? order.customer_names.join(', ') : (order.customer_names || 'N/A');
+            detailsHtml += `<p><strong data-translate="customerNamesLabel">Names:</strong> ${namesDisplay}</p>`;
+            detailsHtml += `<p><strong data-translate="emailLabel">Email:</strong> ${order.customer_email || 'N/A'}</p>`;
+            detailsHtml += `<p><strong data-translate="usageDateLabel">Usage Date:</strong> ${new Date(order.usage_date).toLocaleDateString(currentLanguage === 'zh' ? 'zh-CN' : 'en-CA')}</p>`;
+            detailsHtml += `<p><strong data-translate="purchaseTimeLabel">Purchase Time:</strong> ${new Date(order.purchase_time).toLocaleString(currentLanguage === 'zh' ? 'zh-CN' : 'en-US')}</p>`;
+            detailsHtml += `<p><strong data-translate="orderStatusLabel">Status:</strong> <span class="font-semibold ${order.status === 'completed' ? 'text-green-600' : 'text-yellow-600'}">${translateText('orderStatus_' + (order.status || 'unknown'))}</span></p>`;
+            detailsHtml += `<p class="md:col-span-2"><strong data-translate="totalAmountLabel">Total Amount:</strong> <span class="font-bold text-indigo-600">Rp ${parseFloat(order.total_amount || 0).toLocaleString('id-ID')}</span></p>`;
+            detailsHtml += `</div>`;
+
+            if (order.items && order.items.length > 0) {
+                detailsHtml += `<h4 class="text-lg font-semibold mt-5 mb-2 border-t pt-3 text-indigo-700" data-translate="orderedItemsTitle">Items Purchased</h4>`;
+                detailsHtml += `<ul class="list-disc list-inside space-y-1 text-sm">`;
+                order.items.forEach(item => {
+                    detailsHtml += `<li> ${item.quantity} x ${item.attraction_name} (${item.ticket_type_name_en}) @ Rp ${parseFloat(item.price_per_ticket || 0).toLocaleString('id-ID')}</li>`;
+                });
+                detailsHtml += `</ul>`;
+            }
+            
+            // Display Individual Tickets and QR Codes
+            if (order.individual_tickets && order.individual_tickets.length > 0) {
+                detailsHtml += `<h4 class="text-lg font-semibold mt-6 mb-3 border-t pt-4 text-indigo-700" data-translate="yourETicketsTitle">Your E-Tickets</h4>`;
+                detailsHtml += `<p class="text-xs text-gray-600 mb-4" data-translate="qrCodeInfoText">Show these QR codes for entry. Each ticket is valid for one person.</p>`;
+                detailsHtml += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">`;
+                order.individual_tickets.forEach(ticket => {
+                    const qrDivId = `consumer-qr-${ticket.id}`;
+                    detailsHtml += `
+                        <div class="border p-4 rounded-lg bg-white shadow-sm text-center">
+                            <p class="font-semibold text-gray-800">${ticket.name}</p>
+                            <p class="text-xs text-gray-500 mb-1">${translateText('ticketTypeLabel')}: ${ticket.type_en}</p>
+                             <p class="text-xs text-gray-500 mb-2">${translateText('ticketStatusLabel')}: <span class="${ticket.status === 'active' ? 'text-green-500' : 'text-red-500'} font-medium">${translateText('ticketStatus_' + ticket.status)}</span></p>
+                            <div id="${qrDivId}" class="w-36 h-36 mx-auto my-2 border p-1 bg-white"></div>
+                            <button onclick="downloadQrCode('${qrDivId}', '${ticket.name}', '${ticket.id}')" class="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                <span data-translate="downloadQrButton">Download</span>
+                            </button>
+                        </div>`;
+                });
+                detailsHtml += `</div>`;
+            } else {
+                detailsHtml += `<p class="mt-4 text-gray-500" data-translate="noIndividualTicketsFound">No individual e-ticket details found for this order.</p>`;
+            }
+
+            detailsHtml += `</div>`; // Close main container div
+            consumerOrderDetailsContainer.innerHTML = detailsHtml;
+            applyTranslations(); // Apply translations to newly added static content in the details
+
+            // Generate QR codes after HTML is in the DOM
+            if (order.individual_tickets && order.individual_tickets.length > 0) {
+                order.individual_tickets.forEach(ticket => {
+                    const qrDivId = `consumer-qr-${ticket.id}`;
+                    const qrCodeHolder = document.getElementById(qrDivId);
+                    if (qrCodeHolder && typeof QRCode !== 'undefined') {
+                        new QRCode(qrCodeHolder, {
+                            text: ticket.id,
+                            width: 136, // Slightly smaller to fit padding
+                            height: 136,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    } else if (qrCodeHolder) {
+                        qrCodeHolder.textContent = translateText('qrGenerationError', {defaultValue: 'QR Error'});
+                    }
+                });
+            }
+        }
+
+
         // --- Initialization ---
         // document.addEventListener('DOMContentLoaded', () => { // KEEP THIS COMMENTED or REMOVE
         //     const preferredLang = localStorage.getItem('preferredLang') || 'en'; // OLD
@@ -1287,6 +1665,56 @@
         //         console.error("QRCode or QRCode.CorrectLevel is NOT available on DOMContentLoaded.");
         //     }
         // });
+
+        function hideTooltip(element) { element.classList.remove('active'); }
+        
+        // 预加载和过滤图片函数
+        async function preloadAndFilterImages(attractionId, maxCount = 10) {
+            // 生成可能的图片路径数组
+            const possibleImages = [];
+            for (let i = 1; i <= maxCount; i++) {
+                possibleImages.push(`res/details/${attractionId}/${i}.jpg`);
+            }
+            
+            // 使用 Promise.all 并行检查所有图片
+            const checkResults = await Promise.all(
+                possibleImages.map(imgSrc => {
+                    return new Promise(resolve => {
+                        const img = new Image();
+                        img.onload = () => resolve({ src: imgSrc, exists: true });
+                        img.onerror = () => resolve({ src: imgSrc, exists: false });
+                        img.src = imgSrc;
+                    });
+                })
+            );
+            
+            // 过滤出存在的图片路径
+            const validImages = checkResults
+                .filter(result => result.exists)
+                .map(result => result.src);
+                
+            console.log(`Found ${validImages.length} valid images for attraction ${attractionId}`);
+            return validImages;
+        }
+        
+        // 轮播图函数
+        function changeSlide(direction) {
+            const slides = document.querySelectorAll('.carousel-slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            if (slides.length === 0) return;
+            
+            // 清除当前激活状态
+            slides[currentSlide].classList.remove('active');
+            indicators[currentSlide].classList.remove('active');
+            
+            // 计算新的幻灯片索引
+            currentSlide = (currentSlide + direction + slides.length) % slides.length;
+            
+            // 激活新的幻灯片
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+        }
     </script>
 
     <script>
@@ -1337,28 +1765,64 @@
         // Translates a key using loaded translations, with fallback to English
         function translateText(key, params = {}) {
             let text;
-            if (key in translations) {
-                text = translations[key];
-            } else if (key in englishTranslations) {
-                text = englishTranslations[key];
-                // console.warn(`Translation missing for key '${key}' in '${currentLanguage}'. Used English fallback.`);
+            
+            // 处理嵌套路径键（如 "attractions.solo-palace.name"）
+            if (key.includes('.')) {
+                const parts = key.split('.');
+                let current = translations;
+                // 遍历路径各部分
+                for (const part of parts) {
+                    if (current && typeof current === 'object' && part in current) {
+                        current = current[part];
+                    } else {
+                        // 未找到路径，尝试英文翻译
+                        current = null;
+                        break;
+                    }
+                }
+                
+                // 如果找到了嵌套值
+                if (current !== null && current !== undefined) {
+                    text = current;
+                } else {
+                    // 在英文翻译中尝试同样的路径
+                    current = englishTranslations;
+                    for (const part of parts) {
+                        if (current && typeof current === 'object' && part in current) {
+                            current = current[part];
+                        } else {
+                            current = null;
+                            break;
+                        }
+                    }
+                    text = current;
+                }
             } else {
+                // 处理简单键 (不含点号)
+                if (key in translations) {
+                    text = translations[key];
+                } else if (key in englishTranslations) {
+                    text = englishTranslations[key];
+                }
+            }
+            
+            // 如果未找到翻译
+            if (text === null || text === undefined) {
                 console.warn(`Translation missing for key '${key}' in current and English. Using default or key.`);
                 return params.defaultValue !== undefined ? params.defaultValue : key;
             }
 
             if (typeof text !== 'string') {
-                // If the fetched translation is not a string (e.g. it's an object for nested translations by mistake),
-                // return a sensible fallback.
+                // 如果获取的翻译不是字符串（例如，是嵌套对象）
                 console.warn(`Retrieved translation for key '${key}' is not a string. Value:`, text);
                 return params.defaultValue !== undefined ? params.defaultValue : key;
             }
 
-            // Perform placeholder replacement
+            // 执行占位符替换
             let resultText = text;
             for (const paramKey in params) {
-                if (Object.prototype.hasOwnProperty.call(params, paramKey)) {
-                    // Ensure param value is a string or number to avoid 'undefined' in output
+                if (Object.prototype.hasOwnProperty.call(params, paramKey) && paramKey !== 'defaultValue') {
+                    // 确保参数值是字符串或数字，避免在输出中出现"undefined"
                     const value = (params[paramKey] === null || params[paramKey] === undefined) ? '' : params[paramKey];
                     const regex = new RegExp(`{{\s*${paramKey}\s*}}`, 'g');
                     resultText = resultText.replace(regex, value);
@@ -1385,6 +1849,42 @@
                 const key = element.getAttribute('data-translate-value');
                 element.value = translateText(key, {defaultValue: element.value});
             });
+            // 特别处理导航栏链接，确保它们始终正确翻译
+            document.querySelectorAll('nav a').forEach(navLink => {
+                if (navLink.hasAttribute('data-translate')) {
+                    const key = navLink.getAttribute('data-translate');
+                    const translatedText = translateText(key, {defaultValue: navLink.innerText});
+                    // 只更新文本，不影响子元素
+                    if (navLink.firstChild && navLink.firstChild.nodeType === Node.TEXT_NODE) {
+                        navLink.firstChild.nodeValue = translatedText;
+                    } else if (!navLink.firstChild) {
+                        navLink.innerText = translatedText;
+                    } else {
+                        // 如果有子元素，确保只更新文本节点
+                        let foundTextNode = false;
+                        for (const node of navLink.childNodes) {
+                            if (node.nodeType === Node.TEXT_NODE) {
+                                node.nodeValue = translatedText;
+                                foundTextNode = true;
+                                break;
+                            }
+                        }
+                        if (!foundTextNode) {
+                            // 如果没有文本节点，创建一个
+                            navLink.insertBefore(document.createTextNode(translatedText), navLink.firstChild);
+                        }
+                    }
+                }
+            });
+            // 特别处理搜索按钮
+            const searchBtn = document.getElementById('consumer-search-order-btn');
+            if (searchBtn) {
+                const searchBtnTextSpan = searchBtn.querySelector('span:not(.spinner)');
+                if (searchBtnTextSpan && searchBtnTextSpan.hasAttribute('data-translate')) {
+                    const key = searchBtnTextSpan.getAttribute('data-translate');
+                    searchBtnTextSpan.textContent = translateText(key, {defaultValue: 'Search'});
+                }
+            }
             // Special handling for document title
             const appTitleKey = 'appTitle'; // Use a variable for the key
             if (translations[appTitleKey]) { // Check if key exists in current translations
@@ -1406,29 +1906,42 @@
             const success = await fetchTranslations(langCode);
             console.log(`DEBUG: changeLanguage - fetchTranslations success: ${success}`);
             if (success) {
+                // 先应用全局翻译
                 applyTranslations();
                 localStorage.setItem('preferredLanguage', langCode);
-                // Update language switcher selection
+                
+                // 更新语言选择器
                 const langSwitcher = document.getElementById('language-switcher');
                 if (langSwitcher) {
                     langSwitcher.value = langCode;
                 }
-                // If purchase view is active, update its dynamic fields like name labels
-                if (document.getElementById('purchase-view')?.classList.contains('active')) {
+                
+                // 根据当前活动视图重新加载内容
+                const currentViewId = Array.from(views).find(view => view.classList.contains('active'))?.id;
+                
+                if (currentViewId === 'purchase-view') {
                     console.log("DEBUG: changeLanguage - Purchase view active, calling updatePurchaseSummary()");
                     updatePurchaseSummary();
-                }
-                 // If attraction detail view is active, reload its content with the new language
-                if (document.getElementById('attraction-detail-view')?.classList.contains('active') && currentAttractionId) {
+                } else if (currentViewId === 'attraction-detail-view' && currentAttractionId) {
                     console.log(`DEBUG: changeLanguage - Detail view active for ${currentAttractionId}, calling loadAttractionDetail.`);
                     loadAttractionDetail(currentAttractionId); 
-                }
-                 // If attraction list view is active, reload it.
-                if (document.getElementById('attraction-list-view')?.classList.contains('active')) {
+                } else if (currentViewId === 'attraction-list-view') {
                     console.log("DEBUG: changeLanguage - List view active, calling loadAttractionList.");
-                    loadAttractionList(); // Reload list to get potentially new summaries/names if they were language-dependent (though currently they are not for list view)
+                    loadAttractionList();
+                } else if (currentViewId === 'order-lookup-view') {
+                    console.log("DEBUG: changeLanguage - Order lookup view active");
+                    // 刷新订单查询页面的翻译
+                    const orderDetailsContainer = document.getElementById('consumer-order-details-container');
+                    if (orderDetailsContainer && !orderDetailsContainer.classList.contains('hidden')) {
+                        // 如果已经显示订单详情，重新应用动态内容的翻译
+                        applyTranslations();
+                    }
+                    // 确保搜索按钮文本正确
+                    const searchBtnTextSpan = consumerSearchOrderBtn.querySelector('span:not(.spinner)');
+                    if (searchBtnTextSpan) {
+                        searchBtnTextSpan.textContent = translateText('searchButtonText', {defaultValue: 'Search'});
+                    }
                 }
-
             } else if (!isFallbackAttempt) {
                 // If not a fallback attempt and still failed, it means the primary attempt failed.
                 // The fetchTranslations function would have tried to load English already.
@@ -1440,15 +1953,10 @@
         function populateLanguageSwitcher(availableLanguages, selectElement) {
             if (!selectElement) return;
             selectElement.innerHTML = ''; // Clear existing options
-            availableLanguages.forEach(langCode => {
+            availableLanguages.forEach(lang => { // lang is now an object {code, name}
                 const option = document.createElement('option');
-                option.value = langCode;
-                // For now, display lang code. Could map to full names later if needed.
-                // e.g. {'en': 'English', 'zh': '中文'}
-                let langName = langCode;
-                if (langCode === 'en') langName = 'English';
-                if (langCode === 'zh') langName = '中文';
-                option.textContent = langName; 
+                option.value = lang.code;
+                option.textContent = lang.name; // Use the name from manifest for display
                 selectElement.appendChild(option);
             });
         }
@@ -1457,14 +1965,11 @@
         async function initLocalization() {
             console.log("DEBUG: initLocalization CALLED");
             const langSwitcher = document.getElementById('language-switcher');
-            if (!langSwitcher) {
-                console.error("DEBUG: initLocalization - Language switcher element not found.");
-                // return; // Don't return, try to load default language anyway
-            }
+            // No need to check for langSwitcher element here, populateLanguageSwitcher does it.
 
             try {
                 console.log("DEBUG: initLocalization - In try block, fetching /api/languages.");
-                const response = await fetch('/api/languages');
+                const response = await fetch('/api/languages'); // API now returns [{code: 'en', name: 'English'}, ...]
                 const availableLanguages = await response.json();
                 console.log("DEBUG: initLocalization - Available languages fetched:", availableLanguages);
                 
@@ -1475,31 +1980,30 @@
                         changeLanguage(event.target.value);
                     });
                 } else if (langSwitcher) {
-                    // If API fails or returns no languages, still populate with default
-                    populateLanguageSwitcher([defaultLanguage], langSwitcher);
-                     langSwitcher.addEventListener('change', (event) => { // Add listener even for default-only
-                        console.log("DEBUG: initLocalization - Language switcher CHANGED to:" + event.target.value);
+                    // Fallback if API fails or returns no languages, populate with default
+                    // The API itself now has a fallback to return at least English
+                    populateLanguageSwitcher([{ code: defaultLanguage, name: 'English' }], langSwitcher);
+                     langSwitcher.addEventListener('change', (event) => { 
+                        console.log("DEBUG: initLocalization - Language switcher (fallback) CHANGED to:" + event.target.value);
                         changeLanguage(event.target.value);
                     });
-                    console.warn("DEBUG: initLocalization - API returned no languages or failed; added default to switcher.");
+                    console.warn("DEBUG: initLocalization - API returned no/invalid languages or langSwitcher missing; populated with default.");
                 }
 
-                const preferredLanguage = localStorage.getItem('preferredLanguage');
-                let initialLang = defaultLanguage;
-                console.log(`DEBUG: initLocalization - Preferred language from localStorage: ${preferredLanguage}, Default language: ${defaultLanguage}`);
+                const preferredLanguageCode = localStorage.getItem('preferredLanguage');
+                // 始终设置默认语言为英文
+                let initialLangCode = 'en';
+                console.log(`DEBUG: initLocalization - Preferred language code from localStorage: ${preferredLanguageCode}, Default language code: ${defaultLanguage}`);
 
-                // Check if preferred language is in the available list (if list exists)
-                if (preferredLanguage && (availableLanguages && availableLanguages.includes(preferredLanguage))) {
-                    initialLang = preferredLanguage;
-                } else if (availableLanguages && availableLanguages.length > 0 && !availableLanguages.includes(initialLang)) {
-                    // If default is not in the list (e.g. server has only 'zh'), pick the first available
-                    initialLang = availableLanguages[0]; 
+                // 如果localStorage中有存储的语言偏好并且在可用语言列表中，则使用它
+                if (preferredLanguageCode && availableLanguages && availableLanguages.some(lang => lang.code === preferredLanguageCode)) {
+                    initialLangCode = preferredLanguageCode;
                 }
-                // If availableLanguages is empty or failed, initialLang remains defaultLanguage
+                // 否则保持initialLangCode为'en'
 
-                console.log(`DEBUG: initLocalization - Determined initialLang: ${initialLang}`);
-                await changeLanguage(initialLang);
-                console.log("DEBUG: initLocalization - changeLanguage(initialLang) COMPLETED.");
+                console.log(`DEBUG: initLocalization - Determined initialLangCode: ${initialLangCode}`);
+                await changeLanguage(initialLangCode);
+                console.log("DEBUG: initLocalization - changeLanguage(initialLangCode) COMPLETED.");
                 
                 // Ensure the initial view is loaded after localization setup
                 // showView will handle calling loadAttractionList if 'attraction-list-view' is active.
@@ -1515,8 +2019,8 @@
             } catch (error) {
                 console.error("DEBUG: initLocalization - ERROR in try block:", error);
                 // Fallback to default language if API call for languages fails
-                if(langSwitcher) populateLanguageSwitcher([defaultLanguage], langSwitcher); 
-                await changeLanguage(defaultLanguage);
+                if(langSwitcher) populateLanguageSwitcher([{code: 'en', name: 'English'}], langSwitcher); 
+                await changeLanguage('en');
                 console.warn("DEBUG: initLocalization - Loaded default language due to error.");
                 // Attempt to show the default view even in case of error
                 if (document.getElementById('attraction-list-view').classList.contains('active')) {

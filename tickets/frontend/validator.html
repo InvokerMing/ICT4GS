@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ticket Validator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            overscroll-behavior-y: contain; /* Prevent pull-to-refresh */
+        }
+        #qr-reader {
+            width: 100%;
+            max-width: 500px;
+            margin: 10px auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden; /* Important for rounded corners on video */
+        }
+        .scan-region-highlight {
+            border: 4px solid #4CAF50 !important; /* Green border for scan region */
+        }
+        .status-message {
+            text-align: center;
+            padding: 15px;
+            margin: 20px auto;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            max-width: 90%;
+        }
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-info {
+            background-color: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        #qr-reader video { /* Ensure video fills the container */
+            width: 100% !important;
+            height: auto !important;
+            object-fit: cover;
+        }
+        .action-button {
+            display: block;
+            width: 80%;
+            max-width: 300px;
+            margin: 20px auto;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            text-align: center;
+        }
+        .action-button:hover {
+            background-color: #0056b3;
+        }
+        .scanline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: red;
+            box-shadow: 0 0 10px red;
+            animation: scan 2s linear infinite;
+            display: none; /* Initially hidden */
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: calc(100% - 2px); }
+            100% { top: 0; }
+        }
+         /* Hide the "Scan an image file" button as we primarily want camera */
+        #html5-qrcode-button-file-selection {
+            display: none !important;
+        }
+        #html5-qrcode-anchor-scan-type-change {
+            text-decoration: none;
+            font-size: 0.9em;
+            color: #007bff;
+        }
+        .camera-selector-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        #camera-select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen pt-5">
+
+    <div class="w-full max-w-lg p-4 bg-white shadow-md rounded-lg">
+        <h1 class="text-2xl font-bold text-center mb-4">Ticket Validation Scanner</h1>
+
+        <div class="camera-selector-container my-2">
+            <label for="camera-select" class="mr-2">Select Camera:</label>
+            <select id="camera-select" class="p-1 border rounded"></select>
+        </div>
+
+        <div id="qr-reader" class="relative">
+            <div class="scanline"></div>
+        </div>
+        <div id="qr-reader-results" class="status-message status-info">Please place the QR code inside the scanning frame</div>
+        <div id="ticket-holder-name" class="text-center text-lg font-medium my-2"></div>
+
+        <button id="rescan-button" class="action-button hidden">Rescan</button>
+
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('qr-reader-results');
+        const ticketHolderNameDiv = document.getElementById('ticket-holder-name');
+        const qrReaderDiv = document.getElementById('qr-reader');
+        const scanline = qrReaderDiv.querySelector('.scanline');
+        const rescanButton = document.getElementById('rescan-button');
+        const cameraSelect = document.getElementById('camera-select');
+        let html5QrCode;
+        let currentCameraId;
+        let isScanning = false;
+
+        const successSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(500).join('123')); // Simple beep
+        const errorSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(500).join('321')); // Lower beep, more of a buzz
+
+        function playSuccessSound() { try { successSound.currentTime = 0; successSound.play(); } catch(e) { console.warn("Could not play success sound",e); }}
+        function playErrorSound() { try { errorSound.currentTime = 0; errorSound.play(); } catch(e) { console.warn("Could not play error sound",e); }}
+
+        function showMessage(message, type = 'info', ticketName = null) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message'; // Reset classes
+            if (type === 'success') {
+                statusDiv.classList.add('status-success');
+            } else if (type === 'error') {
+                statusDiv.classList.add('status-error');
+            } else {
+                statusDiv.classList.add('status-info');
+            }
+            ticketHolderNameDiv.textContent = ticketName ? ('Ticket Holder: ' + ticketName) : '';
+        }
+
+        async function onScanSuccess(decodedText, decodedResult) {
+            if (!isScanning) return;
+            isScanning = false; // Prevent multiple scans of the same QR
+            html5QrCode.pause(true); // Pause scanning
+            scanline.style.display = 'none';
+            console.log(`Scan result: ${decodedText}`, decodedResult);
+
+            try {
+                // IMPORTANT: Replace with your actual API endpoint and authentication
+                // For testing, using a public API. Replace this with your validation endpoint.
+                const response = await fetch(`/api/admin/validate_ticket/${decodedText}`, {
+                    method: 'POST', // Or GET, depending on your API design
+                    headers: {
+                        'Accept': 'application/json',
+                        // 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' // Add authentication if needed
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    playSuccessSound();
+                    showMessage(`${result.message || 'Valid Ticket'}`, 'success', result.customer_name);
+                } else {
+                    playErrorSound();
+                    showMessage(result.message || 'Invalid ticket or error occurred', 'error', result.customer_name);
+                }
+            } catch (error) {
+                playErrorSound();
+                showMessage('Validation request failed: ' + error.message, 'error');
+                console.error('Validation request error:', error);
+            }
+            rescanButton.classList.remove('hidden'); // Show rescan button
+        }
+
+        function onScanFailure(error) {
+            // Continuous scanning, so this might fire often.
+            // console.warn(`QR error = ${error}`);
+            // We don't typically show an error message for every failed scan attempt,
+            // as it's usually just the scanner trying to lock on.
+            // Message is updated on success or explicit API error.
+        }
+
+        async function startScanning(cameraId) {
+            if (isScanning) return;
+            isScanning = true;
+            currentCameraId = cameraId;
+            showMessage('Starting camera...', 'info');
+            ticketHolderNameDiv.textContent = '';
+            rescanButton.classList.add('hidden');
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0, // Square-ish view
+                rememberLastUsedCamera: false // We explicitly manage camera selection
+            };
+
+            try {
+                await html5QrCode.start(
+                    cameraId,
+                    config,
+                    onScanSuccess,
+                    onScanFailure);
+                scanline.style.display = 'block'; // Show scanline
+                showMessage('Please scan the ticket QR code', 'info');
+            } catch (err) {
+                isScanning = false;
+                console.error("Error starting QR scanner:", err);
+                showMessage('Failed to start camera: ' + err.message, 'error');
+                if (String(err).includes("OverconstrainedError") || String(err).includes("NotFoundError")) {
+                     showMessage('Camera unavailable or insufficient permissions. Please check browser settings.', 'error');
+                } else if (String(err).includes("NotAllowedError")) {
+                     showMessage('Camera access denied. Please grant camera permission.', 'error');
+                }
+                rescanButton.classList.remove('hidden');
+            }
+        }
+
+        async function stopScanning() {
+            if (html5QrCode && isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    console.log("QR Code scanning stopped.");
+                } catch (err) {
+                    console.error("Error stopping QR scanner:", err);
+                }
+            }
+            isScanning = false;
+            scanline.style.display = 'none';
+        }
+
+        async function initializeScanner() {
+            html5QrCode = new Html5Qrcode("qr-reader");
+            try {
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length) {
+                    cameras.forEach(camera => {
+                        const option = document.createElement('option');
+                        option.value = camera.id;
+                        option.textContent = camera.label || `Camera ${cameraSelect.options.length + 1}`;
+                        cameraSelect.appendChild(option);
+                    });
+
+                    // Prefer back camera if available
+                    const backCamera = cameras.find(camera => camera.label.toLowerCase().includes('back') || camera.label.toLowerCase().includes('后置'));
+                    currentCameraId = backCamera ? backCamera.id : cameras[0].id;
+                    cameraSelect.value = currentCameraId;
+
+                    startScanning(currentCameraId);
+
+                    cameraSelect.addEventListener('change', async () => {
+                        await stopScanning(); // Stop current before starting new
+                        startScanning(cameraSelect.value);
+                    });
+
+                } else {
+                    showMessage('No available cameras found.', 'error');
+                }
+            } catch (err) {
+                console.error("Error getting cameras:", err);
+                showMessage('Cannot access camera: ' + err.message, 'error');
+                 if (String(err).includes("NotAllowedError")) {
+                     showMessage('Camera access permission denied. Please allow camera access in browser settings.', 'error');
+                 }
+            }
+        }
+        
+        rescanButton.addEventListener('click', () => {
+            if (currentCameraId) {
+                 stopScanning().then(() => startScanning(currentCameraId));
+            } else {
+                initializeScanner(); // If no camera ID, try re-initializing
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeScanner);
+
+        // Handle page visibility changes
+        document.addEventListener("visibilitychange", async () => {
+            if (document.visibilityState === "hidden") {
+                await stopScanning();
+            } else if (document.visibilityState === "visible" && currentCameraId) {
+                // Only restart if a camera was active and we are not already scanning
+                if(!isScanning){
+                    startScanning(currentCameraId);
+                }
+            }
+        });
+
+    </script>
+</body>
+</html> 

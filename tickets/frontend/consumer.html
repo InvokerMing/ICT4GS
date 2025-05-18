@@ -602,10 +602,11 @@
             <h2 id="modal-title" class="text-2xl font-semibold mb-4 text-green-600" data-translate="modalTitleSuccess">Purchase Successful!</h2>
             <p id="modal-order-label" class="mb-2" data-translate="modalOrderIdLabel">Your Order ID is:</p>
             <p id="modalOrderId" class="text-xl font-bold mb-4"></p>
-            <p id="modal-qr-label" class="mb-3" data-translate="modalQrLabel">Please use the QR code below for entry:</p>
-            <div id="qrcode"></div>
-            <p id="modal-email-info" class="text-sm text-gray-500 mt-4" data-translate="modalEmailInfo">Details have been sent to your email
-                (simulation).</p>
+            <p id="modal-qr-label" class="mb-3" data-translate="modalQrIndividualLabel">Your QR Codes:</p>
+            <div id="qrcodes-container" class="space-y-4 my-4 overflow-auto" style="max-height: 300px;">
+                <!-- Individual QR codes will be dynamically added here -->
+            </div>
+            <p id="modal-email-info" class="text-sm text-gray-500 mt-4" data-translate="modalEmailPromptIndividualTickets">Individual e-tickets have also been sent to your email.</p>
         </div>
     </div>
 
@@ -641,7 +642,6 @@
         const errorMessageDiv = document.getElementById('error-message');
         const successModal = document.getElementById('successModal');
         const modalOrderId = document.getElementById('modalOrderId');
-        const qrCodeContainer = document.getElementById('qrcode');
         // Variables for attraction detail view elements if they need to be globally accessible
         // let currentAttractionId = null; // Already declared later, but good to be mindful
         // let currentAttractionBasePrice = 0; // Already declared later
@@ -718,28 +718,108 @@
                 }
             }
         }
-        function openModal(orderId, qrData) {
+        function openModal(orderId, individualTickets = []) {
             modalOrderId.textContent = orderId;
-            qrCodeContainer.innerHTML = '';
+            const qrcodesContainer = document.getElementById('qrcodes-container');
+            qrcodesContainer.innerHTML = ''; // Clear previous QR codes
 
-            // Defensive check for QRCode availability
-            if (typeof QRCode === 'undefined' || typeof QRCode.CorrectLevel === 'undefined') {
-                console.error("QRCode or QRCode.CorrectLevel is not available when trying to open modal.");
-                showError("Failed to generate QR code. Please try again.", purchaseErrorDiv); // Show a user-friendly error
-                return; // Stop execution
+            const qrLabel = document.getElementById('modal-qr-label');
+            if (individualTickets && individualTickets.length > 0) {
+                if(qrLabel) qrLabel.style.display = 'block';
+                
+                individualTickets.forEach(ticket => {
+                    const ticketDiv = document.createElement('div');
+                    ticketDiv.className = 'p-3 border rounded-md bg-gray-50 text-left shadow';
+
+                    const nameEl = document.createElement('p');
+                    nameEl.className = 'font-semibold text-gray-800';
+                    nameEl.textContent = `${translateText('ticketForLabel', {defaultValue: 'Ticket for'})}: ${ticket.name}`;
+                    
+                    const typeEl = document.createElement('p');
+                    typeEl.className = 'text-sm text-gray-600 mb-2';
+                    typeEl.textContent = `${translateText('ticketTypeLabel', {defaultValue: 'Type'})}: ${ticket.type}`;
+
+                    const qrDivId = `qr-code-img-${ticket.id}`; // Make ID more specific for the image holder
+                    const qrCodeHolder = document.createElement('div');
+                    qrCodeHolder.id = qrDivId;
+                    qrCodeHolder.className = 'w-32 h-32 mx-auto my-2 border p-1 bg-white'; // Centered QR code with border
+
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400';
+                    downloadBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg> ${translateText('downloadQrButton', {defaultValue: 'Download QR'})}`;
+                    downloadBtn.onclick = () => downloadQrCode(qrDivId, ticket.name, ticket.id);
+
+                    ticketDiv.appendChild(nameEl);
+                    ticketDiv.appendChild(typeEl);
+                    ticketDiv.appendChild(qrCodeHolder);
+                    ticketDiv.appendChild(downloadBtn);
+                    qrcodesContainer.appendChild(ticketDiv);
+
+                    if (typeof QRCode !== 'undefined') {
+                        new QRCode(qrCodeHolder, { // Pass the holder div itself
+                            text: ticket.id,
+                            width: 120, // Slightly smaller to fit padding
+                            height: 120,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    } else {
+                        qrCodeHolder.textContent = translateText('qrGenerationError', {defaultValue: 'QR Error'});
+                    }
+                });
+            } else {
+                 if(qrLabel) qrLabel.style.display = 'none';
             }
-
-            new QRCode(qrCodeContainer, {
-                text: qrData,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
+            
             successModal.style.display = "block";
         }
-        function closeModal() { successModal.style.display = "none"; qrCodeContainer.innerHTML = ''; }
+
+        function downloadQrCode(qrDivId, customerName, ticketId) {
+            const qrCodeHolder = document.getElementById(qrDivId);
+            if (!qrCodeHolder) { console.error("QR Holder not found:", qrDivId); return; }
+
+            const imgElement = qrCodeHolder.querySelector('img'); // From qrcode.js
+            const canvasElement = qrCodeHolder.querySelector('canvas'); // qrcode.js might use canvas
+
+            let dataUrl = null;
+            if (imgElement && imgElement.src) {
+                dataUrl = imgElement.src;
+            } else if (canvasElement) {
+                try {
+                    dataUrl = canvasElement.toDataURL('image/png');
+                } catch (e) {
+                    console.error("Error converting canvas to Data URL:", e);
+                    alert(translateText('qrDownloadErrorCanvas', {defaultValue: 'Could not generate QR for download from canvas.'}));
+                    return;
+                }
+            }
+
+            if (!dataUrl) {
+                console.error("QR code image/canvas data not found for download in:", qrDivId);
+                alert(translateText('qrDownloadErrorImg', {defaultValue: 'Could not find QR image to download.'}));
+                return;
+            }
+            
+            const attractionNameText = purchaseAttractionName.textContent || 'Attraction';
+            const safeAttractionName = attractionNameText.replace(/[^a-z0-9_\-]+/gi, '-').substring(0,25);
+            const safeCustomerName = customerName.replace(/[^a-z0-9_\-]+/gi, '-').substring(0,25);
+            const filename = `QR_${safeAttractionName}_${safeCustomerName}_${ticketId.substring(0,8)}.png`;
+
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function closeModal() { 
+            const qrcodesContainer = document.getElementById('qrcodes-container');
+            if(qrcodesContainer) qrcodesContainer.innerHTML = ''; 
+            successModal.style.display = "none"; 
+        }
+
         window.onclick = function (event) { if (event.target == successModal) { closeModal(); } }
         function toggleTooltip(element) { element.classList.toggle('active'); }
         function showTooltip(element) { /* CSS handles this */ }
@@ -1028,34 +1108,63 @@
             // Update total tickets count display
             totalTicketsCountSpan.textContent = totalQuantity;
 
-            // Update dynamic name fields
-            updatePurchaseNameFields(totalQuantity);
+            // Update dynamic name fields - PASS THE ACTUAL QUANTITIES OBJECT
+            updatePurchaseNameFields(quantities); // Pass the quantities object
 
             // Update total price display
             purchaseTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
         }
 
-        function updatePurchaseNameFields(totalQuantity) {
-            purchaseNameFieldsContainer.innerHTML = ''; // Clear existing
-            if (totalQuantity > 0 && totalQuantity <= 10) {
-                for (let i = 1; i <= totalQuantity; i++) {
-                    const label = document.createElement('label');
-                    label.htmlFor = `purchase_name_${i}`;
-                    label.textContent = translateText('customerNameIndexed', { count: i });
+        function updatePurchaseNameFields(quantities) { 
+            purchaseNameFieldsContainer.innerHTML = ''; 
+            let overallTicketIndex = 0;
+            const ticketTypesInOrder = ['full', 'discount', 'free']; 
+            ticketTypesInOrder.forEach(type => {
+                const count = quantities[type];
+                if (count > 0) {
+                    let ticketTypeLabelKey;
+                    if (type === 'full') ticketTypeLabelKey = 'ticketTypeFullSimple'; 
+                    else if (type === 'discount') ticketTypeLabelKey = 'ticketTypeDiscountSimple'; 
+                    else if (type === 'free') ticketTypeLabelKey = 'ticketTypeFreeSimple'; 
+                    
+                    // Ensure translatedTicketType is a string, falling back to the type itself if translation missing
+                    const translatedTicketType = translateText(ticketTypeLabelKey, { defaultValue: type.charAt(0).toUpperCase() + type.slice(1) }); 
 
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.id = `purchase_name_${i}`;
-                    input.name = `customer_name_${i}`;
-                    input.className = 'input-field';
-                    input.required = true;
+                    for (let i = 1; i <= count; i++) {
+                        overallTicketIndex++;
+                        const label = document.createElement('label');
+                        label.htmlFor = `purchase_name_${overallTicketIndex}`; 
+                        // The params object keys MUST match the placeholders in the translation string e.g. {{type}} and {{count}}
+                        label.textContent = translateText('customerNameForTicketType', { 
+                            type: translatedTicketType, // This is the already translated ticket type string
+                            count: i 
+                        });
 
-                    purchaseNameFieldsContainer.appendChild(label);
-                    purchaseNameFieldsContainer.appendChild(input);
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = `purchase_name_${overallTicketIndex}`;
+                        // The name attribute for form submission isn't strictly necessary if we collect manually,
+                        // but good for consistency if we were to use FormData directly.
+                        input.name = `customer_name_${type}_${i}`; // More specific name for potential FormData use
+                        input.className = 'input-field';
+                        input.required = true;
+                        // Add data attributes to identify which ticket this name is for, if needed later
+                        input.dataset.ticketType = type;
+                        input.dataset.ticketIndexInType = i;
+                        input.dataset.overallIndex = overallTicketIndex;
+
+
+                        purchaseNameFieldsContainer.appendChild(label);
+                        purchaseNameFieldsContainer.appendChild(input);
+                    }
                 }
-            } else if (totalQuantity > 10) {
-                // Handled by disabling button and showing error in updatePurchaseSummary
-                purchaseNameFieldsContainer.innerHTML = `<p class="text-red-600">${translateText('quantityError')}</p>`;
+            });
+
+            const totalQuantityFromQuantities = (quantities.full || 0) + (quantities.discount || 0) + (quantities.free || 0);
+            if (totalQuantityFromQuantities === 0) {
+                 purchaseNameFieldsContainer.innerHTML = `<p class='text-gray-500'>${translateText('noTicketsSelected')}</p>`;
+            } else if (totalQuantityFromQuantities > 10) {
+                 purchaseNameFieldsContainer.innerHTML = `<p class="text-red-600">${translateText('quantityError')}</p>`;
             }
         }
 
@@ -1068,35 +1177,47 @@
                 discount: parseInt(document.getElementById('quantity-discount').value) || 0,
                 free: parseInt(document.getElementById('quantity-free').value) || 0,
             };
-            const totalQuantity = quantities.full + quantities.discount + quantities.free;
+            const totalQuantityCalculated = quantities.full + quantities.discount + quantities.free;
             const customerEmail = document.getElementById('purchase-email').value;
             const usageDate = document.getElementById('purchase-usage-date').value;
 
             const customerNames = [];
             let allNamesFilled = true;
-            for (let i = 1; i <= totalQuantity; i++) {
-                const nameInput = document.getElementById(`purchase_name_${i}`);
-                if (nameInput && nameInput.value.trim()) {
-                    customerNames.push(nameInput.value.trim());
-                } else {
-                    allNamesFilled = false;
-                    if (nameInput) nameInput.focus();
-                    break;
-                }
-            }
+            let currentOverallIndex = 0;
+            const ticketTypesInOrder = ['full', 'discount', 'free'];
 
-            // Validation
-            if (totalQuantity <= 0 || totalQuantity > 10) {
-                showError(translateText('quantityError'), purchaseErrorDiv); return; // Use translateText
+            // Collect names in the order: all full, then all discount, then all free
+            // This matches the new updatePurchaseNameFields logic and backend expectation.
+            for (const type of ticketTypesInOrder) {
+                const countForType = quantities[type];
+                for (let i = 1; i <= countForType; i++) {
+                    currentOverallIndex++; // This matches the ID `purchase_name_${currentOverallIndex}`
+                    const nameInput = document.getElementById(`purchase_name_${currentOverallIndex}`);
+                    if (nameInput && nameInput.value.trim()) {
+                        customerNames.push(nameInput.value.trim());
+                    } else {
+                        allNamesFilled = false;
+                        if (nameInput) nameInput.focus(); // Focus the problematic input
+                        break; // Break inner loop
+                    }
+                }
+                if (!allNamesFilled) break; // Break outer loop
             }
-            if (!allNamesFilled) {
-                showError(translateText('fillNamesError'), purchaseErrorDiv); return; // Use translateText
+            
+            // Validation
+            if (totalQuantityCalculated <= 0 || totalQuantityCalculated > 10) {
+                showError(translateText('quantityError'), purchaseErrorDiv); return;
+            }
+            // Check if the number of names collected matches the total quantity.
+            // This also implicitly checks if allNamesFilled is true for the relevant inputs.
+            if (customerNames.length !== totalQuantityCalculated) {
+                 showError(translateText('fillNamesError'), purchaseErrorDiv); return;
             }
             if (!customerEmail || !usageDate) {
-                showError(translateText('fillFieldsError'), purchaseErrorDiv); return; // Use translateText
+                showError(translateText('fillFieldsError'), purchaseErrorDiv); return;
             }
-            if (new Date(usageDate) < new Date(new Date().setHours(0,0,0,0))) { // Ensure comparing date part only
-                showError(translateText('dateInvalidPast'), purchaseErrorDiv); return; // Use translateText
+            if (new Date(usageDate) < new Date(new Date().setHours(0,0,0,0))) { 
+                showError(translateText('dateInvalidPast'), purchaseErrorDiv); return;
             }
 
 
@@ -1131,7 +1252,7 @@
                 const result = await response.json();
                 if (!response.ok) { throw new Error(result.message || `HTTP error! status: ${response.status}`); }
 
-                openModal(result.order_id, result.qr_data);
+                openModal(result.order_id, result.individual_tickets); // Pass individual_tickets list
                 // Reset form and go back to list view after success
                 purchaseForm.reset();
                 updatePurchaseSummary(); // Reset summary display
@@ -1192,7 +1313,7 @@
                     const enResponse = await fetch(`languages/${defaultLanguage}.json?v=${new Date().getTime()}`);
                     if (enResponse.ok) {
                         englishTranslations = await enResponse.json();
-            } else {
+                    } else {
                         console.error("Failed to load English fallback translations.");
                     }
                 } else if (langCode === defaultLanguage) {
@@ -1215,49 +1336,62 @@
 
         // Translates a key using loaded translations, with fallback to English
         function translateText(key, params = {}) {
-            let text = translations[key];
-            if (text === undefined) {
+            let text;
+            if (key in translations) {
+                text = translations[key];
+            } else if (key in englishTranslations) {
                 text = englishTranslations[key];
-                if (text !== undefined) {
-                    console.warn(`Translation missing for key '${key}' in '${currentLanguage}'. Used English fallback.`);
-                } else {
-                    console.warn(`Translation missing for key '${key}' in '${currentLanguage}' and in English fallback.`);
-                    return key; // Return the key itself if no translation is found
-                }
+                // console.warn(`Translation missing for key '${key}' in '${currentLanguage}'. Used English fallback.`);
+            } else {
+                console.warn(`Translation missing for key '${key}' in current and English. Using default or key.`);
+                return params.defaultValue !== undefined ? params.defaultValue : key;
             }
 
-            // Replace placeholders like {{variable}}
-            if (text && typeof text === 'string') {
-                Object.keys(params).forEach(paramKey => {
-                    const regex = new RegExp(`{{\\s*${paramKey}\\s*}}`, 'g');
-                    text = text.replace(regex, params[paramKey]);
-                });
+            if (typeof text !== 'string') {
+                // If the fetched translation is not a string (e.g. it's an object for nested translations by mistake),
+                // return a sensible fallback.
+                console.warn(`Retrieved translation for key '${key}' is not a string. Value:`, text);
+                return params.defaultValue !== undefined ? params.defaultValue : key;
             }
-            return text;
+
+            // Perform placeholder replacement
+            let resultText = text;
+            for (const paramKey in params) {
+                if (Object.prototype.hasOwnProperty.call(params, paramKey)) {
+                    // Ensure param value is a string or number to avoid 'undefined' in output
+                    const value = (params[paramKey] === null || params[paramKey] === undefined) ? '' : params[paramKey];
+                    const regex = new RegExp(`{{\s*${paramKey}\s*}}`, 'g');
+                    resultText = resultText.replace(regex, value);
+                }
+            }
+            return resultText;
         }
 
         // Applies translations to all elements with data-translate attributes
         function applyTranslations() {
             document.querySelectorAll('[data-translate]').forEach(element => {
                 const key = element.getAttribute('data-translate');
-                element.innerText = translateText(key);
+                element.innerText = translateText(key, {defaultValue: element.innerText});
             });
             document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
                 const key = element.getAttribute('data-translate-placeholder');
-                element.placeholder = translateText(key);
+                element.placeholder = translateText(key, {defaultValue: element.placeholder});
             });
             document.querySelectorAll('[data-translate-title]').forEach(element => {
                 const key = element.getAttribute('data-translate-title');
-                element.title = translateText(key);
+                element.title = translateText(key, {defaultValue: element.title});
             });
             document.querySelectorAll('[data-translate-value]').forEach(element => {
                 const key = element.getAttribute('data-translate-value');
-                element.value = translateText(key);
+                element.value = translateText(key, {defaultValue: element.value});
             });
-             // Special handling for document title
-            if (translations.appTitle) {
-                document.title = translateText('appTitle');
-            }
+            // Special handling for document title
+            const appTitleKey = 'appTitle'; // Use a variable for the key
+            if (translations[appTitleKey]) { // Check if key exists in current translations
+                document.title = translateText(appTitleKey);
+            } else if (englishTranslations[appTitleKey]) { // Fallback to English title
+                document.title = englishTranslations[appTitleKey];
+            } 
         }
 
         // Changes the language, fetches new translations, and reapplies them
@@ -1279,6 +1413,22 @@
                 if (langSwitcher) {
                     langSwitcher.value = langCode;
                 }
+                // If purchase view is active, update its dynamic fields like name labels
+                if (document.getElementById('purchase-view')?.classList.contains('active')) {
+                    console.log("DEBUG: changeLanguage - Purchase view active, calling updatePurchaseSummary()");
+                    updatePurchaseSummary();
+                }
+                 // If attraction detail view is active, reload its content with the new language
+                if (document.getElementById('attraction-detail-view')?.classList.contains('active') && currentAttractionId) {
+                    console.log(`DEBUG: changeLanguage - Detail view active for ${currentAttractionId}, calling loadAttractionDetail.`);
+                    loadAttractionDetail(currentAttractionId); 
+                }
+                 // If attraction list view is active, reload it.
+                if (document.getElementById('attraction-list-view')?.classList.contains('active')) {
+                    console.log("DEBUG: changeLanguage - List view active, calling loadAttractionList.");
+                    loadAttractionList(); // Reload list to get potentially new summaries/names if they were language-dependent (though currently they are not for list view)
+                }
+
             } else if (!isFallbackAttempt) {
                 // If not a fallback attempt and still failed, it means the primary attempt failed.
                 // The fetchTranslations function would have tried to load English already.
@@ -1309,6 +1459,7 @@
             const langSwitcher = document.getElementById('language-switcher');
             if (!langSwitcher) {
                 console.error("DEBUG: initLocalization - Language switcher element not found.");
+                // return; // Don't return, try to load default language anyway
             }
 
             try {
@@ -1324,7 +1475,12 @@
                         changeLanguage(event.target.value);
                     });
                 } else if (langSwitcher) {
+                    // If API fails or returns no languages, still populate with default
                     populateLanguageSwitcher([defaultLanguage], langSwitcher);
+                     langSwitcher.addEventListener('change', (event) => { // Add listener even for default-only
+                        console.log("DEBUG: initLocalization - Language switcher CHANGED to:" + event.target.value);
+                        changeLanguage(event.target.value);
+                    });
                     console.warn("DEBUG: initLocalization - API returned no languages or failed; added default to switcher.");
                 }
 
@@ -1332,22 +1488,28 @@
                 let initialLang = defaultLanguage;
                 console.log(`DEBUG: initLocalization - Preferred language from localStorage: ${preferredLanguage}, Default language: ${defaultLanguage}`);
 
-                if (preferredLanguage && (!availableLanguages || availableLanguages.includes(preferredLanguage))) {
+                // Check if preferred language is in the available list (if list exists)
+                if (preferredLanguage && (availableLanguages && availableLanguages.includes(preferredLanguage))) {
                     initialLang = preferredLanguage;
                 } else if (availableLanguages && availableLanguages.length > 0 && !availableLanguages.includes(initialLang)) {
-                    initialLang = availableLanguages[0];
+                    // If default is not in the list (e.g. server has only 'zh'), pick the first available
+                    initialLang = availableLanguages[0]; 
                 }
-                console.log(`DEBUG: initLocalization - Determined initialLang: ${initialLang}`);
+                // If availableLanguages is empty or failed, initialLang remains defaultLanguage
 
+                console.log(`DEBUG: initLocalization - Determined initialLang: ${initialLang}`);
                 await changeLanguage(initialLang);
                 console.log("DEBUG: initLocalization - changeLanguage(initialLang) COMPLETED.");
                 
                 // Ensure the initial view is loaded after localization setup
+                // showView will handle calling loadAttractionList if 'attraction-list-view' is active.
+                // The default active view is attraction-list-view, so this should trigger its load.
                 if (document.getElementById('attraction-list-view').classList.contains('active')) {
-                     console.log("DEBUG: initLocalization - 'attraction-list-view' is ACTIVE. Calling showView('attraction-list-view').");
-                     showView('attraction-list-view');
+                     console.log("DEBUG: initLocalization - 'attraction-list-view' is ACTIVE. Calling showView to ensure list loads.");
+                     showView('attraction-list-view'); 
                 } else {
-                    console.log("DEBUG: initLocalization - 'attraction-list-view' is NOT ACTIVE. Not calling showView explicitly here.");
+                    // If another view is somehow active by default, this might need adjustment
+                    console.log("DEBUG: initLocalization - 'attraction-list-view' is NOT ACTIVE by default.");
                 }
 
             } catch (error) {
@@ -1358,26 +1520,16 @@
                 console.warn("DEBUG: initLocalization - Loaded default language due to error.");
                 // Attempt to show the default view even in case of error
                 if (document.getElementById('attraction-list-view').classList.contains('active')) {
-                    console.log("DEBUG: initLocalization - In CATCH, 'attraction-list-view' is ACTIVE. Calling showView('attraction-list-view').");
+                    console.log("DEBUG: initLocalization - In CATCH, 'attraction-list-view' is ACTIVE. Calling showView.");
                     showView('attraction-list-view');
                 }
                 alert("Could not fetch available languages. Defaulting to English.");
             }
             console.log("DEBUG: initLocalization COMPLETED");
         }
-
-        // --- API Interaction & UI Update Functions (existing, may need to call applyTranslations()) ---
-
-        // Example of how you might integrate applyTranslations after dynamic content load:
-        // async function loadAttractions() {
-        // ... fetch data ...
-        // renderAttractions(data);
-        // applyTranslations(); // Re-apply translations if new static text elements were added
-        // }
         
         document.addEventListener('DOMContentLoaded', initLocalization);
     </script>
 
 </body>
-
 </html>

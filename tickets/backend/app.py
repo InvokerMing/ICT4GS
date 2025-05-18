@@ -65,38 +65,61 @@ mail = Mail(app)
 def send_purchase_email(order_details):
     """发送购买确认邮件"""
     print(f"--- Sending Purchase Email for Order {order_details.get('order_id')} ---")
-    # return 
     if not app.config.get('Mail_USERNAME') or not app.config.get('Mail_PASSWORD'):
         print("Email configuration missing, skipping email sending.")
         return
     
     subject = f"Ticket Purchase Confirmation - Order {order_details.get('order_id')}"
     recipient = [order_details.get('customer_email')]
+    # The 'order_details' dict now contains 'individual_tickets' list
+    # and other top-level info like 'order_id', 'attraction_name_en', 'usage_date_iso', 'total_amount'.
+
+    # QR Code API base URL (example)
+    qr_code_service_url = "https://api.qrserver.com/v1/create-qr-code/"
 
     html_body = render_template_string("""
         <!DOCTYPE html>
-        <html>
-        <head><title>{{ subject }}</title></head>
-        <body>
-            <h2>Thank you for your purchase!</h2>
+        <html lang=\"en\"><head><title>{{ subject }}</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; color: #333; }
+            .container { border: 1px solid #ddd; padding: 20px; max-width: 700px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+            h2, h3 { color: #0056b3; }
+            hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+            .ticket { border: 1px dashed #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; page-break-inside: avoid; }
+            .ticket p { margin: 5px 0; }
+            .qr-code img { width: 150px; height: 150px; margin-top: 10px; }
+            .footer { text-align: center; font-size: 0.9em; color: #777; margin-top: 30px; }
+            strong { color: #555; }
+        </style>
+        </head><body><div class=\"container\">
+            <h2>Thank You for Your Purchase!</h2>
             <p><strong>Order ID:</strong> {{ order.order_id }}</p>
-            <p><strong>Attraction:</strong> {{ order.attraction_name }}</p>
-            <p><strong>Usage Date:</strong> {{ order.usage_date }}</p>
-            <p><strong>Customer Names:</strong> {{ names }}</p>
-            <p><strong>Total Amount:</strong> Rp {{ "%.2f"|format(order.total_amount) }}</p>
+            <p><strong>Attraction:</strong> {{ order.attraction_name_en }}</p>
+            <p><strong>Date of Visit:</strong> {{ order.usage_date_iso }}</p>
+            <p><strong>Total Amount Paid:</strong> Rp {{ "%.2f"|format(order.total_amount) }}</p>
             <hr>
-            <h3>Order Items:</h3>
-            <ul>
-            {% for item in order.items %}
-                <li>{{ item[3] }} x {{ item[2] }} ticket(s) @ Rp {{ "%.2f"|format(item[4]) }} each</li>
-            {% endfor %}
-            </ul>
+            <h3>Your E-Tickets:</h3>
+            <p>Please present the QR code for each ticket upon entry. Each ticket is valid for one person.</p>
+            
+            {% if order.individual_tickets %}
+                {% for ticket in order.individual_tickets %}
+                <div class=\"ticket\">
+                    <h4>Ticket for: {{ ticket.customer_name }}</h4>
+                    <p><strong>Ticket ID:</strong> {{ ticket.individual_ticket_id }}</p>
+                    <p><strong>Type:</strong> {{ ticket.ticket_type_name_en }}</p>
+                    <div class=\"qr-code\">
+                        <img src=\"{{ qr_base_url }}?data={{ ticket.individual_ticket_id }}&size=150x150&ecc=L\" alt=\"QR Code for {{ ticket.customer_name }}\">
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>Error: Individual ticket details are missing. Please contact support.</p>
+            {% endif %}
+
             <hr>
-            <p>Please present your order ID or QR code (if provided separately) upon arrival.</p>
-            <p>Thank you!</p>
-        </body>
-        </html>
-    """, subject=subject, order=order_details, names=", ".join(order_details.get('customer_names', [])))
+            <p class=\"footer\">Thank you for choosing us! We look forward to welcoming you.</p>
+        </div></body></html>
+    """, subject=subject, order=order_details, qr_base_url=qr_code_service_url)
                                        
     msg = Message(subject=subject,
                   sender=app.config['MAIL_DEFAULT_SENDER'],
@@ -325,47 +348,155 @@ def handle_purchase():
     data = request.get_json()
     required = ["attraction_id", "quantities", "customer_names", "customer_email", "usage_date"]
     if not all(f in data for f in required): return jsonify({"message": "Missing required fields"}), 400
-    attraction_id, quantities, names, email, date_str = data["attraction_id"], data.get("quantities",{}), data.get("customer_names",[]), data.get("customer_email"), data.get("usage_date")
-    total_q = 0
-    if not isinstance(quantities, dict): return jsonify({"message": "Invalid quantities format"}), 400
-    for type, q in quantities.items():
-        if type not in TICKET_TYPES: return jsonify({"message": f"Invalid ticket type: {type}"}), 400
-        try: total_q += int(q) if int(q) >= 0 else 0
-        except: return jsonify({"message": f"Invalid quantity for {type}"}), 400
-    if not (0 < total_q <= 10): return jsonify({"message": "Total quantity must be 1-10"}), 400
-    if not isinstance(names, list) or len(names) != total_q: return jsonify({"message": "Names count mismatch"}), 400
-    if not all(isinstance(n, str) and n.strip() for n in names): return jsonify({"message": "Names cannot be empty"}), 400
-    if not email or "@" not in email: return jsonify({"message": "Invalid email"}), 400
-    try:
-        usage_date = date.fromisoformat(date_str)
-        assert usage_date >= date.today()
-    except:
-        return jsonify({"message": "Invalid usage date"}), 400
+    
+    attraction_id = data["attraction_id"]
+    quantities_data = data.get("quantities",{})
+    customer_names_list = data.get("customer_names",[])
+    customer_email = data.get("customer_email")
+    usage_date_str = data.get("usage_date")
 
-    order_id, purchase_time, names_json = str(uuid.uuid4()), datetime.now(timezone.utc), json.dumps(names)
+    total_quantity_from_quantities = 0
+    if not isinstance(quantities_data, dict): return jsonify({"message": "Invalid quantities format"}), 400
+    for ticket_type, q_val in quantities_data.items():
+        if ticket_type not in TICKET_TYPES: return jsonify({"message": f"Invalid ticket type: {ticket_type}"}), 400
+        try:
+            quantity = int(q_val)
+            if quantity < 0: return jsonify({"message": f"Negative quantity for {ticket_type}"}), 400
+            total_quantity_from_quantities += quantity
+        except ValueError: return jsonify({"message": f"Invalid quantity for {ticket_type}"}), 400
+
+    if not (0 < total_quantity_from_quantities <= 10): return jsonify({"message": "Total quantity must be 1-10"}), 400
+    if not isinstance(customer_names_list, list) or len(customer_names_list) != total_quantity_from_quantities:
+        return jsonify({"message": "Number of customer names does not match total ticket quantity"}), 400
+    if not all(isinstance(n, str) and n.strip() for n in customer_names_list):
+        return jsonify({"message": "Customer names cannot be empty or invalid format"}), 400
+    if not customer_email or "@" not in customer_email: return jsonify({"message": "Invalid email"}), 400
+    
     try:
-        with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
-            # 获取景点价格和英文名称 (用于邮件)
+        parsed_usage_date = date.fromisoformat(usage_date_str)
+        if parsed_usage_date < date.today():
+            return jsonify({"message": "Usage date cannot be in the past"}), 400
+    except ValueError:
+        return jsonify({"message": "Invalid usage date format"}), 400
+
+    order_id = str(uuid.uuid4())
+    purchase_time = datetime.now(timezone.utc)
+    # Store customer_names_list as JSON string in orders table for record keeping, though individual names go to individual_tickets
+    customer_names_json = json.dumps(customer_names_list) 
+    
+    individual_tickets_for_email = []
+    name_idx = 0 # To iterate through customer_names_list
+
+    try:
+        with pool.connection(timeout=10.0) as conn, conn.cursor() as cur: # Increased timeout slightly
+            # Get attraction price and English name (for email reference)
             cur.execute("SELECT price, name->>'en' AS name FROM attractions WHERE attraction_id = %s", (attraction_id,))
-            attraction = cur.fetchone()
-            assert attraction
-            base_price, attraction_name = float(attraction['price'] or 0.0), attraction['name'] or attraction_id # Fallback name is English
+            attraction_details = cur.fetchone()
+            if not attraction_details:
+                return jsonify({"message": "Invalid attraction ID"}), 404
+            
+            base_price = float(attraction_details['price'] or 0.0)
+            attraction_name_en = attraction_details['name'] or attraction_id
 
-            total_amount, items = 0.0, []
-            for type, q in quantities.items():
-                if q > 0:
-                    price_per = base_price * TICKET_TYPES[type]["multiplier"]
-                    total_amount += price_per * q
-                    items.append((order_id, attraction_id, type, q, price_per))
+            calculated_total_amount = 0.0
+            order_items_to_insert = []
 
-            cur.execute("INSERT INTO orders (order_id, customer_names, customer_email, usage_date, purchase_time, total_amount) VALUES (%s, %s, %s, %s, %s, %s);", (order_id, names_json, email, usage_date, purchase_time, total_amount))
-            cur.executemany("INSERT INTO order_items (order_id, attraction_id, ticket_type, quantity, price_per_ticket) VALUES (%s, %s, %s, %s, %s);", items)
+            # Define a consistent order for processing ticket types if needed for name assignment
+            ticket_type_order = ['full', 'discount', 'free'] # Or TICKET_TYPES.keys() if order doesn't matter strictly
 
-        email_details = { "order_id": order_id, "customer_email": email, "attraction_name": attraction_name, "customer_names": names, "total_quantity": total_q, "usage_date": usage_date.isoformat(), "total_amount": total_amount, "items": items }
+            for ticket_type in ticket_type_order:
+                quantity = int(quantities_data.get(ticket_type, 0))
+                if quantity > 0:
+                    price_per_ticket = base_price * TICKET_TYPES[ticket_type]["multiplier"]
+                    calculated_total_amount += price_per_ticket * quantity
+                    order_items_to_insert.append({
+                        "order_id": order_id,
+                        "attraction_id": attraction_id,
+                        "ticket_type": ticket_type,
+                        "quantity": quantity,
+                        "price_per_ticket": price_per_ticket
+                    })
+            
+            # Insert into orders table
+            cur.execute("""
+                INSERT INTO orders (order_id, customer_names, customer_email, usage_date, purchase_time, total_amount) 
+                VALUES (%s, %s, %s, %s, %s, %s);
+            """, (order_id, customer_names_json, customer_email, parsed_usage_date, purchase_time, calculated_total_amount))
+
+            # Insert into order_items and then individual_tickets
+            for item_data in order_items_to_insert:
+                cur.execute("""
+                    INSERT INTO order_items (order_id, attraction_id, ticket_type, quantity, price_per_ticket)
+                    VALUES (%s, %s, %s, %s, %s) RETURNING item_id;
+                """, (
+                    item_data["order_id"], item_data["attraction_id"], item_data["ticket_type"],
+                    item_data["quantity"], item_data["price_per_ticket"]
+                ))
+                order_item_id = cur.fetchone()['item_id']
+
+                for _ in range(item_data["quantity"]):
+                    if name_idx < len(customer_names_list):
+                        customer_name_for_ticket = customer_names_list[name_idx]
+                        name_idx += 1
+                    else:
+                        # This case should ideally not be reached if validations are correct
+                        customer_name_for_ticket = "N/A" 
+                        print(f"Warning: Ran out of customer names for order {order_id}, item {order_item_id}")
+                    
+                    individual_ticket_id = str(uuid.uuid4())
+                    cur.execute("""
+                        INSERT INTO individual_tickets (individual_ticket_id, order_item_id, customer_name)
+                        VALUES (%s, %s, %s);
+                    """, (individual_ticket_id, order_item_id, customer_name_for_ticket))
+
+                    individual_tickets_for_email.append({
+                        "individual_ticket_id": individual_ticket_id,
+                        "customer_name": customer_name_for_ticket,
+                        "ticket_type_name_en": TICKET_TYPES[item_data["ticket_type"]]["name_en"], # For email
+                        "usage_date": parsed_usage_date.isoformat(),
+                        "attraction_name_en": attraction_name_en
+                    })
+        # Outside the transaction block to ensure DB operations are committed before sending email
+        email_details = {
+            "order_id": order_id,
+            "customer_email": customer_email,
+            "attraction_name_en": attraction_name_en, # Overall attraction name for context
+            "usage_date_iso": parsed_usage_date.isoformat(), # Overall usage date
+            "total_amount": calculated_total_amount,
+            "individual_tickets": individual_tickets_for_email # List of dicts
+        }
         send_purchase_email(email_details)
-        return jsonify({"message": "Purchase successful", "order_id": order_id, "qr_data": order_id}), 201
-    except AssertionError: return jsonify({"message": "Invalid attraction ID"}), 404
-    except Exception as e: print(f"Purchase error: {e}"); return jsonify({"message": "Error processing purchase"}), 500
+        
+        # Prepare a simplified list of individual tickets for the JSON response
+        # Only include id, name, and type for the modal display
+        modal_tickets_info = [
+            {
+                "id": ticket["individual_ticket_id"],
+                "name": ticket["customer_name"],
+                "type": ticket["ticket_type_name_en"]
+            }
+            for ticket in individual_tickets_for_email
+        ]
+
+        return jsonify({
+            "message": "Purchase successful! Your individual e-tickets have been sent to your email.", 
+            "order_id": order_id,
+            "individual_tickets": modal_tickets_info
+        }), 201
+
+    except OperationalError as oe: # Catch specific pool/connection errors
+        print(f"Database operational error during purchase: {oe}")
+        return jsonify({"message": "Database service temporarily unavailable during purchase. Please try again later."}), 503
+    except DatabaseError as de: # Catch other database related errors
+        print(f"Database error during purchase: {de}")
+        return jsonify({"message": "A database error occurred while processing your purchase."}), 500
+    except Exception as e:
+        # Log the full error for debugging
+        import traceback
+        print(f"An unexpected error occurred during purchase for order_id (if generated): {order_id if 'order_id' in locals() else 'N/A'}")
+        print(traceback.format_exc())
+        return jsonify({"message": "An unexpected error occurred while processing your purchase. Please contact support."}), 500
+
 @app.route('/api/orders/<string:order_id>', methods=['GET'])
 def get_order_details(order_id):
 
@@ -578,6 +709,57 @@ def get_languages():
     except Exception as e:
         print(f"Error listing languages: {e}")
         return jsonify({"message": "Error fetching language list"}), 500
+
+@app.route('/api/ticket_info/<string:individual_ticket_id>', methods=['GET'])
+def get_individual_ticket_info(individual_ticket_id):
+    """获取单个电子票的详细信息 (供扫码验证使用)"""
+    if not pool: return jsonify({"message": "Database service unavailable"}), 503
+    try:
+        with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
+            query = """
+                SELECT
+                    it.individual_ticket_id,
+                    it.customer_name,
+                    it.status,
+                    oi.ticket_type,
+                    o.usage_date,
+                    a.name->>'en' AS attraction_name_en
+                FROM individual_tickets it
+                JOIN order_items oi ON it.order_item_id = oi.item_id
+                JOIN orders o ON oi.order_id = o.order_id
+                JOIN attractions a ON oi.attraction_id = a.attraction_id
+                WHERE it.individual_ticket_id = %s;
+            """
+            cur.execute(query, (individual_ticket_id,))
+            ticket_info = cur.fetchone()
+
+            if not ticket_info:
+                return jsonify({"message": "Individual ticket not found"}), 404
+
+            # Enhance with ticket type display name
+            ticket_info_dict = dict(ticket_info)
+            ticket_type_key = ticket_info_dict.get('ticket_type')
+            if ticket_type_key and ticket_type_key in TICKET_TYPES:
+                ticket_info_dict['ticket_type_name_en'] = TICKET_TYPES[ticket_type_key].get('name_en', ticket_type_key)
+            else:
+                ticket_info_dict['ticket_type_name_en'] = ticket_type_key # Fallback to the key itself
+            
+            if ticket_info_dict.get('usage_date'):
+                 ticket_info_dict['usage_date'] = ticket_info_dict['usage_date'].isoformat()
+
+            return jsonify(ticket_info_dict), 200
+
+    except OperationalError as oe:
+        print(f"Database operational error fetching ticket info: {oe}")
+        return jsonify({"message": "Database service temporarily unavailable."}), 503
+    except DatabaseError as de:
+        print(f"Database error fetching ticket info: {de}")
+        return jsonify({"message": "A database error occurred."}), 500
+    except Exception as e:
+        import traceback
+        print(f"Unexpected error fetching ticket info for {individual_ticket_id}:")
+        print(traceback.format_exc())
+        return jsonify({"message": "An unexpected server error occurred."}), 500
 
 # --- 应用启动 ---
 if __name__ == '__main__':

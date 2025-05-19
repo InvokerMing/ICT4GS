@@ -12,13 +12,14 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 
-# --- 配置 ---
+# --- Configuration ---
 load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL', None)
 SECRET_KEY = os.getenv('FLASK_SECRET_KEY', 'ict4gs')
 DEFAULT_LANGUAGE = os.getenv('DEFAULT_LANGUAGE', 'en')
 
-# --- 常量 ---
+# --- Constants ---
+# Define ticket types with their names and price multipliers
 TICKET_TYPES = {
     "full": {"name_en": "Full Price", "name_zh": "全价票", "multiplier": 1.0},
     "discount": {"name_en": "Discount", "name_zh": "优惠票", "multiplier": 0.5},
@@ -26,13 +27,14 @@ TICKET_TYPES = {
 }
 ADMIN_ROLE = "admin"
 
-# --- 数据库连接池 ---
+# --- Database Connection Pool ---
 pool = None
 if DATABASE_URL is None:
     print("Error: DATABASE_URL environment variable not found.")
     exit(1)
 else:
     try:
+        # Initialize connection pool with dictionary row factory
         pool = ConnectionPool(
             conninfo=DATABASE_URL, min_size=1, max_size=5, timeout=10.0,
             kwargs={'row_factory': dict_row}
@@ -43,15 +45,17 @@ else:
         pool = None
         exit(1)
 
-# --- Flask 应用 ---
+# --- Flask Application Setup ---
 frontend_folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'frontend'))
 app = Flask(__name__, static_folder=frontend_folder_path, static_url_path='/')
 
+# Configure Flask application
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
 CORS(app, supports_credentials=True)
 
+# Configure email settings
 app.config['Mail_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.example.com')
 app.config['Mail_PORT'] = os.getenv('MAIL_PORT', 587)
 app.config['Mail_USERNAME'] = os.getenv('MAIL_USERNAME', '')
@@ -61,9 +65,13 @@ app.config['Mail_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'false').lower() in ['tru
 app.config['Mail_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', app.config['Mail_USERNAME'])
 mail = Mail(app)
 
-# --- 邮件发送 ---
+# --- Email Service ---
 def send_purchase_email(order_details):
-    """发送购买确认邮件"""
+    """
+    Send confirmation email for ticket purchase
+    Args:
+        order_details: Dictionary containing order information including tickets
+    """
     print(f"--- Sending Purchase Email for Order {order_details.get('order_id')} ---")
     if not app.config.get('Mail_USERNAME') or not app.config.get('Mail_PASSWORD'):
         print("Email configuration missing, skipping email sending.")
@@ -71,12 +79,11 @@ def send_purchase_email(order_details):
     
     subject = f"Ticket Purchase Confirmation - Order {order_details.get('order_id')}"
     recipient = [order_details.get('customer_email')]
-    # The 'order_details' dict now contains 'individual_tickets' list
-    # and other top-level info like 'order_id', 'attraction_name_en', 'usage_date_iso', 'total_amount'.
-
-    # QR Code API base URL (example)
+    
+    # QR Code API base URL
     qr_code_service_url = "https://api.qrserver.com/v1/create-qr-code/"
 
+    # Render HTML email template
     html_body = render_template_string("""
         <!DOCTYPE html>
         <html lang=\"en\"><head><title>{{ subject }}</title>
@@ -132,16 +139,20 @@ def send_purchase_email(order_details):
     except Exception as e:
         print(f"Error sending email to: {e}")
 
-# --- 数据库初始化 ---
+# --- Database Initialization ---
 def init_db():
-    """初始化数据库表结构、示例数据和默认管理员"""
+    """
+    Initialize database tables, sample data, and default admin user
+    Creates necessary tables if they don't exist and populates with initial data
+    """
     if not pool:
         print("Database pool unavailable, cannot initialize DB.")
         return
     try:
         with pool.connection() as conn, conn.cursor() as cur:
             print("Initializing database tables...")
-            # 创建 users 表
+            
+            # Create users table
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     user_id SERIAL PRIMARY KEY,
@@ -150,11 +161,12 @@ def init_db():
                     role VARCHAR(20) NOT NULL DEFAULT 'admin',
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );""")
-            # 创建 attractions 表
+                
+            # Create attractions table
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS attractions (
                     attraction_id VARCHAR(50) PRIMARY KEY,
-                    name TEXT,  -- 只存储英文名 (或者一个通用名，如果英文名也放JSON)
+                    name TEXT,
                     contact_info TEXT,
                     address_info TEXT,
                     transport_info TEXT,
@@ -162,7 +174,8 @@ def init_db():
                     price NUMERIC(10, 2) NOT NULL DEFAULT 0,
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );""")
-            # 创建 orders 表
+                
+            # Create orders table
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS orders (
                     order_id VARCHAR(36) PRIMARY KEY,
@@ -174,27 +187,30 @@ def init_db():
                     status VARCHAR(50) DEFAULT 'completed',
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );""")
-            # 创建 order_items 表
+                
+            # Create order_items table
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS order_items (
                     item_id SERIAL PRIMARY KEY,
                     order_id VARCHAR(36) NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
-                    attraction_id VARCHAR(50) NOT NULL, -- No direct FK to allow flexibility if attractions are removed, but orders remain
+                    attraction_id VARCHAR(50) NOT NULL,
                     ticket_type VARCHAR(50) NOT NULL,
                     quantity INTEGER NOT NULL CHECK (quantity > 0),
                     price_per_ticket NUMERIC(10, 2) NOT NULL
                 );""")
-            # 创建 individual_tickets 表
+                
+            # Create individual_tickets table
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS individual_tickets (
                     individual_ticket_id VARCHAR(36) PRIMARY KEY,
                     order_item_id INTEGER NOT NULL REFERENCES order_items(item_id) ON DELETE CASCADE,
                     customer_name TEXT NOT NULL,
-                    status VARCHAR(50) NOT NULL DEFAULT 'active', -- e.g., active, used, cancelled
+                    status VARCHAR(50) NOT NULL DEFAULT 'active',
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );""")
-            # Trigger for updated_at on individual_tickets
+                
+            # Create trigger for updated_at timestamp
             cur.execute("""
                 CREATE OR REPLACE FUNCTION update_individual_ticket_updated_at_column()
                 RETURNS TRIGGER AS $$
@@ -211,7 +227,7 @@ def init_db():
             """)
             print("Tables checked/created.")
 
-            # 添加默认管理员
+            # Add default admin user if not exists
             cur.execute("SELECT 1 FROM users WHERE username = %s", ('admin',))
             if not cur.fetchone():
                 print("Adding default admin user (admin/password)...")
@@ -219,7 +235,7 @@ def init_db():
                 cur.execute("INSERT INTO users (username, password_hash, role) VALUES (%s, %s, %s)",
                             ('admin', hashed_password, ADMIN_ROLE))
 
-            # 添加示例景点
+            # Load sample attractions if table is empty
             cur.execute("SELECT 1 FROM attractions LIMIT 1;")
             if not cur.fetchone():
                 print("Attractions table is empty. Attempting to load from JSON...")
@@ -236,8 +252,7 @@ def init_db():
                                 print(f"Skipping attraction due to missing 'id': {attraction_data}")
                                 continue
 
-                            # 从 attraction_data 中获取英文名，如果name本身是dict，则取en key
-                            name_field = attraction_data.get('name', attraction_id) # Default to ID if name is missing
+                            name_field = attraction_data.get('name', attraction_id)
                             english_name = name_field.get('en', str(name_field)) if isinstance(name_field, dict) else str(name_field)
                             
                             contact = attraction_data.get('contact')
@@ -247,12 +262,11 @@ def init_db():
                             price = float(attraction_data.get('price', 0.0))
 
                             attractions_to_insert.append((
-                                attraction_id, english_name, # 只插入英文名
+                                attraction_id, english_name,
                                 contact, address, transport, image, price
                             ))
 
                         if attractions_to_insert:
-                            # 移除了 summary, details JSONB 列
                             insert_query = """
                                 INSERT INTO attractions (
                                     attraction_id, name, contact_info, address_info,
@@ -260,7 +274,7 @@ def init_db():
                                 ) VALUES (%s, %s, %s, %s, %s, %s, %s);
                             """
                             cur.executemany(insert_query, attractions_to_insert)
-                            print(f"Added {cur.rowcount} sample attractions (ID, English Name, Contact, Address, Transport, Image, Price) from {json_file_path}.")
+                            print(f"Added {cur.rowcount} sample attractions from {json_file_path}.")
                         else:
                             print("No valid attractions found in JSON file.")
 
@@ -278,22 +292,22 @@ def init_db():
     except Exception as error:
         print(f"Database initialization error: {error}")
 
-# --- API 端点 ---
-# --- 调试 API ---
+# --- API Endpoints ---
+# Public APIs
 
-# --- 公共 API ---
 @app.route('/api/attractions', methods=['GET'])
 def get_attractions():
-    """获取所有景点信息 (ID 和 英文名 from DB) """
-    # lang = request.args.get('lang', DEFAULT_LANGUAGE) # Lang no longer used for DB query of name/summary
+    """
+    Get all attractions information
+    Returns: List of attractions with basic information
+    """
     if not pool: return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
-            # 只从数据库获取 attraction_id 和 name (英文名)
             query = """
                 SELECT
                     attraction_id,
-                    name, -- This is now the English name directly
+                    name,
                     image_url, price::float
                 FROM attractions ORDER BY name;
             """
@@ -304,16 +318,19 @@ def get_attractions():
 
 @app.route('/api/attractions/<string:attraction_id>', methods=['GET'])
 def get_attraction_detail(attraction_id):
-    """获取单个景点详情 (ID, 英文名, and other non-translatable fields from DB) """
-    # lang = request.args.get('lang', DEFAULT_LANGUAGE) # Lang no longer used for DB query
+    """
+    Get detailed information for a specific attraction
+    Args:
+        attraction_id: Unique identifier of the attraction
+    Returns: Detailed attraction information
+    """
     if not pool: return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
-            # 只获取非文本描述信息和英文名
             query = """
                 SELECT
                     attraction_id,
-                    name, -- This is now the English name directly
+                    name,
                     image_url, price::float, contact_info, address_info, transport_info
                 FROM attractions WHERE attraction_id = %s;
             """
@@ -325,9 +342,19 @@ def get_attraction_detail(attraction_id):
 
 @app.route('/api/purchase', methods=['POST'])
 def handle_purchase():
-    """处理购票请求"""
+    """
+    Process ticket purchase request
+    Expects JSON with:
+    - attraction_id: Attraction identifier
+    - quantities: Dictionary of ticket types and quantities
+    - customer_names: List of customer names
+    - customer_email: Contact email
+    - usage_date: Date of visit
+    """
     if not pool: return jsonify({"message": "Database service unavailable"}), 503
     if not request.is_json: return jsonify({"message": "Request must be JSON"}), 400
+    
+    # Validate request data
     data = request.get_json()
     required = ["attraction_id", "quantities", "customer_names", "customer_email", "usage_date"]
     if not all(f in data for f in required): return jsonify({"message": "Missing required fields"}), 400
@@ -338,6 +365,7 @@ def handle_purchase():
     customer_email = data.get("customer_email")
     usage_date_str = data.get("usage_date")
 
+    # Validate quantities
     total_quantity_from_quantities = 0
     if not isinstance(quantities_data, dict): return jsonify({"message": "Invalid quantities format"}), 400
     for ticket_type, q_val in quantities_data.items():
@@ -348,6 +376,7 @@ def handle_purchase():
             total_quantity_from_quantities += quantity
         except ValueError: return jsonify({"message": f"Invalid quantity for {ticket_type}"}), 400
 
+    # Validate total quantity and customer names
     if not (0 < total_quantity_from_quantities <= 10): return jsonify({"message": "Total quantity must be 1-10"}), 400
     if not isinstance(customer_names_list, list) or len(customer_names_list) != total_quantity_from_quantities:
         return jsonify({"message": "Number of customer names does not match total ticket quantity"}), 400
@@ -355,6 +384,7 @@ def handle_purchase():
         return jsonify({"message": "Customer names cannot be empty or invalid format"}), 400
     if not customer_email or "@" not in customer_email: return jsonify({"message": "Invalid email"}), 400
     
+    # Validate usage date
     try:
         parsed_usage_date = date.fromisoformat(usage_date_str)
         if parsed_usage_date < date.today():
@@ -362,30 +392,29 @@ def handle_purchase():
     except ValueError:
         return jsonify({"message": "Invalid usage date format"}), 400
 
+    # Generate order ID and prepare data
     order_id = str(uuid.uuid4())
     purchase_time = datetime.now(timezone.utc)
-    # Store customer_names_list as JSON string in orders table for record keeping, though individual names go to individual_tickets
-    customer_names_json = json.dumps(customer_names_list) 
+    customer_names_json = json.dumps(customer_names_list)
     
     individual_tickets_for_email = []
-    name_idx = 0 # To iterate through customer_names_list
+    name_idx = 0
 
     try:
-        with pool.connection(timeout=10.0) as conn, conn.cursor() as cur: # Increased timeout slightly
-            # Get attraction price and English name (for email reference)
+        with pool.connection(timeout=10.0) as conn, conn.cursor() as cur:
+            # Get attraction details
             cur.execute("SELECT price, name FROM attractions WHERE attraction_id = %s", (attraction_id,))
             attraction_details = cur.fetchone()
             if not attraction_details:
                 return jsonify({"message": "Invalid attraction ID"}), 404
             
             base_price = float(attraction_details['price'] or 0.0)
-            attraction_name_en = attraction_details['name'] or attraction_id # name is now English name
+            attraction_name_en = attraction_details['name'] or attraction_id
 
+            # Calculate total amount and prepare order items
             calculated_total_amount = 0.0
             order_items_to_insert = []
-
-            # Define a consistent order for processing ticket types if needed for name assignment
-            ticket_type_order = ['full', 'discount', 'free'] # Or TICKET_TYPES.keys() if order doesn't matter strictly
+            ticket_type_order = ['full', 'discount', 'free']
 
             for ticket_type in ticket_type_order:
                 quantity = int(quantities_data.get(ticket_type, 0))
@@ -400,13 +429,13 @@ def handle_purchase():
                         "price_per_ticket": price_per_ticket
                     })
             
-            # Insert into orders table
+            # Insert order record
             cur.execute("""
                 INSERT INTO orders (order_id, customer_names, customer_email, usage_date, purchase_time, total_amount) 
                 VALUES (%s, %s, %s, %s, %s, %s);
             """, (order_id, customer_names_json, customer_email, parsed_usage_date, purchase_time, calculated_total_amount))
 
-            # Insert into order_items and then individual_tickets
+            # Insert order items and individual tickets
             for item_data in order_items_to_insert:
                 cur.execute("""
                     INSERT INTO order_items (order_id, attraction_id, ticket_type, quantity, price_per_ticket)
@@ -417,13 +446,13 @@ def handle_purchase():
                 ))
                 order_item_id = cur.fetchone()['item_id']
 
+                # Create individual tickets for each person
                 for _ in range(item_data["quantity"]):
                     if name_idx < len(customer_names_list):
                         customer_name_for_ticket = customer_names_list[name_idx]
                         name_idx += 1
                     else:
-                        # This case should ideally not be reached if validations are correct
-                        customer_name_for_ticket = "N/A" 
+                        customer_name_for_ticket = "N/A"
                         print(f"Warning: Ran out of customer names for order {order_id}, item {order_item_id}")
                     
                     individual_ticket_id = str(uuid.uuid4())
@@ -435,23 +464,23 @@ def handle_purchase():
                     individual_tickets_for_email.append({
                         "individual_ticket_id": individual_ticket_id,
                         "customer_name": customer_name_for_ticket,
-                        "ticket_type_name_en": TICKET_TYPES[item_data["ticket_type"]]["name_en"], # For email
+                        "ticket_type_name_en": TICKET_TYPES[item_data["ticket_type"]]["name_en"],
                         "usage_date": parsed_usage_date.isoformat(),
                         "attraction_name_en": attraction_name_en
                     })
-        # Outside the transaction block to ensure DB operations are committed before sending email
+
+        # Send confirmation email
         email_details = {
             "order_id": order_id,
             "customer_email": customer_email,
-            "attraction_name_en": attraction_name_en, # Overall attraction name for context
-            "usage_date_iso": parsed_usage_date.isoformat(), # Overall usage date
+            "attraction_name_en": attraction_name_en,
+            "usage_date_iso": parsed_usage_date.isoformat(),
             "total_amount": calculated_total_amount,
-            "individual_tickets": individual_tickets_for_email # List of dicts
+            "individual_tickets": individual_tickets_for_email
         }
         send_purchase_email(email_details)
         
-        # Prepare a simplified list of individual tickets for the JSON response
-        # Only include id, name, and type for the modal display
+        # Prepare response data
         modal_tickets_info = [
             {
                 "id": ticket["individual_ticket_id"],
@@ -467,14 +496,13 @@ def handle_purchase():
             "individual_tickets": modal_tickets_info
         }), 201
 
-    except OperationalError as oe: # Catch specific pool/connection errors
+    except OperationalError as oe:
         print(f"Database operational error during purchase: {oe}")
         return jsonify({"message": "Database service temporarily unavailable during purchase. Please try again later."}), 503
-    except DatabaseError as de: # Catch other database related errors
+    except DatabaseError as de:
         print(f"Database error during purchase: {de}")
         return jsonify({"message": "A database error occurred while processing your purchase."}), 500
     except Exception as e:
-        # Log the full error for debugging
         import traceback
         print(f"An unexpected error occurred during purchase for order_id (if generated): {order_id if 'order_id' in locals() else 'N/A'}")
         print(traceback.format_exc())
@@ -482,20 +510,43 @@ def handle_purchase():
 
 @app.route('/api/orders/<string:order_id>', methods=['GET'])
 def get_order_details(order_id):
+    """
+    Get detailed information for a specific order
+    Args:
+        order_id: Unique identifier of the order
+    Returns: Complete order details including tickets
+    """
     if not pool: return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
+            # Get order details
             cur.execute("SELECT * FROM orders WHERE order_id = %s;", (order_id,)) 
             order = cur.fetchone() 
             assert order
-            # Fetch attraction_name in English from attractions.name
-            cur.execute("SELECT oi.*, COALESCE(a.name, oi.attraction_id) AS attraction_name FROM order_items oi LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id WHERE oi.order_id = %s ORDER BY oi.item_id;", (order_id,))
+
+            # Get order items with attraction names
+            cur.execute("""
+                SELECT oi.*, COALESCE(a.name, oi.attraction_id) AS attraction_name 
+                FROM order_items oi 
+                LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id 
+                WHERE oi.order_id = %s 
+                ORDER BY oi.item_id;
+            """, (order_id,))
             items = cur.fetchall()
+
+            # Process order details
             details = dict(order)
-            try: details['customer_names'] = json.loads(details['customer_names'] or '[]')
-            except: details['customer_names'] = [n.strip() for n in (details.get('customer_names') or '').split(',') if n.strip()]
-            for k in ['usage_date', 'purchase_time', 'created_at']: details[k] = details[k].isoformat() if details.get(k) else None
+            try: 
+                details['customer_names'] = json.loads(details['customer_names'] or '[]')
+            except: 
+                details['customer_names'] = [n.strip() for n in (details.get('customer_names') or '').split(',') if n.strip()]
+            
+            # Format dates and amounts
+            for k in ['usage_date', 'purchase_time', 'created_at']: 
+                details[k] = details[k].isoformat() if details.get(k) else None
             details['total_amount'] = float(details['total_amount'] or 0.0)
+            
+            # Process order items
             details['items'] = []
             for item in items:
                 i_dict = dict(item)
@@ -504,7 +555,7 @@ def get_order_details(order_id):
                 i_dict['ticket_type_name_zh'] = TICKET_TYPES.get(i_dict['ticket_type'], {}).get('name_zh', i_dict['ticket_type'])
                 details['items'].append(i_dict)
 
-            # Fetch individual tickets for this order to include in the response for QR generation
+            # Get individual tickets
             cur.execute("""
                 SELECT
                     it.individual_ticket_id,
@@ -518,6 +569,7 @@ def get_order_details(order_id):
             """, (order_id,))
             individual_tickets_raw = cur.fetchall()
 
+            # Process individual tickets
             individual_tickets_for_response = []
             if individual_tickets_raw:
                 for it_raw in individual_tickets_raw:
@@ -525,94 +577,191 @@ def get_order_details(order_id):
                     individual_tickets_for_response.append({
                         "id": it_raw['individual_ticket_id'],
                         "name": it_raw['customer_name'],
-                        "type_en": ticket_type_details.get('name_en', it_raw['ticket_type']), # English name of ticket type
+                        "type_en": ticket_type_details.get('name_en', it_raw['ticket_type']),
                         "status": it_raw['individual_ticket_status']
                     })
             details['individual_tickets'] = individual_tickets_for_response
             
             return jsonify(details), 200
-    except AssertionError: return jsonify({"message": "Order not found"}), 404
-    except Exception as e: print(f"Order detail error: {e}"); return jsonify({"message": "Error retrieving order details"}), 500
+    except AssertionError: 
+        return jsonify({"message": "Order not found"}), 404
+    except Exception as e: 
+        print(f"Order detail error: {e}")
+        return jsonify({"message": "Error retrieving order details"}), 500
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
+    """
+    Get ticket sales statistics
+    Query params:
+        date: Optional date to filter statistics (YYYY-MM-DD)
+    Returns: Overall and date-specific ticket statistics
+    """
     target_date_str = request.args.get('date', date.today().isoformat())
-    try: target_date = date.fromisoformat(target_date_str)
-    except: return jsonify({"message": "Invalid date format (YYYY-MM-DD)"}), 400
-    if not pool: return jsonify({"message": "Database service unavailable"}), 503
+    try: 
+        target_date = date.fromisoformat(target_date_str)
+    except: 
+        return jsonify({"message": "Invalid date format (YYYY-MM-DD)"}), 400
+    
+    if not pool: 
+        return jsonify({"message": "Database service unavailable"}), 503
+    
     stats = {"query_date": target_date.isoformat()}
     try:
         with pool.connection(timeout=10.0) as conn, conn.cursor() as cur:
+            # Get overall total tickets
             cur.execute("SELECT COALESCE(SUM(quantity), 0) AS total FROM order_items;")
             stats["overall_total_tickets"] = cur.fetchone()['total']
-            # 使用 attractions.name (英文名)
-            cur.execute("SELECT a.attraction_id, COALESCE(a.name, oi.attraction_id) AS name, SUM(oi.quantity) AS count FROM order_items oi LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id GROUP BY a.attraction_id, name, oi.attraction_id ORDER BY count DESC, name;")
-            stats["overall_tickets_by_attraction"] = [{'id': r['attraction_id'], 'name': r['name'], 'count': int(r['count'])} for r in cur.fetchall()]
+            
+            # Get overall tickets by attraction
+            cur.execute("""
+                SELECT 
+                    a.attraction_id, 
+                    COALESCE(a.name, oi.attraction_id) AS name, 
+                    SUM(oi.quantity) AS count 
+                FROM order_items oi 
+                LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id 
+                GROUP BY a.attraction_id, name, oi.attraction_id 
+                ORDER BY count DESC, name;
+            """)
+            stats["overall_tickets_by_attraction"] = [
+                {'id': r['attraction_id'], 'name': r['name'], 'count': int(r['count'])} 
+                for r in cur.fetchall()
+            ]
+            
+            # Get date-specific statistics
             date_filter = "DATE(o.purchase_time AT TIME ZONE 'UTC')"
-            cur.execute(f"SELECT COALESCE(SUM(oi.quantity), 0) AS total FROM order_items oi JOIN orders o ON oi.order_id = o.order_id WHERE {date_filter} = %s;", (target_date,))
+            cur.execute(f"""
+                SELECT COALESCE(SUM(oi.quantity), 0) AS total 
+                FROM order_items oi 
+                JOIN orders o ON oi.order_id = o.order_id 
+                WHERE {date_filter} = %s;
+            """, (target_date,))
             stats["specific_date_total_tickets"] = cur.fetchone()['total']
             
-            cur.execute(f"SELECT a.attraction_id, COALESCE(a.name, oi.attraction_id) AS name, SUM(oi.quantity) AS count FROM order_items oi JOIN orders o ON oi.order_id = o.order_id LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id WHERE {date_filter} = %s GROUP BY a.attraction_id, name, oi.attraction_id ORDER BY count DESC, name;", (target_date,))
-            stats["specific_date_tickets_by_attraction"] = [{'id': r['attraction_id'], 'name': r['name'], 'count': int(r['count'])} for r in cur.fetchall()]
+            # Get date-specific tickets by attraction
+            cur.execute(f"""
+                SELECT 
+                    a.attraction_id, 
+                    COALESCE(a.name, oi.attraction_id) AS name, 
+                    SUM(oi.quantity) AS count 
+                FROM order_items oi 
+                JOIN orders o ON oi.order_id = o.order_id 
+                LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id 
+                WHERE {date_filter} = %s 
+                GROUP BY a.attraction_id, name, oi.attraction_id 
+                ORDER BY count DESC, name;
+            """, (target_date,))
+            stats["specific_date_tickets_by_attraction"] = [
+                {'id': r['attraction_id'], 'name': r['name'], 'count': int(r['count'])} 
+                for r in cur.fetchall()
+            ]
+            
         return jsonify(stats), 200
-    except Exception as e: print(f"Stats error: {e}"); return jsonify({"message": "Error retrieving statistics"}), 500
+    except Exception as e: 
+        print(f"Stats error: {e}")
+        return jsonify({"message": "Error retrieving statistics"}), 500
 
-# --- 管理员 API ---
+# --- Admin APIs ---
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
-    if not request.is_json: return jsonify({"message": "Request must be JSON"}), 400
+    """
+    Handle admin login
+    Expects JSON with username and password
+    Returns: Login status and user information
+    """
+    if not request.is_json: 
+        return jsonify({"message": "Request must be JSON"}), 400
+    
     data = request.get_json()
     username, password = data.get('username'), data.get('password')
-    if not username or not password: return jsonify({"message": "Username and password required"}), 400
-    if not pool: return jsonify({"message": "Database service unavailable"}), 503
+    
+    if not username or not password: 
+        return jsonify({"message": "Username and password required"}), 400
+    
+    if not pool: 
+        return jsonify({"message": "Database service unavailable"}), 503
+    
     try:
         with pool.connection() as conn, conn.cursor() as cur:
-            cur.execute("SELECT user_id, username, password_hash, role FROM users WHERE username = %s", (username,))
+            cur.execute("""
+                SELECT user_id, username, password_hash, role 
+                FROM users WHERE username = %s
+            """, (username,))
             user = cur.fetchone()
+            
             if user and check_password_hash(user['password_hash'], password):
                 session.permanent = True
                 session['user_id'] = user['user_id']
                 session['username'] = user['username']
                 session['role'] = user['role']
-                return jsonify({"message": "Login successful", "username": user['username'], "role": user['role']}), 200
-            else: return jsonify({"message": "Invalid username or password"}), 401
-    except Exception as e: print(f"Login error: {e}"); return jsonify({"message": "Error during login"}), 500
+                return jsonify({
+                    "message": "Login successful", 
+                    "username": user['username'], 
+                    "role": user['role']
+                }), 200
+            else: 
+                return jsonify({"message": "Invalid username or password"}), 401
+    except Exception as e: 
+        print(f"Login error: {e}")
+        return jsonify({"message": "Error during login"}), 500
 
 @app.route('/api/admin/logout', methods=['POST'])
 def admin_logout():
+    """Clear user session and log out"""
     session.clear()
     return jsonify({"message": "Logout successful"}), 200
 
 @app.route('/api/admin/status', methods=['GET'])
 def admin_status():
+    """Get current user's login status and information"""
     if 'user_id' in session:
-        return jsonify({"logged_in": True, "user_id": session['user_id'], "username": session['username'], "role": session['role']}), 200
+        return jsonify({
+            "logged_in": True, 
+            "user_id": session['user_id'], 
+            "username": session['username'], 
+            "role": session['role']
+        }), 200
     else:
         return jsonify({"logged_in": False}), 200
 
 @app.route('/api/admin/attractions', methods=['GET'])
 def admin_get_attractions():
-    """获取所有景点信息 (管理员视图, name 是英文名) """
-    if not pool: return jsonify({"message": "Database service unavailable"}), 503
+    """
+    Get all attractions for admin view
+    Returns: Complete list of attractions with all details
+    """
+    if not pool: 
+        return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection() as conn, conn.cursor() as cur:
-            # name 是英文文本
             cur.execute("""
-                SELECT attraction_id, name, 
-                       contact_info, address_info, transport_info, image_url, price::float, created_at
+                SELECT 
+                    attraction_id, name, 
+                    contact_info, address_info, transport_info, 
+                    image_url, price::float, created_at
                 FROM attractions ORDER BY name;
             """)
             attractions = cur.fetchall()
-            for a in attractions: a['created_at'] = a['created_at'].isoformat() if a.get('created_at') else None
+            for a in attractions: 
+                a['created_at'] = a['created_at'].isoformat() if a.get('created_at') else None
             return jsonify(attractions), 200
-    except Exception as e: print(f"Admin get attractions error: {e}"); return jsonify({"message": "Error fetching attractions"}), 500
+    except Exception as e: 
+        print(f"Admin get attractions error: {e}")
+        return jsonify({"message": "Error fetching attractions"}), 500
 
 @app.route('/api/admin/attractions', methods=['POST'])
 def admin_add_attraction():
-    """添加新景点 (只接收英文 name) """
-    if not request.is_json: return jsonify({"message": "Request must be JSON"}), 400
+    """
+    Add a new attraction
+    Expects JSON with attraction details
+    Returns: Status of the operation
+    """
+    if not request.is_json: 
+        return jsonify({"message": "Request must be JSON"}), 400
+    
     data = request.get_json()
-    required = ['attraction_id', 'price', 'name'] # name is now a simple EN string
+    required = ['attraction_id', 'price', 'name']
     if not all(f in data and data[f] not in [None, ""] for f in required):
         return jsonify({"message": "Missing attraction_id, price, or name"}), 400
     
@@ -622,10 +771,10 @@ def admin_add_attraction():
     except:
         return jsonify({"message": "Invalid price"}), 400
 
-    # name 是纯英文字符串，不再需要 summary, details
     english_name = data.get('name','')
 
-    if not pool: return jsonify({"message": "Database service unavailable"}), 503
+    if not pool: 
+        return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection() as conn, conn.cursor() as cur:
             cur.execute("""
@@ -636,34 +785,46 @@ def admin_add_attraction():
                 RETURNING attraction_id;
             """, (
                 data['attraction_id'], english_name,
-                data.get('contact_info'), data.get('address_info'), data.get('transport_info'),
-                data.get('image_url'), price
+                data.get('contact_info'), data.get('address_info'), 
+                data.get('transport_info'), data.get('image_url'), price
             ))
             new = cur.fetchone()
             return jsonify({"message": "Attraction added", "attraction": new}), 201
     except DatabaseError as e:
-        if "duplicate key value violates unique constraint" in str(e): return jsonify({"message": f"ID '{data['attraction_id']}' already exists"}), 409
+        if "duplicate key value violates unique constraint" in str(e): 
+            return jsonify({"message": f"ID '{data['attraction_id']}' already exists"}), 409
         print(f"DB error adding attraction: {e}")
         return jsonify({"message": "Database error"}), 500
-    except Exception as e: print(f"Error adding attraction: {e}"); return jsonify({"message": "Server error"}), 500
+    except Exception as e: 
+        print(f"Error adding attraction: {e}")
+        return jsonify({"message": "Server error"}), 500
 
 @app.route('/api/admin/attractions/<string:attraction_id>', methods=['PUT'])
 def admin_update_attraction(attraction_id):
-    """更新景点信息 (只接收英文 name) """
-    if not request.is_json: return jsonify({"message": "Request must be JSON"}), 400
-    data = request.get_json()
+    """
+    Update an existing attraction
+    Args:
+        attraction_id: Unique identifier of the attraction
+    Expects JSON with updated attraction details
+    Returns: Status of the operation
+    """
+    if not request.is_json: 
+        return jsonify({"message": "Request must be JSON"}), 400
     
-    if not data.get('price') or not data.get('name'): return jsonify({"message": "Missing price or name"}), 400
+    data = request.get_json()
+    if not data.get('price') or not data.get('name'): 
+        return jsonify({"message": "Missing price or name"}), 400
+    
     try:
         price = float(data['price'])
         assert price >= 0
     except:
         return jsonify({"message": "Invalid price"}), 400
 
-    # name 是纯英文字符串
     english_name = data.get('name','')
 
-    if not pool: return jsonify({"message": "Database service unavailable"}), 503
+    if not pool: 
+        return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection() as conn, conn.cursor() as cur:
             cur.execute("""
@@ -674,67 +835,98 @@ def admin_update_attraction(attraction_id):
                 WHERE attraction_id=%s RETURNING attraction_id;
             """, (
                 english_name, 
-                data.get('contact_info'), data.get('address_info'), data.get('transport_info'),
-                data.get('image_url'), price, attraction_id
+                data.get('contact_info'), data.get('address_info'), 
+                data.get('transport_info'), data.get('image_url'), 
+                price, attraction_id
             ))
             updated = cur.fetchone()
-            if updated: return jsonify({"message": "Attraction updated", "attraction_id": updated['attraction_id']}), 200
-            else: return jsonify({"message": "Attraction not found"}), 404
-    except Exception as e: print(f"Error updating attraction: {e}"); return jsonify({"message": "Error updating attraction"}), 500
+            if updated: 
+                return jsonify({
+                    "message": "Attraction updated", 
+                    "attraction_id": updated['attraction_id']
+                }), 200
+            else: 
+                return jsonify({"message": "Attraction not found"}), 404
+    except Exception as e: 
+        print(f"Error updating attraction: {e}")
+        return jsonify({"message": "Error updating attraction"}), 500
 
 @app.route('/api/admin/attractions/<string:attraction_id>', methods=['DELETE'])
 def admin_delete_attraction(attraction_id):
-    if not pool: return jsonify({"message": "Database service unavailable"}), 503
+    """
+    Delete an attraction
+    Args:
+        attraction_id: Unique identifier of the attraction
+    Returns: Status of the operation
+    """
+    if not pool: 
+        return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection() as conn, conn.cursor() as cur:
-            cur.execute("DELETE FROM attractions WHERE attraction_id = %s RETURNING attraction_id;", (attraction_id,))
+            cur.execute("""
+                DELETE FROM attractions 
+                WHERE attraction_id = %s 
+                RETURNING attraction_id;
+            """, (attraction_id,))
             deleted = cur.fetchone()
-            if deleted: return jsonify({"message": "Attraction deleted", "attraction_id": deleted['attraction_id']}), 200
-            else: return jsonify({"message": "Attraction not found"}), 404
+            if deleted: 
+                return jsonify({
+                    "message": "Attraction deleted", 
+                    "attraction_id": deleted['attraction_id']
+                }), 200
+            else: 
+                return jsonify({"message": "Attraction not found"}), 404
     except DatabaseError as e:
-        if "violates foreign key constraint" in str(e): return jsonify({"message": "Cannot delete: referenced by orders"}), 409 #TODO: check if this is still true or if orders should be cascade deleted or prevented
+        if "violates foreign key constraint" in str(e): 
+            return jsonify({"message": "Cannot delete: referenced by orders"}), 409
         print(f"DB error deleting attraction: {e}")
         return jsonify({"message": "Database error"}), 500
-    except Exception as e: print(f"Error deleting attraction: {e}"); return jsonify({"message": "Server error"}), 500
+    except Exception as e: 
+        print(f"Error deleting attraction: {e}")
+        return jsonify({"message": "Server error"}), 500
 
-# --- Language List API ---
 @app.route('/api/languages', methods=['GET'])
 def get_languages():
-    """获取可用的语言列表 (从 manifest 文件)"""
+    """
+    Get list of available languages
+    Returns: List of language codes and names from manifest file
+    """
     manifest_path = os.path.join(frontend_folder_path, 'languages', 'languages_manifest.json')
     available_languages_info = []
     try:
         if os.path.exists(manifest_path):
             with open(manifest_path, 'r', encoding='utf-8') as f:
                 manifest_data = json.load(f)
-                # 返回code和name，前端选择器显示name，实际使用code
                 if 'available_languages' in manifest_data and isinstance(manifest_data['available_languages'], list):
                     for lang_info in manifest_data['available_languages']:
                         if isinstance(lang_info, dict) and 'code' in lang_info and 'name' in lang_info and 'data_file' in lang_info:
                             available_languages_info.append({
                                 "code": lang_info['code'],
                                 "name": lang_info['name']
-                                # "data_file": lang_info['data_file'] # 前端不需要知道文件名
                             })
-        if not available_languages_info: # Fallback or if manifest is empty/invalid
-            # Możemy dodać domyślny język, jeśli manifest jest pusty lub nieprawidłowy
-            print("Warning: languages_manifest.json is missing, empty, or invalid. Falling back to default language list or previous logic.")
-            # As a fallback, you could list .json files like before, or just return a default
-            # For now, let's ensure 'en' is always available if manifest fails badly
-            # This part could be improved based on desired fallback behavior
+        if not available_languages_info:
+            print("Warning: languages_manifest.json is missing, empty, or invalid. Falling back to default language list.")
             if not any(l['code'] == DEFAULT_LANGUAGE for l in available_languages_info):
-                 available_languages_info.append({"code": DEFAULT_LANGUAGE, "name": "English"}) # Default fallback
+                 available_languages_info.append({
+                     "code": DEFAULT_LANGUAGE, 
+                     "name": "English"
+                 })
 
         return jsonify(available_languages_info), 200
     except Exception as e:
         print(f"Error listing languages from manifest: {e}")
-        # Fallback in case of error: return at least English
         return jsonify([{"code": DEFAULT_LANGUAGE, "name": "English"}]), 500
 
 @app.route('/api/ticket_info/<string:individual_ticket_id>', methods=['GET'])
 def get_individual_ticket_info(individual_ticket_id):
-    """获取单个电子票的详细信息 (供扫码验证使用)"""
-    if not pool: return jsonify({"message": "Database service unavailable"}), 503
+    """
+    Get detailed information for a specific ticket
+    Args:
+        individual_ticket_id: Unique identifier of the ticket
+    Returns: Ticket details for validation
+    """
+    if not pool: 
+        return jsonify({"message": "Database service unavailable"}), 503
     try:
         with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
             query = """
@@ -757,13 +949,12 @@ def get_individual_ticket_info(individual_ticket_id):
             if not ticket_info:
                 return jsonify({"message": "Individual ticket not found"}), 404
 
-            # Enhance with ticket type display name
             ticket_info_dict = dict(ticket_info)
             ticket_type_key = ticket_info_dict.get('ticket_type')
             if ticket_type_key and ticket_type_key in TICKET_TYPES:
                 ticket_info_dict['ticket_type_name_en'] = TICKET_TYPES[ticket_type_key].get('name_en', ticket_type_key)
             else:
-                ticket_info_dict['ticket_type_name_en'] = ticket_type_key # Fallback to the key itself
+                ticket_info_dict['ticket_type_name_en'] = ticket_type_key
             
             if ticket_info_dict.get('usage_date'):
                  ticket_info_dict['usage_date'] = ticket_info_dict['usage_date'].isoformat()
@@ -782,19 +973,23 @@ def get_individual_ticket_info(individual_ticket_id):
         print(traceback.format_exc())
         return jsonify({"message": "An unexpected server error occurred."}), 500
 
-# --- 新的票务验证 API 端点 ---
 @app.route('/api/admin/validate_ticket/<string:individual_ticket_id>', methods=['POST'])
-# @login_required # 如果你有登录验证装饰器，请取消注释
 def validate_ticket(individual_ticket_id):
-    # 实际应用中需要验证用户是否有权限访问此API
-    # if not session.get('role') == ADMIN_ROLE:
-    #     return jsonify({"success": False, "message": "Unauthorized"}), 401
-
-    if not pool: return jsonify({"success": False, "message": "Database service unavailable"}), 503
+    """
+    Validate and mark a ticket as used
+    Args:
+        individual_ticket_id: Unique identifier of the ticket
+    Returns: Validation status and ticket details
+    """
+    if not pool: 
+        return jsonify({
+            "success": False, 
+            "message": "Database service unavailable"
+        }), 503
 
     try:
         with pool.connection(timeout=5.0) as conn, conn.cursor() as cur:
-            # 1. 获取票据信息
+            # Get ticket information
             cur.execute("""
                 SELECT it.individual_ticket_id, it.customer_name, it.status, o.usage_date
                 FROM individual_tickets it
@@ -805,52 +1000,71 @@ def validate_ticket(individual_ticket_id):
             ticket = cur.fetchone()
 
             if not ticket:
-                return jsonify({"success": False, "message": "票券ID无效", "customer_name": None}), 404
+                return jsonify({
+                    "success": False, 
+                    "message": "Invalid ticket ID", 
+                    "customer_name": None
+                }), 404
 
-            # 2. 检查票据状态
+            # Check ticket status
             if ticket['status'] == 'used':
-                return jsonify({"success": False, "message": "此票券已被使用", "customer_name": ticket['customer_name']}), 400
+                return jsonify({
+                    "success": False, 
+                    "message": "This ticket has already been used", 
+                    "customer_name": ticket['customer_name']
+                }), 400
             if ticket['status'] != 'active':
-                return jsonify({"success": False, "message": f"票券状态无效: {ticket['status']}", "customer_name": ticket['customer_name']}), 400
+                return jsonify({
+                    "success": False, 
+                    "message": f"Invalid ticket status: {ticket['status']}", 
+                    "customer_name": ticket['customer_name']
+                }), 400
 
-            # 3. 检查使用日期
+            # Check usage date
             today = date.today()
             if ticket['usage_date'] != today:
                 return jsonify({
                     "success": False, 
-                    "message": f"票券日期无效 (应为: {today.isoformat()}, 实际: {ticket['usage_date'].isoformat()})", 
+                    "message": f"Invalid ticket date (Expected: {today.isoformat()}, Actual: {ticket['usage_date'].isoformat()})", 
                     "customer_name": ticket['customer_name']
                 }), 400
 
-            # 4. 更新票据状态为 'used'
+            # Update ticket status
             cur.execute("""
                 UPDATE individual_tickets
                 SET status = 'used', updated_at = NOW()
                 WHERE individual_ticket_id = %s;
             """, (individual_ticket_id,))
-            
-            # conn.commit() # Pool handles commit/rollback automatically on context exit
 
             return jsonify({
                 "success": True, 
-                "message": "票券验证成功", 
+                "message": "Ticket validated successfully", 
                 "customer_name": ticket['customer_name'],
                 "ticket_id": ticket['individual_ticket_id']
             }), 200
 
     except OperationalError as oe:
         print(f"Database operational error validating ticket: {oe}")
-        return jsonify({"success": False, "message": "数据库服务暂时不可用。"}), 503
+        return jsonify({
+            "success": False, 
+            "message": "Database service temporarily unavailable."
+        }), 503
     except DatabaseError as de:
         print(f"Database error validating ticket: {de}")
-        return jsonify({"success": False, "message": "处理票券验证时发生数据库错误。"}), 500
+        return jsonify({
+            "success": False, 
+            "message": "A database error occurred while validating the ticket."
+        }), 500
     except Exception as e:
         import traceback
         print(f"Unexpected error validating ticket {individual_ticket_id}:")
         print(traceback.format_exc())
-        return jsonify({"success": False, "message": "发生意外的服务器错误。"}), 500
+        return jsonify({
+            "success": False, 
+            "message": "An unexpected server error occurred."
+        }), 500
 
-# --- 应用启动 ---
+# --- Application Startup ---
 if __name__ == '__main__':
     if pool is None:
         print("Error: Database pool not initialized. Exiting.")

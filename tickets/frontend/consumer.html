@@ -8,13 +8,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
+        /* 基础样式 */
         body {
             font-family: 'Inter', sans-serif;
-            /* Smooth scrolling for the navigation bar */
             scroll-behavior: smooth;
         }
 
-        /* Basic view switching */
         .view {
             display: none;
         }
@@ -23,7 +22,6 @@
             display: block;
         }
 
-        /* Original card and input styles (keeping for purchase view) */
         .card {
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             cursor: pointer;
@@ -66,7 +64,7 @@
             text-align: center;
         }
 
-        /* Specific style for quantity */
+        /* 加载动画 */
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             width: 36px;
@@ -87,7 +85,7 @@
             }
         }
 
-        /* Modal Styles*/
+        /* 模态框样式 */
         .modal {
             display: none;
             position: fixed;
@@ -133,7 +131,7 @@
             margin: auto;
         }
 
-        /* Tooltip Styles*/
+        /* 工具提示样式 */
         .tooltip-trigger {
             display: inline-block;
             margin-left: 5px;
@@ -188,21 +186,15 @@
             pointer-events: auto;
         }
 
-        /* Language switcher style*/
+        /* 语言切换器样式 */
         .lang-switcher {
             text-align: right;
             margin-bottom: 1rem;
-            /* Adjust margin as needed */
             margin-right: 0.5rem;
-            /* Adjust margin as needed */
             position: fixed;
-            /* Changed to fixed */
             top: 0.5rem;
-            /* Adjust position as needed */
             right: 0.5rem;
-            /* Adjust position as needed */
             z-index: 50;
-            /* Ensure it's above other content */
         }
 
         .lang-switcher select {
@@ -213,114 +205,87 @@
             cursor: pointer;
         }
 
-
-        /* --- New Styles for Homepage Beautification --- */
+        /* 首页景点区块样式 */
         .attraction-block {
             width: 100%;
             display: flex;
             flex-direction: column;
-            /* Stack content vertically on small screens */
             align-items: center;
             padding: 2rem;
             margin-bottom: 2rem;
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            /* Add a subtle shadow */
             color: #333;
-            /* Default text color */
         }
 
         @media (min-width: 768px) {
             .attraction-block {
                 flex-direction: row;
-                /* Row layout on medium screens and up */
             }
         }
 
         .attraction-image-container {
             width: 100%;
-            /* Full width on small screens */
             max-width: 400px;
-            /* Limit image width */
             margin-bottom: 1.5rem;
-            /* Space below image on small screens */
             border-radius: 0.375rem;
             overflow: hidden;
-            /* Hide overflow for rounded corners */
         }
 
         @media (min-width: 768px) {
             .attraction-image-container {
                 width: 40%;
-                /* Image takes 40% width on medium screens and up */
                 margin-right: 2rem;
-                /* Space to the right of the image */
                 margin-bottom: 0;
-                /* No bottom margin on larger screens */
             }
         }
 
         .attraction-image {
             width: 100%;
             height: 250px;
-            /* Fixed height for consistency */
             object-fit: cover;
-            /* Cover the container */
             display: block;
-            /* Remove extra space below image */
             border-radius: 0.375rem;
         }
 
         .attraction-info {
             width: 100%;
-            /* Full width on small screens */
             flex-grow: 1;
-            /* Take remaining space on larger screens */
         }
 
         @media (min-width: 768px) {
             .attraction-info {
                 width: 60%;
-                /* Info takes 60% width on medium screens and up */
             }
         }
 
         .attraction-info h3 {
             font-size: 1.875rem;
-            /* 3xl */
             font-weight: 700;
-            /* Bold */
             margin-bottom: 0.5rem;
             color: inherit;
-            /* Inherit color from block */
         }
 
         .attraction-info .summary {
             font-size: 1rem;
-            /* Base size */
             color: inherit;
-            /* Inherit color from block */
             margin-bottom: 1rem;
         }
 
         .attraction-info .price {
             font-size: 1.25rem;
-            /* xl */
             font-weight: 700;
             color: inherit;
-            /* Inherit color from block */
             margin-bottom: 1.5rem;
         }
 
         .attraction-info .book-button {
             display: inline-block;
             background-color: #10B981;
-            /* Green 500 */
             color: white;
             padding: 0.75rem 2rem;
             border-radius: 0.5rem;
             font-size: 1.125rem;
-            /* lg */
             font-weight: 500;
             transition: background-color 0.3s ease;
             cursor: pointer;
@@ -328,69 +293,51 @@
 
         .attraction-info .book-button:hover {
             background-color: #059669;
-            /* Green 600 */
         }
 
-        /* Floating Navigation Bar */
+        /* 浮动导航条 */
         #floating-nav {
             position: fixed;
             right: 1rem;
-            /* 4 units from right */
             top: 50%;
-            /* Center vertically */
             transform: translateY(-50%);
             z-index: 500;
             background-color: rgba(255, 255, 255, 0.9);
-            /* Semi-transparent white */
             border-radius: 0.5rem;
             padding: 0.75rem;
-            /* 3 units padding */
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: none;
-            /* Hidden by default, shown by JS on homepage */
             flex-direction: column;
             gap: 0.5rem;
-            /* 2 units gap between buttons */
         }
 
         #floating-nav button {
             background: none;
             border: none;
             padding: 0.5rem 0.75rem;
-            /* 2 units vertical, 3 units horizontal */
             cursor: pointer;
             font-size: 0.875rem;
-            /* sm */
             color: #4A5568;
-            /* Gray 700 */
             border-radius: 0.375rem;
-            /* rounded-md */
             transition: background-color 0.2s ease, color 0.2s ease;
             text-align: left;
-            /* Align text left */
             width: 100%;
-            /* Full width button */
         }
 
         #floating-nav button:hover {
             background-color: #E2E8F0;
-            /* Gray 200 */
             color: #2D3748;
-            /* Gray 800 */
         }
 
-        /* Hide floating nav on small screens */
         @media (max-width: 1023px) {
             #floating-nav {
                 display: none !important;
             }
         }
 
-
-        /* --- New Styles for Attraction Detail Page --- */
+        /* 景点详情页样式 */
         #attraction-detail-view .detail-section {
             background-color: #f7fafc;
-            /* Gray 100 */
             padding: 1.5rem;
             margin-bottom: 1.5rem;
             border-radius: 0.5rem;
@@ -399,15 +346,11 @@
 
         #attraction-detail-view .detail-section h3 {
             font-size: 1.5rem;
-            /* 2xl */
             font-weight: 600;
-            /* Semibold */
             color: #2D3748;
-            /* Gray 800 */
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
             border-bottom: 1px solid #E2E8F0;
-            /* Gray 200 */
         }
 
         #attraction-detail-view .detail-section p,
@@ -416,23 +359,19 @@
             font-size: 1rem;
             line-height: 1.6;
             color: #4A5568;
-            /* Gray 700 */
         }
 
         #attraction-detail-view .image-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            /* Responsive grid */
             gap: 1rem;
-            /* 4 units gap */
             margin-top: 1rem;
         }
 
         #attraction-detail-view .image-gallery img {
             width: 100%;
-            /* height: 150px; */ /* Removed fixed height */
-            aspect-ratio: 1 / 1; /* Make them square, adjust as needed e.g., 4/3 */
-            object-fit: cover; /* Ensures the image covers the area, cropping if necessary */
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
             border-radius: 0.375rem;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
@@ -570,38 +509,31 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Example Background Colors (Tailwind Classes) */
+        /* 背景色样式 */
         .bg-blue-100 {
             background-color: #EBF8FF;
             color: #2B6CB0;
-            /* Blue 700 */
         }
 
         .bg-green-100 {
             background-color: #F0FFF4;
             color: #2F855A;
-            /* Green 700 */
         }
 
         .bg-yellow-100 {
             background-color: #FFFFF0;
             color: #B7791F;
-            /* Yellow 700 */
         }
 
         .bg-purple-100 {
             background-color: #FAF5FF;
             color: #6B46C1;
-            /* Purple 700 */
         }
 
         .bg-pink-100 {
             background-color: #FFF5F7;
             color: #E53E3E;
-            /* Red 600 - Using red for contrast */
         }
-
-        /* Add more colors as needed */
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -611,12 +543,11 @@
 <body class="bg-gray-100 p-4 md:p-8">
 
     <div class="bg-gradient-to-br from-blue-600 to-indigo-700 pt-12 pb-10 px-4 shadow-xl relative">
-        <!-- Language Switcher -->
+        <!-- 语言切换器 -->
     <div id="lang-switcher" class="lang-switcher">
             <label for="language-switcher" class="sr-only" data-translate="selectLanguage">Language:</label>
             <select id="language-switcher" name="language-switcher" class="text-sm">
-                <!-- Options will be populated by JavaScript -->
-        </select>
+            </select>
     </div>
         <h1 class="text-4xl font-extrabold text-center text-white page-title" data-translate="appTitle">Solo City Attractions - Online Ticketing</h1>
 
@@ -630,6 +561,7 @@
 
     <div class="container mx-auto max-w-6xl bg-white p-6 rounded-lg shadow-md">
 
+        <!-- 景点列表视图 -->
         <div id="attraction-list-view" class="view active">
             <h1 id="main-title" class="text-3xl font-bold text-center text-gray-800 mb-8" data-translate="selectAttraction">Select Attraction</h1>
             <div id="attractions-loading" class="text-center py-10">
@@ -641,14 +573,15 @@
             <div id="attractions-error" class="text-center text-red-600 font-medium mb-4 hidden"></div>
         </div>
 
+        <!-- 景点详情视图 -->
         <div id="attraction-detail-view" class="view">
             <button onclick="showView('attraction-list-view')" class="mb-4 text-blue-600 hover:underline">&larr; <span data-translate="backToList">Back to List</span></button>
             <div id="detail-content">
-                <!-- Content will be loaded here by loadAttractionDetail -->
             </div>
             <div id="detail-error" class="text-center text-red-600 font-medium mb-4 hidden"></div>
         </div>
 
+        <!-- 购票视图 -->
         <div id="purchase-view" class="view">
             <button onclick="showView('attraction-detail-view', currentAttractionId)"
                 class="mb-4 text-blue-600 hover:underline">&larr; <span class="back-to-detail-text" data-translate="backToDetails">Back to
@@ -720,6 +653,7 @@
             <div id="purchase-error" class="text-center text-red-600 font-medium mt-4 hidden"></div>
         </div>
 
+        <!-- 订单查询视图 -->
         <div id="order-lookup-view" class="view">
             <h2 class="text-2xl font-semibold mb-6 text-center" data-translate="orderLookupTitle">Find Your Order</h2>
             <div class="flex flex-col sm:flex-row items-stretch justify-center space-y-3 sm:space-y-0 sm:space-x-3 mb-6 max-w-lg mx-auto">
@@ -733,7 +667,6 @@
                 </button>
             </div>
             <div id="consumer-order-details-container" class="mt-6 hidden">
-                <!-- Order details and QR codes will be displayed here -->
             </div>
             <div id="consumer-order-lookup-error" class="text-center text-red-600 font-medium mt-4 hidden"></div>
             <div id="consumer-order-not-found" class="text-center text-gray-500 font-medium mt-4 hidden" data-translate="orderNotFound">Order not found. Please check the ID and try again.</div>
@@ -744,6 +677,7 @@
 
     </div>
 
+    <!-- 成功购票模态框 -->
     <div id="successModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">&times;</span>
@@ -752,7 +686,6 @@
             <p id="modalOrderId" class="text-xl font-bold mb-4"></p>
             <p id="modal-qr-label" class="mb-3" data-translate="modalQrIndividualLabel">Your QR Codes:</p>
             <div id="qrcodes-container" class="space-y-4 my-4 overflow-auto" style="max-height: 300px;">
-                <!-- Individual QR codes will be dynamically added here -->
             </div>
             <p id="modal-email-info" class="text-sm text-gray-500 mt-4" data-translate="modalEmailPromptIndividualTickets">Individual e-tickets have also been sent to your email.</p>
         </div>
@@ -761,22 +694,17 @@
     <div id="floating-nav" class="hidden lg:flex">
     </div>
 
-
     <script>
         const API_BASE_URL = 'http://127.0.0.1:5000/api';
-        // Array of background colors for attraction blocks
         const backgroundColors = [
             'bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100'
         ];
-        let colorIndex = 0; // To cycle through colors
+        let colorIndex = 0;
         
-        // 轮播图相关变量
         let currentSlide = 0;
         let totalSlides = 0;
 
-        // --- Global DOM Element Variables ---
-        // It's good practice to define these early if they are used by multiple functions
-        // and to ensure they are defined before functions like initLocalization might trigger their use.
+        // 全局DOM元素变量
         const attractionsLoadingDiv = document.getElementById('attractions-loading');
         const attractionsListContainer = document.getElementById('attractions-list-container');
         const attractionsErrorDiv = document.getElementById('attractions-error');
@@ -788,13 +716,14 @@
         const totalTicketsCountSpan = document.getElementById('total-tickets-count');
         const purchaseNameFieldsContainer = document.getElementById('purchase-name-fields');
         const purchaseTotalPrice = document.getElementById('purchase-total-price');
-        const proceedBtn = document.getElementById('proceed-to-payment-btn'); // Assuming this is the correct ID for the proceed button
+        const proceedBtn = document.getElementById('proceed-to-payment-btn');
         const purchaseErrorDiv = document.getElementById('purchase-error');
         const messageDiv = document.getElementById('message');
         const errorMessageDiv = document.getElementById('error-message');
         const successModal = document.getElementById('successModal');
         const modalOrderId = document.getElementById('modalOrderId');
-        // Order Lookup View Elements
+        
+        // 订单查询视图元素
         const consumerOrderIdInput = document.getElementById('consumer-order-id-input');
         const consumerSearchOrderBtn = document.getElementById('consumer-search-order-btn');
         const consumerSearchSpinner = document.getElementById('consumer-search-spinner');
@@ -802,15 +731,18 @@
         const consumerOrderLookupError = document.getElementById('consumer-order-lookup-error');
         const consumerOrderNotFound = document.getElementById('consumer-order-not-found');
 
-        // Variables for attraction detail view elements if they need to be globally accessible
-        let currentAttractionId = null; // Already declared later, but good to be mindful
-        let currentAttractionBasePrice = 0; // Already declared later
+        let currentAttractionId = null;
+        let currentAttractionBasePrice = 0;
 
-        // --- View Management ---
+        // 视图管理
         const views = document.querySelectorAll('.view');
         const navLinks = document.querySelectorAll('nav a');
-        // Add other view-specific elements that need to be globally accessible if any
 
+        /**
+         * 切换显示视图
+         * @param {string} viewId - 要显示的视图ID
+         * @param {*} params - 可选参数，如景点ID
+         */
         function showView(viewId, params = null) {
             console.log(`DEBUG: showView CALLED with viewId: ${viewId}`, params || "(no params)");
             views.forEach(view => {
@@ -821,28 +753,31 @@
                 link.classList.toggle('text-gray-700', !link.getAttribute('onclick')?.includes(viewId));
             });
 
-            // Handle view-specific logic
             if (viewId === 'attraction-list-view') {
                 console.log("DEBUG: showView - Condition for 'attraction-list-view' MET. Calling loadAttractionList.");
                 loadAttractionList();
             } else if (viewId === 'attraction-detail-view' && params) {
                 console.log(`DEBUG: showView - Condition for 'attraction-detail-view' MET. Params (attractionId): ${params}. Calling loadAttractionDetail.`);
-                loadAttractionDetail(params); // Corrected: Was displayAttractionDetails(params)
+                loadAttractionDetail(params);
             } else if (viewId === 'purchase-view' && params) {
                 console.log("DEBUG: showView - Condition for 'purchase-view' MET. Calling setupPurchaseForm.");
-                setupPurchaseForm(params); // params should be attraction object
+                setupPurchaseForm(params);
             } else if (viewId === 'order-lookup-view') {
-                // Clear previous results if any
                 consumerOrderDetailsContainer.innerHTML = '';
                 consumerOrderDetailsContainer.classList.add('hidden');
-                if(consumerOrderIdInput) consumerOrderIdInput.value = ''; // Clear input field
+                if(consumerOrderIdInput) consumerOrderIdInput.value = '';
                 if(consumerOrderLookupError) consumerOrderLookupError.classList.add('hidden');
                 if(consumerOrderNotFound) consumerOrderNotFound.classList.add('hidden');
             }
-            window.scrollTo(0, 0); // Scroll to top on view change
+            window.scrollTo(0, 0);
         }
 
-        // --- Helper Functions ---
+        // 辅助函数
+        /**
+         * 验证使用日期是否有效
+         * @param {HTMLInputElement} input - 日期输入元素
+         * @returns {boolean} 日期是否有效
+         */
         function validateUsageDate(input) {
             const selectedDate = input.value;
             const today = new Date();
@@ -851,31 +786,68 @@
             selected.setHours(0, 0, 0, 0);
 
             if (selected < today) {
-                showError(translateText('dateInvalidPast')); // Use translateText
-                input.value = ''; // Clear the invalid date
+                showError(translateText('dateInvalidPast'));
+                input.value = '';
                 return false;
             }
-            clearMessages(errorMessageDiv); // Clear general error if date is valid
+            clearMessages(errorMessageDiv);
             return true;
         }
-        function showMessage(msg) { clearMessages(); messageDiv.textContent = msg; setTimeout(clearMessages, 5000); }
-        function showError(msg, target = errorMessageDiv) { clearMessages(); target.textContent = msg; target.classList.remove('hidden'); setTimeout(() => clearMessages(target), 7000); }
+        
+        /**
+         * 显示成功消息
+         * @param {string} msg - 消息内容
+         */
+        function showMessage(msg) { 
+            clearMessages(); 
+            messageDiv.textContent = msg; 
+            setTimeout(clearMessages, 5000); 
+        }
+        
+        /**
+         * 显示错误消息
+         * @param {string} msg - 错误消息
+         * @param {HTMLElement} target - 目标元素
+         */
+        function showError(msg, target = errorMessageDiv) { 
+            clearMessages(); 
+            target.textContent = msg; 
+            target.classList.remove('hidden'); 
+            setTimeout(() => clearMessages(target), 7000); 
+        }
+        
+        /**
+         * 清除消息
+         * @param {HTMLElement} target - 要清除的目标元素
+         */
         function clearMessages(target = null) {
-            if (target) { target.textContent = ''; target.classList.add('hidden'); }
-            else {
-                messageDiv.textContent = ''; errorMessageDiv.textContent = ''; errorMessageDiv.classList.add('hidden');
-                attractionsErrorDiv.textContent = ''; attractionsErrorDiv.classList.add('hidden');
-                detailError.textContent = ''; detailError.classList.add('hidden');
+            if (target) { 
+                target.textContent = ''; 
+                target.classList.add('hidden'); 
+            } else {
+                messageDiv.textContent = ''; 
+                errorMessageDiv.textContent = ''; 
+                errorMessageDiv.classList.add('hidden');
+                attractionsErrorDiv.textContent = ''; 
+                attractionsErrorDiv.classList.add('hidden');
+                detailError.textContent = ''; 
+                detailError.classList.add('hidden');
                 purchaseErrorDiv.classList.add('hidden');
             }
         }
+        
+        /**
+         * 设置按钮加载状态
+         * @param {HTMLButtonElement} button - 按钮元素
+         * @param {boolean} isLoading - 是否处于加载状态
+         * @param {string} loadingTextKey - 加载状态文本的翻译键
+         */
         function setLoadingState(button, isLoading, loadingTextKey = 'purchaseButtonLoading') {
             if (button) {
                 button.disabled = isLoading;
-                const spinner = button.querySelector('.spinner') || document.getElementById(button.id + '-spinner'); // Generalize spinner finding
+                const spinner = button.querySelector('.spinner') || document.getElementById(button.id + '-spinner');
 
                 if (isLoading) { 
-                    // 保存按钮的原始翻译键，而不是文本内容
                     const originalTextSpan = button.querySelector('span:not(.spinner)');
                     if (originalTextSpan && originalTextSpan.hasAttribute('data-translate')) {
                         button.dataset.originalTranslateKey = originalTextSpan.getAttribute('data-translate');
@@ -886,7 +858,6 @@
                     else button.textContent = translateText(loadingTextKey);
                     if(spinner) spinner.classList.remove('hidden');
                 } else { 
-                    // 从加载状态恢复时，优先使用保存的翻译键重新翻译
                     if (button.dataset.originalTranslateKey && button.querySelector('span:not(.spinner)')) {
                         button.querySelector('span:not(.spinner)').textContent = translateText(button.dataset.originalTranslateKey);
                     } else if (button.dataset.originalText) {
@@ -897,10 +868,16 @@
                 }
             }
         }
+        
+        /**
+         * 打开成功购票模态框
+         * @param {string} orderId - 订单ID
+         * @param {Array} individualTickets - 个人票列表
+         */
         function openModal(orderId, individualTickets = []) {
             modalOrderId.textContent = orderId;
             const qrcodesContainer = document.getElementById('qrcodes-container');
-            qrcodesContainer.innerHTML = ''; // Clear previous QR codes
+            qrcodesContainer.innerHTML = '';
 
             const qrLabel = document.getElementById('modal-qr-label');
             if (individualTickets && individualTickets.length > 0) {
@@ -1174,40 +1151,39 @@
         }
 
 
+        /**
+         * 加载景点详情
+         * @param {string} attractionId - 景点ID
+         */
         async function loadAttractionDetail(attractionId) {
             console.log(`DEBUG: loadAttractionDetail CALLED with attractionId: ${attractionId}`); 
             if (!detailContent || !detailError) {
                 console.error("DEBUG: loadAttractionDetail - CRITICAL: DOM elements (detailContent, detailError) are not defined!");
                 return; 
             }
-            currentAttractionId = attractionId; // Set global current attraction ID
+            currentAttractionId = attractionId;
             
-            // Show loading spinner with translated text
             detailContent.innerHTML = `<div class="spinner"></div><p data-translate="loading">${translateText("loading", {defaultValue: "Loading..."})}</p>`; 
             clearMessages(detailError);
 
             try {
-                // Fetch base attraction data (non-translatable fields like image_url, price, contacts etc.)
                 const response = await fetch(`${API_BASE_URL}/attractions/${attractionId}`);
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || `Failed to load attraction details (HTTP ${response.status})`);
                 }
-                const attraction = await response.json(); // This data contains attraction_id, image_url, price, etc.
-                currentAttractionBasePrice = attraction.price; // Store base price for purchase form
+                const attraction = await response.json();
+                currentAttractionBasePrice = attraction.price;
 
-                // Get translated texts using attraction_id
-                const name = translateText(`attractions.${attractionId}.name`, { defaultValue: attraction.name }); // Fallback to API name
+                const name = translateText(`attractions.${attractionId}.name`, { defaultValue: attraction.name });
                 const summary = translateText(`attractions.${attractionId}.summary`, { defaultValue: 'Summary not available.' });
                 const details = translateText(`attractions.${attractionId}.details`, { defaultValue: 'Details not available.' });
                 const contactInfoTitle = translateText('contactInfoTitle', { defaultValue: 'Contact Information' });
                 const galleryTitle = translateText('galleryTitle', { defaultValue: 'Image Gallery' });
                 const bookNowButtonText = translateText('bookNowButton', { defaultValue: 'Book Now' });
 
-                // 预加载检测图片存在性并筛选有效图片
-                const galleryImagesWithPreload = await preloadAndFilterImages(attractionId, 10); // 最多10张图片
+                const galleryImagesWithPreload = await preloadAndFilterImages(attractionId, 10);
                 
-                // 准备联系信息
                 let contactHtml = '';
                 const contactInfo = {
                     phone: attraction.contact_info || "+62 812 1234 5678",
@@ -1218,7 +1194,6 @@
                 };
                 
                 if (contactInfo) {
-                    // 生成联系信息HTML
                     contactHtml = `
                         <p><strong>${translateText('contactPhone', { defaultValue: 'Phone' })}:</strong> ${contactInfo.phone}</p>
                         ${contactInfo.email ? `<p><strong>${translateText('contactEmail', { defaultValue: 'Email' })}:</strong> ${contactInfo.email}</p>` : ''}
@@ -1230,11 +1205,9 @@
                     contactHtml = `<p data-translate="noContactInfo">${translateText('noContactInfo', { defaultValue: 'Contact information not available.' })}</p>`;
                 }
                 
-                // 设置正确的图片路径
                 const localImagePath = `res/homepage/${attraction.attraction_id}.jpg`;
                 const fallbackBannerUrl = attraction.image_url || 'https://placehold.co/1200x400/cccccc/666666?text=Attraction+Image';
 
-                // 只有当有有效图片时才显示轮播图
                 let galleryHtml = '';
                 if (galleryImagesWithPreload.length > 0) {
                     galleryHtml = `
@@ -1265,7 +1238,7 @@
 
                 detailContent.innerHTML = `
                     <div class="mb-6 rounded-lg overflow-hidden shadow-xl">
-                        <img id="attraction-banner-img" src="" alt="${name}" class="w-full h-64 md:h-96 object-cover">
+                        <img id="attraction-banner-img" src="" alt="${name}" class="w-full h-64 md:h-96 object-contain bg-gray-100">
                     </div>
                     <h2 class="text-4xl font-extrabold text-gray-800 mb-3">${name}</h2>
                     <p class="text-lg text-gray-600 mb-6 leading-relaxed">${summary}</p>
@@ -1298,16 +1271,12 @@
                 const bannerImgElement = document.getElementById('attraction-banner-img');
                 checkLocalImage(bannerImgElement, localImagePath, fallbackBannerUrl, 'https://placehold.co/1200x400/cccccc/666666?text=Attraction+Image');
 
-                // Pass the original attraction object to setupPurchaseForm, which includes price, id etc.
-                // It also contains the English name (`attraction.name`) that setupPurchaseForm uses for the title.
-                // This is fine, as the purchase form itself isn't fully translated yet, and relies on this.
-                 currentAttractionDataForPurchase = attraction; // Store for purchase form setup
+                currentAttractionDataForPurchase = attraction;
                 
-                // 重置轮播图状态和初始化
                 currentSlide = 0;
                 totalSlides = galleryImagesWithPreload.length;
 
-                applyTranslations(); // Apply translations to any static data-translate elements added
+                applyTranslations();
 
             } catch (error) {
                 console.error(`Failed to load attraction details for ${attractionId}:`, error);
@@ -1316,19 +1285,25 @@
             } 
         }
         
-        let currentAttractionDataForPurchase = null; // Used to pass data to purchase form setup
+        let currentAttractionDataForPurchase = null;
 
-        async function setupPurchaseForm(attractionData) { // Renamed param for clarity
-            console.log("setupPurchaseForm called with attraction:", attractionData); // Log setup call
-            currentAttractionId = attractionData.attraction_id; // Ensure this is set
+        /**
+         * 设置购票表单
+         * @param {Object} attractionData - 景点数据
+         */
+        async function setupPurchaseForm(attractionData) {
+            console.log("setupPurchaseForm called with attraction:", attractionData);
+            currentAttractionId = attractionData.attraction_id;
             currentAttractionBasePrice = attractionData.price;
             purchaseAttractionName.textContent = attractionData.name;
 
-            // Reset form fields to defaults
-            purchaseForm.reset(); // Resets native form elements
-            updatePurchaseSummary(); // Updates quantities, names, total price based on defaults
+            purchaseForm.reset();
+            updatePurchaseSummary();
         }
 
+        /**
+         * 更新购票摘要信息
+         */
         function updatePurchaseSummary() {
             const quantities = {
                 full: parseInt(document.getElementById('quantity-full').value) || 0,
@@ -1339,13 +1314,12 @@
             let totalQuantity = 0;
             let totalPrice = 0;
 
-            // Recalculate total quantity and price
             for (const type in quantities) {
                 let q = quantities[type];
                 if (isNaN(q) || q < 0) q = 0;
-                if (q > 10) q = 10; // Enforce max per type
-                quantities[type] = q; // Update the value if corrected
-                document.getElementById(`quantity-${type}`).value = q; // Reflect correction in UI
+                if (q > 10) q = 10;
+                quantities[type] = q;
+                document.getElementById(`quantity-${type}`).value = q;
                 totalQuantity += q;
 
                 let multiplier = 1.0;
@@ -1354,28 +1328,24 @@
                 totalPrice += q * currentAttractionBasePrice * multiplier;
             }
 
-            // Enforce overall max quantity (e.g., if user enters 6 full, 6 discount)
             if (totalQuantity > 10) {
-                // This case is tricky. How to reduce? Simplest is to show error and disable purchase.
-                showError(translateText('quantityError'), purchaseErrorDiv); // Use translateText
+                showError(translateText('quantityError'), purchaseErrorDiv);
                 proceedBtn.disabled = true;
-                totalQuantity = 10; // Cap for display purposes
+                totalQuantity = 10;
             } else {
-                purchaseErrorDiv.classList.add('hidden'); // Clear error if valid
+                purchaseErrorDiv.classList.add('hidden');
                 proceedBtn.disabled = false;
             }
 
-
-            // Update total tickets count display
             totalTicketsCountSpan.textContent = totalQuantity;
-
-            // Update dynamic name fields - PASS THE ACTUAL QUANTITIES OBJECT
-            updatePurchaseNameFields(quantities); // Pass the quantities object
-
-            // Update total price display
+            updatePurchaseNameFields(quantities);
             purchaseTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
         }
 
+        /**
+         * 更新购票人员姓名输入字段
+         * @param {Object} quantities - 各类型票数量
+         */
         function updatePurchaseNameFields(quantities) { 
             purchaseNameFieldsContainer.innerHTML = ''; 
             let overallTicketIndex = 0;
@@ -1388,16 +1358,14 @@
                     else if (type === 'discount') ticketTypeLabelKey = 'ticketTypeDiscountSimple'; 
                     else if (type === 'free') ticketTypeLabelKey = 'ticketTypeFreeSimple'; 
                     
-                    // Ensure translatedTicketType is a string, falling back to the type itself if translation missing
                     const translatedTicketType = translateText(ticketTypeLabelKey, { defaultValue: type.charAt(0).toUpperCase() + type.slice(1) }); 
 
                     for (let i = 1; i <= count; i++) {
                         overallTicketIndex++;
                         const label = document.createElement('label');
                         label.htmlFor = `purchase_name_${overallTicketIndex}`; 
-                        // The params object keys MUST match the placeholders in the translation string e.g. {{type}} and {{count}}
                         label.textContent = translateText('customerNameForTicketType', { 
-                            type: translatedTicketType, // This is the already translated ticket type string
+                            type: translatedTicketType,
                             count: i 
                         });
 
@@ -1718,20 +1686,24 @@
     </script>
 
     <script>
-        // --- Localization ---
+        // 本地化功能
         let currentLanguage = 'en';
         let translations = {};
         let englishTranslations = {};
-        const defaultLanguage = 'en'; // Default language for fallback and initial load
+        const defaultLanguage = 'en';
 
-        // Fetches translation file for the given language code
+        /**
+         * 获取指定语言的翻译文件
+         * @param {string} langCode - 语言代码
+         * @returns {Promise<boolean>} - 是否成功加载翻译
+         */
         async function fetchTranslations(langCode) {
             try {
-                const response = await fetch(`languages/${langCode}.json?v=${new Date().getTime()}`); // Cache buster
+                const response = await fetch(`languages/${langCode}.json?v=${new Date().getTime()}`);
                 if (!response.ok) {
                     console.warn(`Failed to load ${langCode}.json. Falling back to English.`);
                     if (langCode !== defaultLanguage) {
-                        return await fetchTranslations(defaultLanguage); // Try fetching default language
+                        return await fetchTranslations(defaultLanguage);
                     }
                     throw new Error(`Failed to load ${defaultLanguage}.json`);
                 }
@@ -1745,47 +1717,47 @@
                         console.error("Failed to load English fallback translations.");
                     }
                 } else if (langCode === defaultLanguage) {
-                    englishTranslations = translations; // If current is English, fallback is also English
+                    englishTranslations = translations;
                 }
                 console.log(`Translations for ${langCode} loaded.`);
                 return true;
             } catch (error) {
                 console.error(`Error fetching translations for ${langCode}:`, error);
-                if (langCode !== defaultLanguage) { // If fetching a non-default language fails, try default
+                if (langCode !== defaultLanguage) {
                     console.warn(`Attempting to load ${defaultLanguage} as fallback.`);
                     alert(`Could not load translations for '${langCode}'. Attempting to load English.`);
-                    await changeLanguage(defaultLanguage, true); // Force change to default
-                } else { // If default language itself fails
+                    await changeLanguage(defaultLanguage, true);
+                } else {
                      alert('Critical error: Could not load default language file (' + defaultLanguage + '.json). Some text may not appear correctly.');
                 }
                 return false;
             }
         }
 
-        // Translates a key using loaded translations, with fallback to English
+        /**
+         * 使用翻译键获取翻译文本
+         * @param {string} key - 翻译键
+         * @param {Object} params - 替换参数和默认值
+         * @returns {string} - 翻译后的文本
+         */
         function translateText(key, params = {}) {
             let text;
             
-            // 处理嵌套路径键（如 "attractions.solo-palace.name"）
             if (key.includes('.')) {
                 const parts = key.split('.');
                 let current = translations;
-                // 遍历路径各部分
                 for (const part of parts) {
                     if (current && typeof current === 'object' && part in current) {
                         current = current[part];
                     } else {
-                        // 未找到路径，尝试英文翻译
                         current = null;
                         break;
                     }
                 }
                 
-                // 如果找到了嵌套值
                 if (current !== null && current !== undefined) {
                     text = current;
                 } else {
-                    // 在英文翻译中尝试同样的路径
                     current = englishTranslations;
                     for (const part of parts) {
                         if (current && typeof current === 'object' && part in current) {
@@ -1798,7 +1770,6 @@
                     text = current;
                 }
             } else {
-                // 处理简单键 (不含点号)
                 if (key in translations) {
                     text = translations[key];
                 } else if (key in englishTranslations) {
@@ -1806,23 +1777,19 @@
                 }
             }
             
-            // 如果未找到翻译
             if (text === null || text === undefined) {
                 console.warn(`Translation missing for key '${key}' in current and English. Using default or key.`);
                 return params.defaultValue !== undefined ? params.defaultValue : key;
             }
 
             if (typeof text !== 'string') {
-                // 如果获取的翻译不是字符串（例如，是嵌套对象）
                 console.warn(`Retrieved translation for key '${key}' is not a string. Value:`, text);
                 return params.defaultValue !== undefined ? params.defaultValue : key;
             }
 
-            // 执行占位符替换
             let resultText = text;
             for (const paramKey in params) {
                 if (Object.prototype.hasOwnProperty.call(params, paramKey) && paramKey !== 'defaultValue') {
-                    // 确保参数值是字符串或数字，避免在输出中出现"undefined"
                     const value = (params[paramKey] === null || params[paramKey] === undefined) ? '' : params[paramKey];
                     const regex = new RegExp(`{{\s*${paramKey}\s*}}`, 'g');
                     resultText = resultText.replace(regex, value);
@@ -1831,7 +1798,9 @@
             return resultText;
         }
 
-        // Applies translations to all elements with data-translate attributes
+        /**
+         * 应用翻译到页面元素
+         */
         function applyTranslations() {
             document.querySelectorAll('[data-translate]').forEach(element => {
                 const key = element.getAttribute('data-translate');
@@ -1849,18 +1818,16 @@
                 const key = element.getAttribute('data-translate-value');
                 element.value = translateText(key, {defaultValue: element.value});
             });
-            // 特别处理导航栏链接，确保它们始终正确翻译
+            
             document.querySelectorAll('nav a').forEach(navLink => {
                 if (navLink.hasAttribute('data-translate')) {
                     const key = navLink.getAttribute('data-translate');
                     const translatedText = translateText(key, {defaultValue: navLink.innerText});
-                    // 只更新文本，不影响子元素
                     if (navLink.firstChild && navLink.firstChild.nodeType === Node.TEXT_NODE) {
                         navLink.firstChild.nodeValue = translatedText;
                     } else if (!navLink.firstChild) {
                         navLink.innerText = translatedText;
                     } else {
-                        // 如果有子元素，确保只更新文本节点
                         let foundTextNode = false;
                         for (const node of navLink.childNodes) {
                             if (node.nodeType === Node.TEXT_NODE) {
@@ -1870,13 +1837,12 @@
                             }
                         }
                         if (!foundTextNode) {
-                            // 如果没有文本节点，创建一个
                             navLink.insertBefore(document.createTextNode(translatedText), navLink.firstChild);
                         }
                     }
                 }
             });
-            // 特别处理搜索按钮
+            
             const searchBtn = document.getElementById('consumer-search-order-btn');
             if (searchBtn) {
                 const searchBtnTextSpan = searchBtn.querySelector('span:not(.spinner)');

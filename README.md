@@ -65,7 +65,7 @@ python main.py
 
 ### Frontend
 
-- Open the relevant HTML file in `tickets/frontend/` in your browser with `localhost:5000/*.html` and opened backend:
+- Open the relevant HTML file in your browser with `localhost:5000/*.html` and running backend:
   - `consumer.html` for ticket holders
   - `validator.html` for ticket checkers
   - `admin.html` for administrators

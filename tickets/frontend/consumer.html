@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
-        /* 基础样式 */
+        /* base styles */
         body {
             font-family: 'Inter', sans-serif;
             scroll-behavior: smooth;
@@ -64,7 +64,7 @@
             text-align: center;
         }
 
-        /* 加载动画 */
+        /* loading animation */
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             width: 36px;
@@ -85,7 +85,7 @@
             }
         }
 
-        /* 模态框样式 */
+        /* modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -131,7 +131,7 @@
             margin: auto;
         }
 
-        /* 工具提示样式 */
+        /* tooltip styles */
         .tooltip-trigger {
             display: inline-block;
             margin-left: 5px;
@@ -186,7 +186,7 @@
             pointer-events: auto;
         }
 
-        /* 语言切换器样式 */
+        /* language switcher styles */
         .lang-switcher {
             text-align: right;
             margin-bottom: 1rem;
@@ -205,7 +205,7 @@
             cursor: pointer;
         }
 
-        /* 首页景点区块样式 */
+        /* attraction block styles */
         .attraction-block {
             width: 100%;
             display: flex;
@@ -295,7 +295,7 @@
             background-color: #059669;
         }
 
-        /* 浮动导航条 */
+        /* floating navigation bar */
         #floating-nav {
             position: fixed;
             right: 1rem;
@@ -335,7 +335,7 @@
             }
         }
 
-        /* 景点详情页样式 */
+        /* attraction detail view styles */
         #attraction-detail-view .detail-section {
             background-color: #f7fafc;
             padding: 1.5rem;
@@ -398,7 +398,7 @@
             }
         }
         
-        /* 轮播图样式 */
+        /* image carousel styles */
         .image-carousel {
             position: relative;
             margin: 0 auto;
@@ -509,7 +509,7 @@
             margin-bottom: 0.5rem;
         }
 
-        /* 背景色样式 */
+        /* background color styles */
         .bg-blue-100 {
             background-color: #EBF8FF;
             color: #2B6CB0;
@@ -543,7 +543,7 @@
 <body class="bg-gray-100 p-4 md:p-8">
 
     <div class="bg-gradient-to-br from-blue-600 to-indigo-700 pt-12 pb-10 px-4 shadow-xl relative">
-        <!-- 语言切换器 -->
+        <!-- Language Switcher -->
     <div id="lang-switcher" class="lang-switcher">
             <label for="language-switcher" class="sr-only" data-translate="selectLanguage">Language:</label>
             <select id="language-switcher" name="language-switcher" class="text-sm">
@@ -561,7 +561,7 @@
 
     <div class="container mx-auto max-w-6xl bg-white p-6 rounded-lg shadow-md">
 
-        <!-- 景点列表视图 -->
+        <!-- Attraction List View -->
         <div id="attraction-list-view" class="view active">
             <h1 id="main-title" class="text-3xl font-bold text-center text-gray-800 mb-8" data-translate="selectAttraction">Select Attraction</h1>
             <div id="attractions-loading" class="text-center py-10">
@@ -573,7 +573,7 @@
             <div id="attractions-error" class="text-center text-red-600 font-medium mb-4 hidden"></div>
         </div>
 
-        <!-- 景点详情视图 -->
+        <!-- Attraction Detail View -->
         <div id="attraction-detail-view" class="view">
             <button onclick="showView('attraction-list-view')" class="mb-4 text-blue-600 hover:underline">&larr; <span data-translate="backToList">Back to List</span></button>
             <div id="detail-content">
@@ -581,7 +581,7 @@
             <div id="detail-error" class="text-center text-red-600 font-medium mb-4 hidden"></div>
         </div>
 
-        <!-- 购票视图 -->
+        <!-- Purchase View -->
         <div id="purchase-view" class="view">
             <button onclick="showView('attraction-detail-view', currentAttractionId)"
                 class="mb-4 text-blue-600 hover:underline">&larr; <span class="back-to-detail-text" data-translate="backToDetails">Back to
@@ -638,7 +638,7 @@
 
                     <label for="purchase-usage-date"><span class="usage-date-label" data-translate="usageDateLabel">Usage Date:</span></label>
                     <input type="date" id="purchase-usage-date" name="usage_date" required
-                        onchange="validateUsageDate(this)" class="input-field">
+                        onchange="validateUsageDate(this)" class="input-field" lang="en" data-date-format="yyyy-mm-dd" data-date-language="en">
                 </div>
 
                 <div class="text-right font-semibold my-4 text-xl">
@@ -653,7 +653,7 @@
             <div id="purchase-error" class="text-center text-red-600 font-medium mt-4 hidden"></div>
         </div>
 
-        <!-- 订单查询视图 -->
+        <!-- Order Lookup View -->
         <div id="order-lookup-view" class="view">
             <h2 class="text-2xl font-semibold mb-6 text-center" data-translate="orderLookupTitle">Find Your Order</h2>
             <div class="flex flex-col sm:flex-row items-stretch justify-center space-y-3 sm:space-y-0 sm:space-x-3 mb-6 max-w-lg mx-auto">
@@ -677,7 +677,7 @@
 
     </div>
 
-    <!-- 成功购票模态框 -->
+    <!-- Purchase Success Modal -->
     <div id="successModal" class="modal">
         <div class="modal-content">
             <span class="close-button" onclick="closeModal()">&times;</span>
@@ -704,7 +704,7 @@
         let currentSlide = 0;
         let totalSlides = 0;
 
-        // 全局DOM元素变量
+        /* Global DOM element references */
         const attractionsLoadingDiv = document.getElementById('attractions-loading');
         const attractionsListContainer = document.getElementById('attractions-list-container');
         const attractionsErrorDiv = document.getElementById('attractions-error');
@@ -723,7 +723,7 @@
         const successModal = document.getElementById('successModal');
         const modalOrderId = document.getElementById('modalOrderId');
         
-        // 订单查询视图元素
+        /* Order lookup interface elements */
         const consumerOrderIdInput = document.getElementById('consumer-order-id-input');
         const consumerSearchOrderBtn = document.getElementById('consumer-search-order-btn');
         const consumerSearchSpinner = document.getElementById('consumer-search-spinner');
@@ -734,15 +734,11 @@
         let currentAttractionId = null;
         let currentAttractionBasePrice = 0;
 
-        // 视图管理
+        /* View management */
         const views = document.querySelectorAll('.view');
         const navLinks = document.querySelectorAll('nav a');
 
-        /**
-         * 切换显示视图
-         * @param {string} viewId - 要显示的视图ID
-         * @param {*} params - 可选参数，如景点ID
-         */
+        /* Function to change the current view and trigger appropriate data loading */
         function showView(viewId, params = null) {
             console.log(`DEBUG: showView CALLED with viewId: ${viewId}`, params || "(no params)");
             views.forEach(view => {
@@ -772,12 +768,8 @@
             window.scrollTo(0, 0);
         }
 
-        // 辅助函数
-        /**
-         * 验证使用日期是否有效
-         * @param {HTMLInputElement} input - 日期输入元素
-         * @returns {boolean} 日期是否有效
-         */
+        /* Helper functions */
+        /* Validates that the selected date is not in the past */
         function validateUsageDate(input) {
             const selectedDate = input.value;
             const today = new Date();
@@ -794,21 +786,14 @@
             return true;
         }
         
-        /**
-         * 显示成功消息
-         * @param {string} msg - 消息内容
-         */
+        /* Displays a success message that disappears after 5 seconds */
         function showMessage(msg) { 
             clearMessages(); 
             messageDiv.textContent = msg; 
             setTimeout(clearMessages, 5000); 
         }
         
-        /**
-         * 显示错误消息
-         * @param {string} msg - 错误消息
-         * @param {HTMLElement} target - 目标元素
-         */
+        /* Displays an error message that disappears after 7 seconds */
         function showError(msg, target = errorMessageDiv) { 
             clearMessages(); 
             target.textContent = msg; 
@@ -816,10 +801,7 @@
             setTimeout(() => clearMessages(target), 7000); 
         }
         
-        /**
-         * 清除消息
-         * @param {HTMLElement} target - 要清除的目标元素
-         */
+        /* Clears messages from the specified target or all message areas if no target specified */
         function clearMessages(target = null) {
             if (target) { 
                 target.textContent = ''; 
@@ -836,12 +818,7 @@
             }
         }
         
-        /**
-         * 设置按钮加载状态
-         * @param {HTMLButtonElement} button - 按钮元素
-         * @param {boolean} isLoading - 是否处于加载状态
-         * @param {string} loadingTextKey - 加载状态文本的翻译键
-         */
+        /* Sets button to loading state with spinner and text change */
         function setLoadingState(button, isLoading, loadingTextKey = 'purchaseButtonLoading') {
             if (button) {
                 button.disabled = isLoading;
@@ -869,11 +846,7 @@
             }
         }
         
-        /**
-         * 打开成功购票模态框
-         * @param {string} orderId - 订单ID
-         * @param {Array} individualTickets - 个人票列表
-         */
+        /* Opens modal to display order success with QR codes for each ticket */
         function openModal(orderId, individualTickets = []) {
             modalOrderId.textContent = orderId;
             const qrcodesContainer = document.getElementById('qrcodes-container');
@@ -981,21 +954,21 @@
         function showTooltip(element) { /* CSS handles this */ }
         function hideTooltip(element) { element.classList.remove('active'); }
         
-        // 轮播图函数
+        /* Image carousel functions */
         function changeSlide(direction) {
             const slides = document.querySelectorAll('.carousel-slide');
             const indicators = document.querySelectorAll('.indicator');
             
             if (slides.length === 0) return;
             
-            // 清除当前激活状态
+            // clear current active state
             slides[currentSlide].classList.remove('active');
             indicators[currentSlide].classList.remove('active');
             
-            // 计算新的幻灯片索引
+            // calculate new slide index
             currentSlide = (currentSlide + direction + slides.length) % slides.length;
             
-            // 激活新的幻灯片
+            // activate new slide
             slides[currentSlide].classList.add('active');
             indicators[currentSlide].classList.add('active');
         }
@@ -1006,14 +979,14 @@
             
             if (slides.length === 0 || slideIndex < 0 || slideIndex >= slides.length) return;
             
-            // 清除当前激活状态
+            // clear current active state
             slides[currentSlide].classList.remove('active');
             indicators[currentSlide].classList.remove('active');
             
-            // 设置新的当前幻灯片
+            // set new current slide
             currentSlide = slideIndex;
             
-            // 激活新的幻灯片
+            // activate new slide
             slides[currentSlide].classList.add('active');
             indicators[currentSlide].classList.add('active');
         }
@@ -1040,21 +1013,8 @@
             };
         }
 
-        // --- Data Loading ---
-        // async function fetchAttractionData(attractionId) {
-        //     console.log(`Fetching data for attraction ID: ${attractionId} with language: ${currentLanguage}`); 
-        //     try {
-        //         const response = await fetch(`${API_BASE_URL}/attractions/${attractionId}?lang=${currentLanguage}`); 
-        //         if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
-        //         const data = await response.json();
-        //         console.log("Attraction data fetched successfully:", data); // Log successful fetch
-        //         return data;
-        //     } catch (error) {
-        //         console.error(`Error fetching attraction ${attractionId}:`, error); // Log fetch error
-        //         return null; // Indicate failure
-        //     }
-        // }
 
+        /* Loads the list of attractions from the API and renders them */
         async function loadAttractionList() {
             console.log(`DEBUG: loadAttractionList CALLED. Language: ${currentLanguage}`);
             if (!attractionsLoadingDiv || !attractionsListContainer || !attractionsErrorDiv) {
@@ -1111,6 +1071,7 @@
             }
         }
 
+        /* Creates an HTML block for an attraction card with translated content */
         function createAttractionListBlock(attraction) {
             // Assign a background color and increment index
             const bgColorClass = backgroundColors[colorIndex % backgroundColors.length];
@@ -1123,11 +1084,11 @@
             const localImagePath = `res/homepage/${attraction.attraction_id}.jpg`;
             const fallbackImageUrl = attraction.image_url || 'https://placehold.co/600x400/cccccc/666666?text=Image+Not+Available';
 
-            // Price is dynamic. Name and summary will be fetched from translations.
+            // Format the price display
             const priceFormatted = attraction.price > 0 ? `Rp ${attraction.price.toLocaleString('id-ID')}` : translateText('ticketType_free', {defaultValue: 'Free'});
             
-            // Get translated texts using attraction_id
-            const translatedName = translateText(`attractions.${attraction.attraction_id}.name`, { defaultValue: attraction.name }); // Fallback to API name if translation missing
+            // Get translated content
+            const translatedName = translateText(`attractions.${attraction.attraction_id}.name`, { defaultValue: attraction.name });
             const translatedSummary = translateText(`attractions.${attraction.attraction_id}.summary`, { defaultValue: 'No summary available.' });
 
             block.innerHTML = `
@@ -1151,10 +1112,7 @@
         }
 
 
-        /**
-         * 加载景点详情
-         * @param {string} attractionId - 景点ID
-         */
+        /* Loads detailed information about a specific attraction */
         async function loadAttractionDetail(attractionId) {
             console.log(`DEBUG: loadAttractionDetail CALLED with attractionId: ${attractionId}`); 
             if (!detailContent || !detailError) {
@@ -1287,10 +1245,7 @@
         
         let currentAttractionDataForPurchase = null;
 
-        /**
-         * 设置购票表单
-         * @param {Object} attractionData - 景点数据
-         */
+        /* Sets up the purchase form with the selected attraction data */
         async function setupPurchaseForm(attractionData) {
             console.log("setupPurchaseForm called with attraction:", attractionData);
             currentAttractionId = attractionData.attraction_id;
@@ -1301,9 +1256,7 @@
             updatePurchaseSummary();
         }
 
-        /**
-         * 更新购票摘要信息
-         */
+        /* Updates the purchase summary with calculated prices and quantities */
         function updatePurchaseSummary() {
             const quantities = {
                 full: parseInt(document.getElementById('quantity-full').value) || 0,
@@ -1342,10 +1295,7 @@
             purchaseTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
         }
 
-        /**
-         * 更新购票人员姓名输入字段
-         * @param {Object} quantities - 各类型票数量
-         */
+        /* Updates the name input fields based on selected ticket quantities */
         function updatePurchaseNameFields(quantities) { 
             purchaseNameFieldsContainer.innerHTML = ''; 
             let overallTicketIndex = 0;
@@ -1397,6 +1347,7 @@
             }
         }
 
+        /* Handles the form submission when proceeding to payment */
         function handleProceedToPayment(event) {
             event.preventDefault();
             clearMessages(); // Clear previous errors
@@ -1415,30 +1366,27 @@
             let currentOverallIndex = 0;
             const ticketTypesInOrder = ['full', 'discount', 'free'];
 
-            // Collect names in the order: all full, then all discount, then all free
-            // This matches the new updatePurchaseNameFields logic and backend expectation.
+            // Collect names for all tickets in correct order
             for (const type of ticketTypesInOrder) {
                 const countForType = quantities[type];
                 for (let i = 1; i <= countForType; i++) {
-                    currentOverallIndex++; // This matches the ID `purchase_name_${currentOverallIndex}`
+                    currentOverallIndex++;
                     const nameInput = document.getElementById(`purchase_name_${currentOverallIndex}`);
                     if (nameInput && nameInput.value.trim()) {
                         customerNames.push(nameInput.value.trim());
                     } else {
                         allNamesFilled = false;
-                        if (nameInput) nameInput.focus(); // Focus the problematic input
-                        break; // Break inner loop
+                        if (nameInput) nameInput.focus();
+                        break;
                     }
                 }
-                if (!allNamesFilled) break; // Break outer loop
+                if (!allNamesFilled) break;
             }
             
-            // Validation
+            // Form validation
             if (totalQuantityCalculated <= 0 || totalQuantityCalculated > 10) {
                 showError(translateText('quantityError'), purchaseErrorDiv); return;
             }
-            // Check if the number of names collected matches the total quantity.
-            // This also implicitly checks if allNamesFilled is true for the relevant inputs.
             if (customerNames.length !== totalQuantityCalculated) {
                  showError(translateText('fillNamesError'), purchaseErrorDiv); return;
             }
@@ -1450,14 +1398,12 @@
             }
 
 
-            // --- Payment Simulation ---
+            // Payment Simulation - would be replaced with real payment gateway
             setLoadingState(proceedBtn, true);
             console.log("Simulating payment...");
-            // In a real app, redirect to payment gateway or show payment form here.
-            // We'll just simulate success after a delay.
             setTimeout(() => {
                 console.log("Payment simulation successful.");
-                // Now call the actual backend purchase API
+                // Call the backend purchase API
                 submitPurchase({
                     attraction_id: currentAttractionId,
                     quantities: quantities,
@@ -1465,12 +1411,12 @@
                     customer_email: customerEmail,
                     usage_date: usageDate
                 });
-                // Keep button loading until API call finishes
             }, 1500); // Simulate 1.5 second payment process
         }
 
+        /* Submits purchase data to the backend API */
         async function submitPurchase(purchaseData) {
-            // setLoadingState(proceedBtn, true); // Already loading from simulation
+            // Button already in loading state from payment simulation
 
             try {
                 const response = await fetch(`${API_BASE_URL}/purchase`, {
@@ -1497,7 +1443,8 @@
         }
 
 
-        // --- Order Lookup Specific Functions (Consumer) ---
+        /* Order Lookup Functions */
+        /* Searches for an order by ID and displays the results */
         async function searchConsumerOrder() {
             clearMessages(consumerOrderLookupError);
             clearMessages(consumerOrderNotFound);
@@ -1532,7 +1479,7 @@
                 showError(translateText('orderSearchFailed', { defaultValue: 'Failed to search order: '}) + error.message, consumerOrderLookupError);
             } finally {
                 setLoadingState(consumerSearchOrderBtn, false);
-                // 不再需要这段代码，因为 setLoadingState 已经会应用正确的翻译
+                // No longer needed as setLoadingState already applies correct translation
                 // const searchButtonTextSpan = consumerSearchOrderBtn.querySelector('span:not(.spinner)');
                 // if (searchButtonTextSpan) {
                 //     searchButtonTextSpan.textContent = translateText('searchButtonText');
@@ -1540,6 +1487,7 @@
             }
         }
 
+        /* Displays the details of a found order including QR codes */
         function displayConsumerOrderDetails(order) {
             let detailsHtml = `<div class="bg-gray-50 p-6 rounded-lg shadow">`;
             detailsHtml += `<h3 class="text-xl font-semibold mb-4 text-indigo-700 border-b pb-2" data-translate="orderDetailsTitle">Order Details</h3>`;
@@ -1614,37 +1562,20 @@
         }
 
 
-        // --- Initialization ---
-        // document.addEventListener('DOMContentLoaded', () => { // KEEP THIS COMMENTED or REMOVE
-        //     const preferredLang = localStorage.getItem('preferredLang') || 'en'; // OLD
-        //     // Set the initial value of the select dropdown
-        //     languageSelect.value = preferredLang; // OLD languageSelect, might be undefined
-        //     setLanguage(preferredLang); // OLD setLanguage, should be removed or fully deprecated
 
-        //     // Add event listener for the dropdown change
-        //     languageSelect.addEventListener('change', (event) => { // OLD languageSelect
-        //         setLanguage(event.target.value);
-        //     });
 
-        //     // Add a check for QRCode.CorrectLevel on DOMContentLoaded
-        //     if (typeof QRCode !== 'undefined' && QRCode.CorrectLevel) {
-        //         console.log("QRCode.CorrectLevel is available on DOMContentLoaded.");
-        //     } else {
-        //         console.error("QRCode or QRCode.CorrectLevel is NOT available on DOMContentLoaded.");
-        //     }
-        // });
 
         function hideTooltip(element) { element.classList.remove('active'); }
         
-        // 预加载和过滤图片函数
+        /* Preloads and filters images for the carousel, returning only valid image paths */
         async function preloadAndFilterImages(attractionId, maxCount = 10) {
-            // 生成可能的图片路径数组
+            // Generate array of possible image paths
             const possibleImages = [];
             for (let i = 1; i <= maxCount; i++) {
                 possibleImages.push(`res/details/${attractionId}/${i}.jpg`);
             }
             
-            // 使用 Promise.all 并行检查所有图片
+            // Check all images in parallel using Promise.all
             const checkResults = await Promise.all(
                 possibleImages.map(imgSrc => {
                     return new Promise(resolve => {
@@ -1656,7 +1587,7 @@
                 })
             );
             
-            // 过滤出存在的图片路径
+            // Filter only existing image paths
             const validImages = checkResults
                 .filter(result => result.exists)
                 .map(result => result.src);
@@ -1665,38 +1596,34 @@
             return validImages;
         }
         
-        // 轮播图函数
+        /* Changes the current slide in the carousel in the specified direction */
         function changeSlide(direction) {
             const slides = document.querySelectorAll('.carousel-slide');
             const indicators = document.querySelectorAll('.indicator');
             
             if (slides.length === 0) return;
             
-            // 清除当前激活状态
+            // Clear current active state
             slides[currentSlide].classList.remove('active');
             indicators[currentSlide].classList.remove('active');
             
-            // 计算新的幻灯片索引
+            // Calculate new slide index
             currentSlide = (currentSlide + direction + slides.length) % slides.length;
             
-            // 激活新的幻灯片
+            // Activate new slide
             slides[currentSlide].classList.add('active');
             indicators[currentSlide].classList.add('active');
         }
     </script>
 
     <script>
-        // 本地化功能
+        /* Localization Functions */
         let currentLanguage = 'en';
         let translations = {};
         let englishTranslations = {};
         const defaultLanguage = 'en';
 
-        /**
-         * 获取指定语言的翻译文件
-         * @param {string} langCode - 语言代码
-         * @returns {Promise<boolean>} - 是否成功加载翻译
-         */
+        /* Fetches translation file for the specified language code */
         async function fetchTranslations(langCode) {
             try {
                 const response = await fetch(`languages/${langCode}.json?v=${new Date().getTime()}`);
@@ -1734,12 +1661,7 @@
             }
         }
 
-        /**
-         * 使用翻译键获取翻译文本
-         * @param {string} key - 翻译键
-         * @param {Object} params - 替换参数和默认值
-         * @returns {string} - 翻译后的文本
-         */
+        /* Gets translated text using a key with parameter replacement and fallbacks */
         function translateText(key, params = {}) {
             let text;
             
@@ -1798,9 +1720,7 @@
             return resultText;
         }
 
-        /**
-         * 应用翻译到页面元素
-         */
+        /* Applies translations to all elements with translation attributes */
         function applyTranslations() {
             document.querySelectorAll('[data-translate]').forEach(element => {
                 const key = element.getAttribute('data-translate');
@@ -1860,7 +1780,7 @@
             } 
         }
 
-        // Changes the language, fetches new translations, and reapplies them
+        /* Changes the active language, fetches translations, and updates the UI */
         async function changeLanguage(langCode, isFallbackAttempt = false) {
             console.log(`DEBUG: changeLanguage CALLED with langCode: ${langCode}, isFallbackAttempt: ${isFallbackAttempt}`);
             if (!langCode) {
@@ -1872,17 +1792,17 @@
             const success = await fetchTranslations(langCode);
             console.log(`DEBUG: changeLanguage - fetchTranslations success: ${success}`);
             if (success) {
-                // 先应用全局翻译
+                // First apply global translations
                 applyTranslations();
                 localStorage.setItem('preferredLanguage', langCode);
                 
-                // 更新语言选择器
+                // Update language selector
                 const langSwitcher = document.getElementById('language-switcher');
                 if (langSwitcher) {
                     langSwitcher.value = langCode;
                 }
                 
-                // 根据当前活动视图重新加载内容
+                // Reload content based on current active view
                 const currentViewId = Array.from(views).find(view => view.classList.contains('active'))?.id;
                 
                 if (currentViewId === 'purchase-view') {
@@ -1896,13 +1816,13 @@
                     loadAttractionList();
                 } else if (currentViewId === 'order-lookup-view') {
                     console.log("DEBUG: changeLanguage - Order lookup view active");
-                    // 刷新订单查询页面的翻译
+                    // Refresh translations on order lookup page
                     const orderDetailsContainer = document.getElementById('consumer-order-details-container');
                     if (orderDetailsContainer && !orderDetailsContainer.classList.contains('hidden')) {
-                        // 如果已经显示订单详情，重新应用动态内容的翻译
+                        // If order details are already displayed, reapply translations to dynamic content
                         applyTranslations();
                     }
-                    // 确保搜索按钮文本正确
+                    // Ensure search button text is correct
                     const searchBtnTextSpan = consumerSearchOrderBtn.querySelector('span:not(.spinner)');
                     if (searchBtnTextSpan) {
                         searchBtnTextSpan.textContent = translateText('searchButtonText', {defaultValue: 'Search'});
@@ -1915,7 +1835,7 @@
             }
         }
 
-        // Populates the language switcher dropdown
+        /* Populates the language switcher dropdown with available languages */
         function populateLanguageSwitcher(availableLanguages, selectElement) {
             if (!selectElement) return;
             selectElement.innerHTML = ''; // Clear existing options
@@ -1927,7 +1847,7 @@
             });
         }
 
-        // Initializes localization on page load
+        /* Initializes localization by loading available languages and setting initial language */
         async function initLocalization() {
             console.log("DEBUG: initLocalization CALLED");
             const langSwitcher = document.getElementById('language-switcher');
@@ -1957,15 +1877,15 @@
                 }
 
                 const preferredLanguageCode = localStorage.getItem('preferredLanguage');
-                // 始终设置默认语言为英文
+                // Always set English as default language
                 let initialLangCode = 'en';
                 console.log(`DEBUG: initLocalization - Preferred language code from localStorage: ${preferredLanguageCode}, Default language code: ${defaultLanguage}`);
 
-                // 如果localStorage中有存储的语言偏好并且在可用语言列表中，则使用它
+                // Use stored preference if available and valid
                 if (preferredLanguageCode && availableLanguages && availableLanguages.some(lang => lang.code === preferredLanguageCode)) {
                     initialLangCode = preferredLanguageCode;
                 }
-                // 否则保持initialLangCode为'en'
+                // Otherwise keep 'en' as default
 
                 console.log(`DEBUG: initLocalization - Determined initialLangCode: ${initialLangCode}`);
                 await changeLanguage(initialLangCode);

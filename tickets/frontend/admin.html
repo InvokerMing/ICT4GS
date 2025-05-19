@@ -329,7 +329,7 @@
         let currentUserRole = null;
         let attractionsCache = {};
 
-        // --- DOM Elements ---
+        /* DOM Element References */
         const loginView = document.getElementById('login-view');
         const adminMainView = document.getElementById('admin-main-view');
         const loginForm = document.getElementById('login-form');
@@ -340,7 +340,7 @@
         const adminTabContent = document.getElementById('admin-tab-content');
         const adminTabs = adminTabContent.querySelectorAll('.admin-tab');
         const tabButtons = document.querySelectorAll('.tab-button');
-        // Attraction Form Elements
+        /* Attraction Form Controls */
         const attractionForm = document.getElementById('attraction-form');
         const formTitle = document.getElementById('form-title');
         const editAttractionIdField = document.getElementById('edit-attraction-id');
@@ -348,15 +348,15 @@
         const attractionFormError = document.getElementById('attraction-form-error');
         const saveAttractionBtn = document.getElementById('save-attraction-btn');
         const saveSpinner = document.getElementById('save-spinner');
-        // JSON Upload Elements
+        /* JSON Upload Controls */
         const jsonFileInput = document.getElementById('json-file-input');
         const jsonUploadStatus = document.getElementById('json-upload-status');
-        // Attractions Table
+        /* Attractions Table Controls */
         const attractionsTable = document.getElementById('attractions-table');
         const attractionsTableBody = document.getElementById('attractions-table-body');
         const attractionsTableLoading = document.getElementById('attractions-table-loading');
         const adminAttractionsError = document.getElementById('admin-attractions-error');
-        // Stats Tab Elements
+        /* Statistics Tab Controls */
         const statsLoading = document.getElementById('stats-loading');
         const statsErrorDiv = document.getElementById('stats-error');
         const statsContent = document.getElementById('stats-content');
@@ -373,7 +373,7 @@
         const statsDateTotal = document.getElementById('stats-date-total');
         const statsDateByAttraction = document.getElementById('stats-date-by-attraction');
         const statsDateError = document.getElementById('stats-date-error');
-        // Orders Tab Elements
+        /* Order Search Controls */
         const orderIdInput = document.getElementById('order-id-input');
         const searchOrderBtn = document.getElementById('search-order-btn');
         const orderDetailsDiv = document.getElementById('order-details');
@@ -381,7 +381,7 @@
         const orderNotFoundDiv = document.getElementById('order-not-found');
         const searchSpinner = document.getElementById('search-spinner');
 
-        // --- Helper Functions ---
+        /* Utility Functions */
         function showError(msg, target) { target.textContent = msg; target.classList.remove('hidden'); }
         function clearError(target) { target.textContent = ''; target.classList.add('hidden'); }
         function setLoadingState(button, spinner, isLoading) { button.disabled = isLoading; spinner.classList.toggle('hidden', !isLoading); }
@@ -389,17 +389,17 @@
         function formatDate(isoString) { if (!isoString) return 'N/A'; try { return new Date(isoString).toLocaleDateString('en-CA'); } catch (e) { return isoString; } }
         function formatAdminDateTime(isoString) { if (!isoString) return 'N/A'; try { return new Date(isoString).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }); } catch (e) { return isoString; } }
 
-        // --- Authentication ---
+        /* Authentication Functions */
         async function checkLoginStatus() { try { const r = await fetch(`${API_BASE_URL}/admin/status`, { credentials: 'include' }); if (r.ok) { const d = await r.json(); if (d.logged_in) { currentUserRole = d.role; showAdminView(d.username); } else { showLoginView(); } } else { showLoginView(); } } catch (e) { console.error("Status check error:", e); showLoginView(); showError("Cannot connect to server", loginError); } }
         function showLoginView() { loginView.classList.add('active'); adminMainView.classList.remove('active'); currentUserRole = null; }
         function showAdminView(username) { loginView.classList.remove('active'); adminMainView.classList.add('active'); welcomeUser.textContent = `Welcome, ${username}!`; showAdminTab('attractions-tab'); }
         async function handleLogin(event) { event.preventDefault(); clearError(loginError); setLoadingState(loginBtn, loginSpinner, true); const u = loginForm.elements['username'].value; const p = loginForm.elements['password'].value; try { const r = await fetch(`${API_BASE_URL}/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ username: u, password: p }), }); const d = await r.json(); if (r.ok) { currentUserRole = d.role; showAdminView(d.username); } else { throw new Error(d.message || `Login failed (HTTP ${r.status})`); } } catch (e) { console.error("Login failed:", e); showError(e.message, loginError); } finally { setLoadingState(loginBtn, loginSpinner, false); } }
         async function handleLogout() { try { await fetch(`${API_BASE_URL}/admin/logout`, { method: 'POST', credentials: 'include' }); } catch (e) { console.error("Logout error:", e); } finally { showLoginView(); } }
 
-        // --- Admin Tabs ---
+        /* Tab Navigation Functions */
         function showAdminTab(tabId) { adminTabs.forEach(tab => tab.classList.toggle('active', tab.id === tabId)); tabButtons.forEach(btn => { const targetId = btn.id.replace('tab-btn-', '') + '-tab'; const isActive = targetId === tabId; btn.classList.toggle('active', isActive); btn.classList.toggle('border-indigo-500', isActive); btn.classList.toggle('text-indigo-600', isActive); btn.classList.toggle('border-transparent', !isActive); btn.classList.toggle('text-gray-500', !isActive); btn.classList.toggle('hover:text-gray-700', !isActive); btn.classList.toggle('hover:border-gray-300', !isActive); }); if (tabId === 'attractions-tab' && Object.keys(attractionsCache).length === 0) { loadAdminAttractions(); } else if (tabId === 'stats-tab' && statsOverallTotal.textContent === 'N/A') { fetchAdminStats(); } else if (tabId === 'orders-tab') { /* Orders loaded on search */ } }
 
-        // --- Attraction Management ---
+        /* Attraction Management Functions */
         function hideAttractionForm() {
             attractionForm.classList.add('hidden');
             attractionForm.reset();
@@ -424,7 +424,7 @@
             formAttractionIdInput.value = attraction.attraction_id;
             formAttractionIdInput.disabled = true;
 
-            // Populate form with only required fields (English + others)
+            /* Fill form with attraction data */
             attractionForm.elements['name'].value = attraction.name || '';
             attractionForm.elements['price'].value = attraction.price || 0;
             attractionForm.elements['image_url'].value = attraction.image_url || '';
@@ -437,7 +437,7 @@
         }
 
         async function loadAdminAttractions() {
-            // (already fetches full data)
+            /* Fetch complete attraction data from API */
             attractionsTable.classList.add('hidden'); attractionsTableLoading.classList.remove('hidden'); clearError(adminAttractionsError); attractionsCache = {};
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/attractions`, { credentials: 'include' });
@@ -446,9 +446,9 @@
                 if (attractions.length === 0) { attractionsTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500">No attractions found.</td></tr>'; }
                 else {
                     attractions.forEach(a => {
-                        attractionsCache[a.attraction_id] = a; // Cache full data
+                        attractionsCache[a.attraction_id] = a; /* Store complete attraction data in cache */
                         const row = attractionsTableBody.insertRow();
-                        // Display only EN name and price in table
+                        /* Show simplified information in table view */
                         row.innerHTML = `<td>${a.attraction_id}</td><td>${a.name?.en || 'N/A'}</td><td>${formatRp(a.price)}</td><td><button onclick="showEditAttractionForm('${a.attraction_id}')" class="bg-yellow-500 text-white rounded hover:bg-yellow-600">Edit</button> <button onclick="handleDeleteAttraction('${a.attraction_id}')" class="bg-red-500 text-white rounded hover:bg-red-600">Delete</button></td>`;
                     });
                 }
@@ -467,7 +467,7 @@
             const editId = formData.get('edit_attraction_id');
             const isEditing = !!editId;
 
-            // Construct the data payload
+            /* Prepare data for API submission */
             const data = {
                 price: parseFloat(formData.get('price')),
                 name: formData.get('name'),
@@ -477,7 +477,7 @@
                 transport_info: formData.get('transport_info')
             };
 
-            // Add ID only if adding new
+            /* Include ID field only for new attractions */
             if (!isEditing) {
                 data.attraction_id = formData.get('attraction_id');
             }
@@ -497,7 +497,7 @@
 
                 alert(`Attraction ${isEditing ? 'updated' : 'added'} successfully!`);
                 hideAttractionForm();
-                loadAdminAttractions(); // Refresh table
+                loadAdminAttractions(); /* Reload table with updated data */
 
             } catch (error) {
                 console.error(`Error ${isEditing ? 'updating' : 'adding'} attraction:`, error);
@@ -517,9 +517,9 @@
             } catch (error) { console.error(`Error deleting ${attractionId}:`, error); showError(`Delete failed: ${error.message}`, adminAttractionsError); }
         }
 
-        // --- Add from JSON ---
+        /* JSON Import Functions */
         function triggerJsonUpload() {
-            jsonFileInput.click(); // Trigger hidden file input
+            jsonFileInput.click(); /* Open file selection dialog */
         }
 
         function handleJsonFileSelected(event) {
@@ -536,13 +536,13 @@
                     }
                 } catch (err) {
                     showError(`Error reading JSON file: ${err.message}`, adminAttractionsError);
-                    jsonFileInput.value = ''; // Reset file input
+                    jsonFileInput.value = ''; /* Clear file input field */
                     return;
                 }
 
                 if (attractionsToAdd.length === 0) {
                     showError("No attractions found in the JSON file.", adminAttractionsError);
-                    jsonFileInput.value = ''; // Reset file input
+                    jsonFileInput.value = ''; /* Clear file input field */
                     return;
                 }
 
@@ -554,14 +554,14 @@
                 let failCount = 0;
                 const errors = [];
 
-                // Add attractions one by one (could be improved with a bulk endpoint)
+                /* Process attractions individually - future improvement: bulk import API */
                 for (const attractionData of attractionsToAdd) {
-                    // Check if attraction ID already exists in the cache
+                    /* Skip attractions with IDs that already exist */
                     if (attractionsCache[attractionData.id]) {
                         failCount++;
                         errors.push(`Skipped item (ID already exists): ${attractionData.id}`);
                         console.warn(`Skipped adding attraction with duplicate ID: ${attractionData.id}`);
-                        continue; // Skip to the next item in the loop
+                        continue; /* Skip to the next item in the loop */
                     }
 
                     const payload = {
@@ -574,7 +574,7 @@
                         image_url: attractionData.image_url
                     };
 
-                    // Basic validation before sending
+                    /* Basic validation before sending */
                     if (!payload.attraction_id || payload.price === undefined || !payload.name) {
                         failCount++;
                         errors.push(`Skipped item (missing ID, price, or English name): ${JSON.stringify(attractionData).substring(0, 100)}...`);
@@ -594,8 +594,8 @@
                             errors.push(`Failed to add ${payload.attraction_id}: ${result.message || `HTTP ${response.status}`}`);
                         } else {
                             successCount++;
-                            // Optionally update cache with newly added item if successful
-                            // attractionsCache[payload.attraction_id] = payload; // This might need full data from backend response
+                            /* Optionally update cache with newly added item if successful */
+                            /* attractionsCache[payload.attraction_id] = payload; // This would need full data from backend response */
                         }
                     } catch (err) {
                         failCount++;
@@ -603,10 +603,10 @@
                     }
                 }
 
-                // Display final status
+                /* Display final status */
                 let statusMessage = `JSON Upload Complete: ${successCount} added, ${failCount} failed.`;
                 if (errors.length > 0) {
-                    statusMessage += "\nErrors:\n" + errors.slice(0, 5).join("\n"); // Show first 5 errors
+                    statusMessage += "\nErrors:\n" + errors.slice(0, 5).join("\n"); /* Show first 5 errors */
                     if (errors.length > 5) statusMessage += "\n...";
                     jsonUploadStatus.classList.remove('text-blue-600');
                     jsonUploadStatus.classList.add('text-red-600');
@@ -617,33 +617,33 @@
                 jsonUploadStatus.textContent = statusMessage;
                 jsonUploadStatus.classList.remove('hidden');
 
-                jsonFileInput.value = ''; // Reset file input
-                loadAdminAttractions(); // Refresh table to show newly added items and update cache
+                jsonFileInput.value = ''; /* Clear file input field */
+                loadAdminAttractions(); /* Reload table with updated data */
             };
 
             reader.onerror = (e) => {
                 showError("Error reading file.", adminAttractionsError);
-                jsonFileInput.value = ''; // Reset file input
+                jsonFileInput.value = ''; /* Clear file input field */
             };
 
             reader.readAsText(file);
         }
 
 
-        // --- Statistics (Admin) ---
+        /* Statistics Functions */
         function displayStatsSection(totalElement, byAttractionElement, totalTickets, ticketsByAttraction) { totalElement.textContent = totalTickets; if (ticketsByAttraction && ticketsByAttraction.length > 0) { let listHtml = '<ul class="stats-list">'; ticketsByAttraction.forEach(item => { listHtml += `<li>${item.name} (ID: ${item.id}): <span class="font-bold">${item.count}</span></li>`; }); listHtml += '</ul>'; byAttractionElement.innerHTML = listHtml; } else { byAttractionElement.innerHTML = '<p class="text-gray-500 mt-2">No sales data for attractions.</p>'; } }
         async function fetchAdminStats(targetDate = null) { clearError(statsErrorDiv); statsContent.classList.add('hidden'); statsLoading.classList.remove('hidden'); const url = targetDate ? `${API_BASE_URL}/stats?date=${targetDate}` : `${API_BASE_URL}/stats`; try { const response = await fetch(url, { credentials: 'include' }); const stats = await response.json(); if (!response.ok) throw new Error(stats.message || `HTTP ${response.status}`); displayStatsSection(statsOverallTotal, statsOverallByAttraction, stats.overall_total_tickets, stats.overall_tickets_by_attraction); const displayDate = stats.query_date || new Date().toLocaleDateString('en-CA'); statsTodayTitle.textContent = `Statistics for ${displayDate}`; displayStatsSection(statsTodayTotal, statsTodayByAttraction, stats.specific_date_total_tickets, stats.specific_date_tickets_by_attraction); statsContent.classList.remove('hidden'); } catch (error) { console.error('Failed fetch stats:', error); showError(`Failed to load statistics: ${error.message}`, statsErrorDiv); } finally { statsLoading.classList.add('hidden'); } }
         async function fetchAdminStatsForDate() { const selectedDate = statsDatePicker.value; if (!selectedDate) { showError("Please select a date.", statsDateError); return; } clearError(statsDateError); statsDateResult.classList.add('hidden'); setLoadingState(fetchDateStatsBtn, dateStatsSpinner, true); const url = `${API_BASE_URL}/stats?date=${selectedDate}`; try { const response = await fetch(url, { credentials: 'include' }); const stats = await response.json(); if (!response.ok) throw new Error(stats.message || `HTTP ${response.status}`); statsSelectedDate.textContent = stats.query_date; displayStatsSection(statsDateTotal, statsDateByAttraction, stats.specific_date_total_tickets, stats.specific_date_tickets_by_attraction); statsDateResult.classList.remove('hidden'); } catch (error) { console.error(`Failed fetch stats for ${selectedDate}:`, error); showError(`Failed to load statistics for ${selectedDate}: ${error.message}`, statsDateError); } finally { setLoadingState(fetchDateStatsBtn, dateStatsSpinner, false); } }
 
-        // --- Order Search (Admin) ---
+        /* Order Search Functions */
         async function searchAdminOrder() { clearError(orderSearchErrorDiv); orderDetailsDiv.classList.add('hidden'); orderNotFoundDiv.classList.add('hidden'); const orderId = orderIdInput.value.trim(); if (!orderId) { showError('Please enter an Order ID.', orderSearchErrorDiv); return; } setLoadingState(searchOrderBtn, searchSpinner, true); try { const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, { credentials: 'include' }); const orderData = await response.json(); if (!response.ok) { if (response.status === 404) { orderNotFoundDiv.classList.remove('hidden'); } else { throw new Error(orderData.message || `HTTP ${response.status}`); } } else { displayAdminOrderDetails(orderData); orderDetailsDiv.classList.remove('hidden'); } } catch (error) { console.error('Order search failed:', error); showError(`Failed to search order: ${error.message}`, orderSearchErrorDiv); } finally { setLoadingState(searchOrderBtn, searchSpinner, false); } }
         function displayAdminOrderDetails(order) { let detailsHtml = `<h3 class="text-xl font-semibold mb-3 border-b pb-2">Order Details (ID: ${order.order_id})</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mb-4">`; const namesDisplay = Array.isArray(order.customer_names) ? order.customer_names.join(', ') : (order.customer_names || 'N/A'); detailsHtml += `<div><span class="detail-label">Names:</span> <span class="detail-value">${namesDisplay}</span></div><div><span class="detail-label">Email:</span> <span class="detail-value">${order.customer_email || 'N/A'}</span></div><div><span class="detail-label">Usage Date:</span> <span class="detail-value">${formatDate(order.usage_date)}</span></div><div><span class="detail-label">Purchase Time:</span> <span class="detail-value">${formatAdminDateTime(order.purchase_time)}</span></div><div><span class="detail-label">Status:</span> <span class="detail-value">${order.status || 'N/A'}</span></div><div><span class="detail-label">Total:</span> <span class="detail-value font-bold">${formatRp(order.total_amount)}</span></div><div><span class="detail-label">Created At:</span> <span class="detail-value">${formatAdminDateTime(order.created_at)}</span></div></div>`; if (order.items && order.items.length > 0) { detailsHtml += `<h4 class="text-lg font-semibold mt-4 mb-2 border-t pt-2">Items:</h4><ul class="list-disc list-inside space-y-1">`; order.items.forEach(item => { detailsHtml += `<li> ${item.quantity} x ${item.attraction_name || item.attraction_id} (${item.ticket_type_name_en || item.ticket_type}) @ ${formatRp(item.price_per_ticket)} each </li>`; }); detailsHtml += `</ul>`; } else { detailsHtml += `<p class="mt-3 text-gray-500">No items found.</p>`; } orderDetailsDiv.innerHTML = detailsHtml; }
 
-        // --- Initialization ---
+        /* Initialization */
         document.addEventListener('DOMContentLoaded', () => {
-            // checkLoginStatus(); // Re-enable this for production
-            showLoginView(); // Show login first
-            statsDatePicker.value = new Date().toISOString().split('T')[0]; // Set default date
+            // checkLoginStatus(); /* Enable for production */
+            showLoginView(); /* Show login screen initially */
+            statsDatePicker.value = new Date().toISOString().split('T')[0]; /* Set date picker to current date */
         });
 
     </script>

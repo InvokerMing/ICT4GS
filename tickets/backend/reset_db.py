@@ -1,16 +1,26 @@
 import os
-import psycopg
-from psycopg import OperationalError
+from psycopg import OperationalError, DatabaseError
+from psycopg.rows import dict_row
+from psycopg_pool import ConnectionPool
 from dotenv import load_dotenv
 
 load_dotenv()
 DATABASE_URL = os.getenv('DATABASE_URL', None)
 
 TABLES_TO_DROP = [
+    "individual_tickets",
     "order_items",
     "orders",
     "attractions",
     "users"
+]
+
+TRIGGERS_TO_DROP = [
+    {"trigger": "update_individual_ticket_updated_at", "table": "individual_tickets"}
+]
+
+FUNCTIONS_TO_DROP = [
+    "update_individual_ticket_updated_at_column"
 ]
 
 def reset_database():
@@ -18,41 +28,56 @@ def reset_database():
         print("Error: DATABASE_URL environment variable not found. Cannot reset database.")
         return
 
-    conn = None
     try:
-        conn = psycopg.connect(DATABASE_URL)
+        pool = ConnectionPool(
+            conninfo=DATABASE_URL, min_size=1, max_size=1, timeout=10.0,
+            kwargs={'row_factory': dict_row}
+        )
         print("Successfully connected to the database.")
 
-        with conn.cursor() as cur:
-            print("Attempting to drop tables...")
+        with pool.connection() as conn, conn.cursor() as cur:
+            print("Dropping triggers...")
+            for trigger_info in TRIGGERS_TO_DROP:
+                try:
+                    drop_command = f"DROP TRIGGER IF EXISTS {trigger_info['trigger']} ON {trigger_info['table']};"
+                    cur.execute(drop_command)
+                    print(f" - Trigger '{trigger_info['trigger']}' dropped successfully (if it existed).")
+                except Exception as err:
+                    print(f" ! Error dropping trigger '{trigger_info['trigger']}': {err}")
+
+            print("Dropping tables...")
             for table_name in TABLES_TO_DROP:
                 try:
                     drop_command = f"DROP TABLE IF EXISTS {table_name} CASCADE;"
                     cur.execute(drop_command)
                     print(f" - Table '{table_name}' dropped successfully (if it existed).")
-                except OperationalError as drop_err:
-                    print(f" ! Error dropping table '{table_name}': {drop_err}")
-                except Exception as general_err:
-                    print(f" ! Unexpected error dropping table '{table_name}': {general_err}")
+                except Exception as err:
+                    print(f" ! Error dropping table '{table_name}': {err}")
 
-            print("Table dropping process completed.")
-        conn.commit()
+            print("Dropping functions...")
+            for function_name in FUNCTIONS_TO_DROP:
+                try:
+                    drop_command = f"DROP FUNCTION IF EXISTS {function_name}();"
+                    cur.execute(drop_command)
+                    print(f" - Function '{function_name}' dropped successfully (if it existed).")
+                except Exception as err:
+                    print(f" ! Error dropping function '{function_name}': {err}")
+
+            print("Database reset process completed.")
+        
+        pool.close()
+        print("Database connection closed.")
 
     except OperationalError as e:
         print(f"Database connection error: {e}")
-        if conn:
-            conn.rollback()
+    except DatabaseError as e:
+        print(f"Database operation error: {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-        if conn:
-            conn.rollback()
-    finally:
-        if conn:
-            conn.close()
-            print("Database connection closed.")
+
 
 if __name__ == "__main__":
-    confirm = input("WARNING: This will delete all ticketing system tables (users, attractions, orders, order_items).\nAre you sure you want to continue? (yes/no): ")
+    confirm = input("WARNING: This will delete all ticketing system tables, triggers, and functions.\nAre you sure you want to continue? (yes/no): ")
     if confirm.lower() == 'yes':
         print("Proceeding with database reset...")
         reset_database()

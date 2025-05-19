@@ -11,7 +11,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f4f9;
             color: #333;
-            overscroll-behavior-y: contain; /* Prevent pull-to-refresh */
+            overscroll-behavior-y: contain; /* Prevent mobile pull-to-refresh behavior */
         }
         #qr-reader {
             width: 100%;
@@ -19,10 +19,10 @@
             margin: 10px auto;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            overflow: hidden; /* Important for rounded corners on video */
+            overflow: hidden; /* Ensures rounded corners work on the video element */
         }
         .scan-region-highlight {
-            border: 4px solid #4CAF50 !important; /* Green border for scan region */
+            border: 4px solid #4CAF50 !important; /* Highlight color for active scanning area */
         }
         .status-message {
             text-align: center;
@@ -48,7 +48,7 @@
             color: #383d41;
             border: 1px solid #d6d8db;
         }
-        #qr-reader video { /* Ensure video fills the container */
+        #qr-reader video { /* Make video responsive and fill the container */
             width: 100% !important;
             height: auto !important;
             object-fit: cover;
@@ -78,14 +78,14 @@
             background: red;
             box-shadow: 0 0 10px red;
             animation: scan 2s linear infinite;
-            display: none; /* Initially hidden */
+            display: none; /* Hidden until scanning is active */
         }
         @keyframes scan {
             0% { top: 0; }
             50% { top: calc(100% - 2px); }
             100% { top: 0; }
         }
-         /* Hide the "Scan an image file" button as we primarily want camera */
+        /* Hide the file selection button to focus on camera scanning */
         #html5-qrcode-button-file-selection {
             display: none !important;
         }
@@ -136,15 +136,16 @@
         let currentCameraId;
         let isScanning = false;
 
-        const successSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(500).join('123')); // Simple beep
-        const errorSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(500).join('321')); // Lower beep, more of a buzz
+        /* Audio feedback for scan results */
+        const successSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(500).join('123')); /* Higher pitch success sound */
+        const errorSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU'+Array(500).join('321')); /* Lower pitch error sound */
 
         function playSuccessSound() { try { successSound.currentTime = 0; successSound.play(); } catch(e) { console.warn("Could not play success sound",e); }}
         function playErrorSound() { try { errorSound.currentTime = 0; errorSound.play(); } catch(e) { console.warn("Could not play error sound",e); }}
 
         function showMessage(message, type = 'info', ticketName = null) {
             statusDiv.textContent = message;
-            statusDiv.className = 'status-message'; // Reset classes
+            statusDiv.className = 'status-message'; /* Reset to base class first */
             if (type === 'success') {
                 statusDiv.classList.add('status-success');
             } else if (type === 'error') {
@@ -155,21 +156,20 @@
             ticketHolderNameDiv.textContent = ticketName ? ('Ticket Holder: ' + ticketName) : '';
         }
 
+        /* Process scanned QR code and validate ticket with server */
         async function onScanSuccess(decodedText, decodedResult) {
             if (!isScanning) return;
-            isScanning = false; // Prevent multiple scans of the same QR
-            html5QrCode.pause(true); // Pause scanning
+            isScanning = false; /* Prevent multiple scans of the same QR code */
+            html5QrCode.pause(true); /* Pause scanner while processing result */
             scanline.style.display = 'none';
             console.log(`Scan result: ${decodedText}`, decodedResult);
 
             try {
-                // IMPORTANT: Replace with your actual API endpoint and authentication
-                // For testing, using a public API. Replace this with your validation endpoint.
+                /* Send ticket ID to validation API */
                 const response = await fetch(`/api/admin/validate_ticket/${decodedText}`, {
-                    method: 'POST', // Or GET, depending on your API design
+                    method: 'POST',
                     headers: {
                         'Accept': 'application/json',
-                        // 'Authorization': 'Bearer YOUR_ADMIN_TOKEN' // Add authentication if needed
                     }
                 });
 
@@ -187,15 +187,13 @@
                 showMessage('Validation request failed: ' + error.message, 'error');
                 console.error('Validation request error:', error);
             }
-            rescanButton.classList.remove('hidden'); // Show rescan button
+            rescanButton.classList.remove('hidden'); /* Show rescan button after processing */
         }
 
+        /* Handle scan errors silently as scanner continuously attempts detection */
         function onScanFailure(error) {
-            // Continuous scanning, so this might fire often.
-            // console.warn(`QR error = ${error}`);
-            // We don't typically show an error message for every failed scan attempt,
-            // as it's usually just the scanner trying to lock on.
-            // Message is updated on success or explicit API error.
+            /* Scanner attempts QR detection continuously, so failures are normal and expected */
+            /* No UI feedback needed for scan failures as we only want to notify on successful scans */
         }
 
         async function startScanning(cameraId) {
@@ -209,8 +207,8 @@
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0, // Square-ish view
-                rememberLastUsedCamera: false // We explicitly manage camera selection
+                aspectRatio: 1.0, /* Maintain square aspect ratio for camera view */
+                rememberLastUsedCamera: false /* Handle camera selection manually for better control */
             };
 
             try {
@@ -219,7 +217,7 @@
                     config,
                     onScanSuccess,
                     onScanFailure);
-                scanline.style.display = 'block'; // Show scanline
+                scanline.style.display = 'block'; /* Show animated scanning line for visual feedback */
                 showMessage('Please scan the ticket QR code', 'info');
             } catch (err) {
                 isScanning = false;
@@ -259,15 +257,15 @@
                         cameraSelect.appendChild(option);
                     });
 
-                    // Prefer back camera if available
-                    const backCamera = cameras.find(camera => camera.label.toLowerCase().includes('back') || camera.label.toLowerCase().includes('后置'));
+                    /* Prefer back/rear camera if available for better QR scanning */
+                    const backCamera = cameras.find(camera => camera.label.toLowerCase().includes('back') || camera.label.toLowerCase().includes('rear'));
                     currentCameraId = backCamera ? backCamera.id : cameras[0].id;
                     cameraSelect.value = currentCameraId;
 
                     startScanning(currentCameraId);
 
                     cameraSelect.addEventListener('change', async () => {
-                        await stopScanning(); // Stop current before starting new
+                        await stopScanning(); /* Stop current scanner before starting new one */
                         startScanning(cameraSelect.value);
                     });
 
@@ -287,19 +285,19 @@
             if (currentCameraId) {
                  stopScanning().then(() => startScanning(currentCameraId));
             } else {
-                initializeScanner(); // If no camera ID, try re-initializing
+                initializeScanner(); /* If no camera ID is set, try reinitializing scanner */
             }
         });
 
-        // Initialize on page load
+        /* Initialize scanner when page loads */
         document.addEventListener('DOMContentLoaded', initializeScanner);
 
-        // Handle page visibility changes
+        /* Handle page visibility changes to manage camera resources */
         document.addEventListener("visibilitychange", async () => {
             if (document.visibilityState === "hidden") {
                 await stopScanning();
             } else if (document.visibilityState === "visible" && currentCameraId) {
-                // Only restart if a camera was active and we are not already scanning
+                /* Only restart scanner if camera was previously active and not currently scanning */
                 if(!isScanning){
                     startScanning(currentCameraId);
                 }

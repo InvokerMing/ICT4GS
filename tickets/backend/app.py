@@ -526,7 +526,7 @@ def get_order_details(order_id):
 
             # Get order items with attraction names
             cur.execute("""
-                SELECT oi.*, COALESCE(a.name, oi.attraction_id) AS attraction_name 
+                SELECT oi.*, COALESCE(a.name->>'en', a.name::text, oi.attraction_id) AS attraction_name 
                 FROM order_items oi 
                 LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id 
                 WHERE oi.order_id = %s 
@@ -617,7 +617,7 @@ def get_stats():
             cur.execute("""
                 SELECT 
                     a.attraction_id, 
-                    COALESCE(a.name, oi.attraction_id) AS name, 
+                    COALESCE(a.name->>'en', a.name::text, oi.attraction_id) AS name, 
                     SUM(oi.quantity) AS count 
                 FROM order_items oi 
                 LEFT JOIN attractions a ON oi.attraction_id = a.attraction_id 
@@ -643,7 +643,7 @@ def get_stats():
             cur.execute(f"""
                 SELECT 
                     a.attraction_id, 
-                    COALESCE(a.name, oi.attraction_id) AS name, 
+                    COALESCE(a.name->>'en', a.name::text, oi.attraction_id) AS name, 
                     SUM(oi.quantity) AS count 
                 FROM order_items oi 
                 JOIN orders o ON oi.order_id = o.order_id 
